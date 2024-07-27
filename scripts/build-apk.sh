@@ -1,5 +1,5 @@
 export ICON=nh2.png
-export PACKAGE=nh2
+export PACKAGE=nh
 export APP_NAME="Nightmare House 2"
 cd srceng-mod-launcher
 git clone https://gitlab.com/LostGamer/android-sdk
