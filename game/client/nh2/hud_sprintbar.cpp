@@ -91,6 +91,7 @@ void CHudSprintBar::OnThink()
 
 void CHudSprintBar::Paint()
 {
+/*
 	int panelWidth, panelHeight;
 	GetSize(panelWidth, panelHeight);
 
@@ -107,4 +108,5 @@ void CHudSprintBar::Paint()
 	m_pIcon->SetSize(panelHeight * m_flIconSize, panelHeight * m_flIconSize);
 	m_pIcon->SetPos(panelWidth * m_flIconInset, 0.5 * panelHeight * (1.0 - m_flIconSize));
 	m_pIcon->Paint();
+*/
 }
