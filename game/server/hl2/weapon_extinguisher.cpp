@@ -141,7 +141,7 @@ void CWeaponExtinguisher::Event_Killed( const CTakeDamageInfo &info )
 	//Put out fire in a radius
 	FireSystem_ExtinguishInRadius( GetAbsOrigin(), fire_extinguisher_explode_radius.GetInt(), fire_extinguisher_explode_strength.GetFloat() );
 
-	SetThink( SUB_Remove );
+	SetThink( &CWeaponExtinguisher::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 }
 
@@ -196,12 +196,19 @@ void CWeaponExtinguisher::StopJet( void )
 void CWeaponExtinguisher::ItemPostFrame( void )
 {	
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-
 	if ( pOwner == NULL )
 		return;
 
 	//Only shoot if we have ammo
 	if ( pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0 )
+	{
+		StopJet();
+		return;
+	}
+
+	// So dumb but.....
+	CBaseCombatWeapon *pWeapon = pOwner->GetActiveWeapon();
+	if ( !FStrEq ( pWeapon->GetName(), "weapon_extinguisher" ) )
 	{
 		StopJet();
 		return;
@@ -355,7 +362,7 @@ void CExtinguisherCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, U
 
 	SetNextThink( gpGlobals->curtime + 0.25 );
 	
-	SetThink( TurnOff );
+	SetThink( &CExtinguisherCharger::TurnOff );
 
 	CBasePlayer	*pPlayer = ToBasePlayer( pActivator );
 
