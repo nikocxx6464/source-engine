@@ -6,3 +6,8 @@ This repository contains contains source engine modification ported to android
 3. [Missing Information](https://github.com/ItzVladik/source-engine/tree/mi)
 #
 [Source Engine Android Clean Branch](https://github.com/ItzVladik/source-engine/tree/master)
+
+# Thanks to:
+UAVXP for LeakNet [Missing Information]  
+TotteryNine for CoolMod, SirMasters for SMMOD [SMOD Remake]  
+WeCreateStuff for Nightmare House 2 [Nightmare House 2]  
