@@ -11,5 +11,5 @@ This repository contains contains source engine modification ported to android
 # Thanks to:
 UAVXP for LeakNet [Missing Information]  
 TotteryNine for CoolMod, SirMasters for SMMOD [SMOD Remake]  
-WeCreateStuff for Nightmare House 2
+WeCreateStuff for Nightmare House 2  
 NicknineTheEagle for Team Fortress 1.0.1.8 Port, FriskTheFallenHuman and Bitl for TF2 Bots
