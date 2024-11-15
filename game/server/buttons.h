@@ -47,6 +47,10 @@ protected:
 	void InputPress( inputdata_t &inputdata );
 	void InputPressIn( inputdata_t &inputdata );
 	void InputPressOut( inputdata_t &inputdata );
+//TE120--
+	void InputEnable( inputdata_t &inputdata );
+	void InputDisable( inputdata_t &inputdata );
+//TE120--
 
 	virtual int OnTakeDamage( const CTakeDamageInfo &info );
 	
@@ -136,7 +140,7 @@ public:
 	void InputSetPositionImmediately( inputdata_t &inputdata );
 	void InputDisableUpdateTarget( inputdata_t &inputdata );
 	void InputEnableUpdateTarget( inputdata_t &inputdata );
-
+	void InputSetSpeed( inputdata_t &inputdata );//TE120
 	void InputEnable( inputdata_t &inputdata );
 	void InputDisable( inputdata_t &inputdata );
 

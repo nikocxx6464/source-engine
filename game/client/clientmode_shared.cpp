@@ -52,7 +52,6 @@
 #include "replay/vgui/replaymessagepanel.h"
 #include "econ/econ_controls.h"
 #include "econ/confirm_dialog.h"
-
 extern IClientReplayContext *g_pClientReplayContext;
 extern ConVar replay_rendersetting_renderglow;
 #endif
@@ -65,6 +64,7 @@ extern ConVar replay_rendersetting_renderglow;
 #include "c_tf_player.h"
 #include "econ_item_description.h"
 #endif
+#include "c_entgloweffect.h"//TE120
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -821,6 +821,9 @@ void ClientModeShared::LevelInit( const char *newmap )
 	// Reset any player explosion/shock effects
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
+
+	// Enable glow
+	g_pScreenSpaceEffects->EnableScreenSpaceEffect( "ge_entglow" );//TE120
 }
 
 //-----------------------------------------------------------------------------
@@ -844,6 +847,9 @@ void ClientModeShared::LevelShutdown( void )
 	// Reset any player explosion/shock effects
 	CLocalPlayerFilter filter;
 	enginesound->SetPlayerDSP( filter, 0, true );
+
+	// Disable glow
+	g_pScreenSpaceEffects->DisableScreenSpaceEffect( "ge_entglow" );//TE120
 }
 
 

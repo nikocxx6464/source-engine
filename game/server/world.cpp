@@ -43,10 +43,10 @@ extern CUtlMemoryPool g_EntityListPool;
 
 #define SF_DECAL_NOTINDEATHMATCH		2048
 
-class CDecal : public CPointEntity
+class CDecal : public CServerOnlyPointEntity//TE120
 {
 public:
-	DECLARE_CLASS( CDecal, CPointEntity );
+	DECLARE_CLASS( CDecal, CServerOnlyPointEntity );//TE120
 
 	void	Spawn( void );
 	bool	KeyValue( const char *szKeyName, const char *szValue );
@@ -240,10 +240,10 @@ bool CDecal::KeyValue( const char *szKeyName, const char *szValue )
 //-----------------------------------------------------------------------------
 // Purpose: Projects a decal against a prop
 //-----------------------------------------------------------------------------
-class CProjectedDecal : public CPointEntity
+class CProjectedDecal : public CServerOnlyPointEntity//TE120
 {
 public:
-	DECLARE_CLASS( CProjectedDecal, CPointEntity );
+	DECLARE_CLASS( CProjectedDecal, CServerOnlyPointEntity );//TE120
 
 	void	Spawn( void );
 	bool	KeyValue( const char *szKeyName, const char *szValue );

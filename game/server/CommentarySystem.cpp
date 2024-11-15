@@ -648,6 +648,7 @@ public:
 					Warning("Commentary: Failed to spawn commentary entity, type: '%s'\n", pNodeName );
 				}
 
+				pkvFile->deleteThis();
 				// Move to next entity
 				pkvNode = pkvNode->GetNextKey();
 			}
@@ -1244,7 +1245,7 @@ void CPointCommentaryNode::UpdateViewThink( void )
 
 		// Blend to the target position over time. 
  		float flCurTime = (gpGlobals->curtime - m_flStartTime);
- 		float flBlendPerc = clamp( flCurTime * 0.5f, 0.f, 1.f );
+ 		float flBlendPerc = clamp( flCurTime / 2.0, 0, 1 );//TE120
 
 		// Figure out the current view position
 		Vector vecCurEye;

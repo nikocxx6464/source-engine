@@ -3007,6 +3007,7 @@ void CNPC_Manhack::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 	}
 	else
 	{
+		// FIX: Remember the current owner in case we are from a npc_template_maker/npc_maker.
 		m_pPrevOwner.Set( GetOwnerEntity() );
 
 		// Suppress collisions between the manhack and the player; we're currently bumping
@@ -3024,9 +3025,10 @@ void CNPC_Manhack::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 //-----------------------------------------------------------------------------
 void CNPC_Manhack::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reason )
 {
+	// Stop suppressing collisions between the manhack and the player
 	SetOwnerEntity( m_pPrevOwner.Get() );
 
-	// Stop suppressing collisions between the manhack and the player
+	// Reset previous owner back to NULL.
 	m_pPrevOwner.Set( NULL );
 
 	m_bHeld = false;

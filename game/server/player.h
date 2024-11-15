@@ -539,8 +539,10 @@ public:
 	virtual void			PlayUseDenySound() {}
 
 	virtual CBaseEntity		*FindUseEntity( void );
+	virtual bool			FindAnyUsable( void );//TE120
 	virtual bool			IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredCaps );
 	bool					ClearUseEntity();
+	virtual void			CheckUsable( void );//TE120
 	CBaseEntity				*DoubleCheckUseNPC( CBaseEntity *pNPC, const Vector &vecSrc, const Vector &vecDir );
 
 
@@ -670,6 +672,10 @@ public:
 	bool	IsPlayerLockedInPlace() const { return m_iPlayerLocked != 0; }
 	bool	IsObserver() const		{ return (m_afPhysicsFlags & PFLAG_OBSERVER) != 0; }
 	bool	IsOnTarget() const		{ return m_fOnTarget; }
+//TE120--
+	bool	IsOnUsable() const		{ return m_fOnUsable; }
+	void	SetOnUsable( bool bOnUsable ) { m_fOnUsable = bOnUsable; }
+//TE120--
 	float	MuzzleFlashTime() const { return m_flFlashTime; }
 	float	PlayerDrownTime() const	{ return m_AirFinished; }
 
@@ -868,6 +874,7 @@ public:
 	int						m_afButtonDisabled;	// A mask of input flags that are cleared automatically
 	int						m_afButtonForced;	// These are forced onto the player's inputs
 
+	CNetworkVar( bool, m_fOnUsable );	//Is the crosshair on a usable? //TE120
 	CNetworkVar( bool, m_fOnTarget );		//Is the crosshair on a target?
 
 	char					m_szAnimExtension[32];
@@ -1212,7 +1219,6 @@ private:
 
 public:
 	virtual unsigned int PlayerSolidMask( bool brushOnly = false ) const;	// returns the solid mask for the given player, so bots can have a more-restrictive set
-
 };
 
 typedef CHandle<CBasePlayer> CBasePlayerHandle;

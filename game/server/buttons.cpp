@@ -65,6 +65,10 @@ BEGIN_DATADESC( CBaseButton )
 	DEFINE_INPUTFUNC( FIELD_VOID, "Press", InputPress ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "PressIn", InputPressIn ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "PressOut", InputPressOut ),
+//TE120--
+	DEFINE_INPUTFUNC( FIELD_VOID, "Enable", InputEnable ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "Disable", InputDisable ),
+//TE120--
 
 	// Outputs
 	DEFINE_OUTPUT( m_OnDamaged, "OnDamaged" ),
@@ -184,6 +188,26 @@ void CBaseButton::Unlock()
 	m_bLocked = false;
 }
 
+//TE120--
+//-----------------------------------------------------------------------------
+// Purpose: Start the spawner
+//-----------------------------------------------------------------------------
+void CBaseButton::InputEnable( inputdata_t &inputdata )
+{
+	AddEFlags( EFL_USE_PARTITION_WHEN_NOT_SOLID );
+	SetSolid( SOLID_VPHYSICS );
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Stop the spawner
+//-----------------------------------------------------------------------------
+void CBaseButton::InputDisable( inputdata_t &inputdata )
+{
+	RemoveEFlags( EFL_USE_PARTITION_WHEN_NOT_SOLID );
+	SetSolid( SOLID_NONE );
+}
+//TE120--
 
 //-----------------------------------------------------------------------------
 // Purpose: Locks the button. If locked, the button will play the locked sound
@@ -937,6 +961,10 @@ BEGIN_DATADESC( CMomentaryRotButton )
 	DEFINE_FIELD( m_IdealYaw, FIELD_FLOAT ),
 	DEFINE_FIELD( m_sNoise, FIELD_SOUNDNAME ),
 	DEFINE_FIELD( m_bUpdateTarget, FIELD_BOOLEAN ),
+//TE120--
+	DEFINE_KEYFIELD( m_ls.sLockedSound, FIELD_SOUNDNAME, "locked_sound" ),
+	DEFINE_KEYFIELD( m_ls.sUnlockedSound, FIELD_SOUNDNAME, "unlocked_sound" ),
+//TE120--
 
 	DEFINE_KEYFIELD( m_direction, FIELD_INTEGER, "StartDirection" ),
 	DEFINE_KEYFIELD( m_returnSpeed, FIELD_FLOAT, "returnspeed" ),
@@ -954,7 +982,7 @@ BEGIN_DATADESC( CMomentaryRotButton )
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "SetPositionImmediately", InputSetPositionImmediately ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "_DisableUpdateTarget", InputDisableUpdateTarget ),
 	DEFINE_INPUTFUNC( FIELD_VOID, "_EnableUpdateTarget", InputEnableUpdateTarget ),
-
+	DEFINE_INPUTFUNC( FIELD_FLOAT, "SetSpeed", InputSetSpeed ),//TE120
 	// Outputs
 	DEFINE_OUTPUT( m_Position, "Position" ),
 	DEFINE_OUTPUT( m_OnUnpressed, "OnUnpressed" ),
@@ -1064,6 +1092,22 @@ void CMomentaryRotButton::Spawn( void )
 	}
 
 	m_bDisabled = false;
+//TE120--
+	// get door button sounds, for doors which require buttons to open
+	if ( m_bLockedSound )
+	{
+		char tmp[1024];
+		Q_snprintf( tmp, sizeof(tmp), "Doors.CombineGate_citizen_stop1" );
+
+		m_ls.sLockedSound = AllocPooledString(tmp);
+		PrecacheScriptSound(m_ls.sLockedSound.ToCStr());
+	}
+
+	if ( m_sNoise != NULL_STRING )
+	{
+		PrecacheScriptSound( STRING( m_sNoise ) );
+	}
+//TE120--
 }
 
 int	CMomentaryRotButton::ObjectCaps( void ) 
@@ -1127,6 +1171,19 @@ float CMomentaryRotButton::GetPos( const QAngle &vecAngles )
 	return( clamp( flPos, 0.f, 1.f ));
 }
 
+//TE120--
+//------------------------------------------------------------------------------
+// Purpose :
+// Input   : flSpeed
+//------------------------------------------------------------------------------
+void CMomentaryRotButton::InputSetSpeed( inputdata_t &inputdata )
+{
+	m_flSpeed = inputdata.value.Float();
+
+	if ( m_flSpeed <= 0 )
+		m_flSpeed = 100;
+}
+//TE120--
 
 //------------------------------------------------------------------------------
 // Purpose :
@@ -1575,6 +1632,13 @@ void CMomentaryRotButton::InputDisable( inputdata_t &inputdata )
 void CMomentaryRotButton::Enable( void )
 {
 	m_bDisabled = false;
+//TE120--
+	if ( HasSpawnFlags( SF_ROTBUTTON_NOTSOLID ) )
+	{
+		AddEFlags( EFL_USE_PARTITION_WHEN_NOT_SOLID );
+		SetSolid( SOLID_VPHYSICS );
+	}
+//TE120--
 }
 
 
@@ -1584,4 +1648,11 @@ void CMomentaryRotButton::Enable( void )
 void CMomentaryRotButton::Disable( void )
 {
 	m_bDisabled = true;
+//TE120--
+	if ( HasSpawnFlags( SF_ROTBUTTON_NOTSOLID ) )
+	{
+		RemoveEFlags( EFL_USE_PARTITION_WHEN_NOT_SOLID );
+		SetSolid( SOLID_NONE );
+	}
+//TE120--
 }

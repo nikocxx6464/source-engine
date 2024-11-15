@@ -42,7 +42,7 @@
 #endif
 
 #ifdef HL2_DLL
-#include "weapon_physcannon.h"
+#include "weapon_physconcussion.h"//TE120
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -849,8 +849,7 @@ CON_COMMAND( fov, "Change players FOV" )
 }
 
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
+
 void CC_Player_SetModel( const CCommand &args )
 {
 	if ( gpGlobals->deathmatch )
@@ -963,16 +962,17 @@ void CC_Player_PhysSwap( void )
 			engine->ClientCommand( UTIL_GetCommandClient()->edict(), "cancelselect" );
 
 			const char *strWeaponName = pWeapon->GetName();
-
-			if ( !Q_stricmp( strWeaponName, "weapon_physcannon" ) )
+//TE120--
+			if ( !Q_stricmp( strWeaponName, "weapon_physconcussion" ) )
 			{
-				PhysCannonForceDrop( pWeapon, NULL );
+				PhysConcussionForceDrop( pWeapon, NULL );
 				pPlayer->SelectLastItem();
 			}
 			else
 			{
-				pPlayer->SelectItem( "weapon_physcannon" );
+				pPlayer->SelectItem( "weapon_physconcussion" );
 			}
+//TE120--
 		}
 	}
 }

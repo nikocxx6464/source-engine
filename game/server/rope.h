@@ -89,12 +89,16 @@ public:
 	void InputSetScrollSpeed( inputdata_t &inputdata );
 	void InputSetForce( inputdata_t &inputdata );
 	void InputBreak( inputdata_t &inputdata );
+	void InputUpdateRope( inputdata_t &inputdata );//TE120
 
 public:
 
 	bool			Break( void );
 	void			DetachPoint( int iPoint );
-	
+//TE120--
+	void			SetNameThink();
+	void			CallNameThink();
+//TE120--
 	void			EndpointsChanged();
 
 	// By default, ropes don't collide with the world. Call this to enable it.
@@ -159,7 +163,7 @@ public:
 	CNetworkVar( int, m_fLockedPoints );
 
 	bool		m_bCreatedFromMapFile; // set to false when creating at runtime
-
+	string_t	m_strNameThink;//TE120
 	CNetworkVar( float, m_flScrollSpeed );
 
 private:

@@ -2828,6 +2828,10 @@ bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float 
 			return false;
 		if ( pList[i]->IsHinged() )
 			return false;
+//TE120--
+		if ( pObject->HasSpawnFlags( SF_PHYSBOX_NEVER_PICK_UP ) )
+			return false;
+//TE120--
 	}
 
 
@@ -2849,10 +2853,13 @@ bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float 
 		CPhysBox *pBox = dynamic_cast<CPhysBox*>(pObject);
 		if ( !pProp && !pBox )
 			return false;
-
-		if ( pProp && !(pProp->HasSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON )) )
+//TE120--
+		if ( pProp && !(pProp->HasSpawnFlags( SF_PHYSPROP_ENABLE_ON_PHYSCANNON ) || pProp->GetExplosiveRadius() == 1337 ) )
+		{
+			pProp->EnableMotion();
 			return false;
-
+		}
+//TE120--
 		if ( pBox && !(pBox->HasSpawnFlags( SF_PHYSBOX_ENABLE_ON_PHYSCANNON )) )
 			return false;
 	}
@@ -3840,7 +3847,7 @@ void CBasePlayer::PreThink(void)
 	UpdateClientData();
 	
 	CheckTimeBasedDamage();
-
+	CheckUsable();//TE120
 	CheckSuitUpdate();
 
 	if ( GetObserverMode() > OBS_MODE_FREEZECAM )
@@ -5362,11 +5369,62 @@ bool CBasePlayer::HasWeapons( void )
 // Purpose: 
 // Input  : &vecForce - 
 //-----------------------------------------------------------------------------
+//TE120--
+ConVar physconcussion_maxhorizontalforce( "physconcussion_maxhorizontalforce", "430" );
+ConVar physconcussion_maxverticalforce( "physconcussion_maxverticalforce", "560" );
+//TE120--
+
 void CBasePlayer::VelocityPunch( const Vector &vecForce )
 {
 	// Clear onground and add velocity.
 	SetGroundEntity( NULL );
-	ApplyAbsVelocityImpulse(vecForce );
+//TE120--
+	// ApplyAbsVelocityImpulse(vecForce );
+
+	if ( vecForce != vec3_origin )
+	{
+		if ( GetMoveType() == MOVETYPE_VPHYSICS )
+		{
+			VPhysicsGetObject()->AddVelocity( &vecForce, NULL );
+		}
+		else
+		{
+			// NOTE: Have to use GetAbsVelocity here to ensure it's the correct value
+			Vector vecResult;
+			VectorAdd( GetAbsVelocity(), vecForce, vecResult );
+
+			if ( vecResult.x > physconcussion_maxhorizontalforce.GetFloat() )
+			{
+				vecResult.x = physconcussion_maxhorizontalforce.GetFloat();
+			}
+			else if ( vecResult.x < (-1.0 * physconcussion_maxhorizontalforce.GetFloat()) )
+			{
+				vecResult.x = -1 * physconcussion_maxhorizontalforce.GetFloat();
+			}
+
+			if ( vecResult.y > physconcussion_maxhorizontalforce.GetFloat() )
+			{
+				vecResult.y = physconcussion_maxhorizontalforce.GetFloat();
+			}
+			else if ( vecResult.y < (-1.0 * physconcussion_maxhorizontalforce.GetFloat()) )
+			{
+				vecResult.y = -1 * physconcussion_maxhorizontalforce.GetFloat();
+			}
+
+			if ( vecResult.z > physconcussion_maxverticalforce.GetFloat() )
+			{
+				vecResult.z = physconcussion_maxverticalforce.GetFloat();
+			}
+			else if ( vecResult.z < (-1.0 * physconcussion_maxverticalforce.GetFloat()) )
+			{
+				vecResult.z = -1 * physconcussion_maxverticalforce.GetFloat();
+			}
+
+			//DevMsg("Final Player Push: %f %f %f\n", vecResult.x, vecResult.y, vecResult.z ); //Debug
+			SetAbsVelocity( vecResult );
+		}
+	}
+//TE120--
 }
 
 
@@ -6134,14 +6192,15 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_cubemap" );
 		break;
 
+//TE120--
 	case 82:
 		// Cheat to create a jeep in front of the player
-		CreateJeep( this );
+		//CreateJeep( this );
 		break;
 
 	case 83:
 		// Cheat to create a airboat in front of the player
-		CreateAirboat( this );
+		//CreateAirboat( this );
 		break;
 
 	case 101:
@@ -6160,23 +6219,19 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo( 5,	"grenade");
 		GiveAmmo( 32,	"357" );
 		GiveAmmo( 16,	"XBowBolt" );
-#ifdef HL2_EPISODIC
-		GiveAmmo( 5,	"Hopwire" );
-#endif		
+
 		GiveNamedItem( "weapon_smg1" );
 		GiveNamedItem( "weapon_frag" );
 		GiveNamedItem( "weapon_crowbar" );
 		GiveNamedItem( "weapon_pistol" );
 		GiveNamedItem( "weapon_ar2" );
 		GiveNamedItem( "weapon_shotgun" );
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_bugbait" );
+		GiveNamedItem( "weapon_physconcussion" );
+
 		GiveNamedItem( "weapon_rpg" );
 		GiveNamedItem( "weapon_357" );
 		GiveNamedItem( "weapon_crossbow" );
-#ifdef HL2_EPISODIC
-		// GiveNamedItem( "weapon_magnade" );
-#endif
+
 		if ( GetHealth() < 100 )
 		{
 			TakeHealth( 25, DMG_GENERIC );
@@ -6185,6 +6240,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		gEvilImpulse101		= false;
 
 		break;
+//TE120--
 
 	case 102:
 		// Gibbage!!!
@@ -6488,7 +6544,6 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 		
 		return true;
 	}
-	
 	else if ( stricmp( cmd, "spec_player" ) == 0 ) // chase next player
 	{
 		if ( GetObserverMode() > OBS_MODE_FIXED && args.ArgC() == 2 )
@@ -6514,7 +6569,6 @@ bool CBasePlayer::ClientCommand( const CCommand &args )
 		
 		return true;
 	}
-
 	else if ( stricmp( cmd, "spec_goto" ) == 0 ) // chase next player
 	{
 		if ( ( GetObserverMode() == OBS_MODE_FIXED ||
@@ -7553,6 +7607,36 @@ bool CBasePlayer::ClearUseEntity()
 
 	return false;
 }
+//TE120--
+//-----------------------------------------------------------------------------
+// Purpose: Let player know when his crosshair is on a usable
+//-----------------------------------------------------------------------------
+void CBasePlayer::CheckUsable( void )
+{
+	// First do a cheap find to see if there are any usables
+	bool bFoundAnyUsable = FindAnyUsable();
+
+	if ( bFoundAnyUsable )
+	{
+		CBaseEntity *useEnt = FindUseEntity();
+
+		// More expensive search to verify item is usable with traces/collision checks/etc.
+		if ( useEnt )
+		{
+			DevMsg( "%s\n", STRING( useEnt->GetEntityName() ) );
+			SetOnUsable(true);
+		}
+		else
+		{
+			SetOnUsable(false);
+		}
+	}
+	else
+	{
+		SetOnUsable(false);
+	}
+}
+//TE120--
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -7941,6 +8025,7 @@ void SendProxy_CropFlagsToPlayerFlagBitsLength( const SendProp *pProp, const voi
 		SendPropArray3		( SENDINFO_ARRAY3(m_iAmmo), SendPropInt( SENDINFO_ARRAY(m_iAmmo), -1, SPROP_VARINT | SPROP_UNSIGNED ) ),
 			
 		SendPropInt			( SENDINFO( m_fOnTarget ), 2, SPROP_UNSIGNED ),
+		SendPropInt			( SENDINFO( m_fOnUsable ), 2, SPROP_UNSIGNED ),//TE120
 
 		SendPropInt			( SENDINFO( m_nTickBase ), -1, SPROP_CHANGES_OFTEN ),
 		SendPropInt			( SENDINFO( m_nNextThinkTick ) ),

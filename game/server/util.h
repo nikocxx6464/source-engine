@@ -31,6 +31,7 @@
 #include "util_shared.h"
 #include "shareddefs.h"
 #include "networkvar.h"
+#include "utldict.h"
 
 struct levellist_t;
 class IServerNetworkable;

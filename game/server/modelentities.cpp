@@ -8,6 +8,7 @@
 #include "entityoutput.h"
 #include "ndebugoverlay.h"
 #include "modelentities.h"
+#include "tier0/vprof.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -362,3 +363,185 @@ bool CTriggerBrush::PassesInputFilter( CBaseEntity *pOther, int filter )
 	return true;
 }
 
+//TE120--
+#define DT_BRUSH_GLOW 0.01f
+
+LINK_ENTITY_TO_CLASS( func_brushglow, CFuncBrushGlow );
+
+BEGIN_DATADESC( CFuncBrushGlow )
+
+	// Function pointers
+	DEFINE_THINKFUNC( IllumThink ),
+	DEFINE_THINKFUNC( UpdateThink ),
+
+	// Fields
+	DEFINE_FIELD( m_bAbsorbing, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_fIsIlluminated, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_flAbsorbRate, FIELD_FLOAT ),
+	DEFINE_FIELD( m_flEmitRate, FIELD_FLOAT ),
+	DEFINE_KEYFIELD( m_bStartOff, FIELD_BOOLEAN, "StartOff"),
+	DEFINE_KEYFIELD( m_flAbsorbTime, FIELD_FLOAT, "AbsorbTime"),
+	DEFINE_KEYFIELD( m_flEmitTime, FIELD_FLOAT, "EmitTime"),
+
+	// Outputs
+	DEFINE_OUTPUT( m_OnIlluminated, "OnIlluminated" ),
+	DEFINE_OUTPUT( m_OnNotIlluminated, "OnNotIlluminated" ),
+	DEFINE_OUTPUT( m_Energy, "Energy" ),
+
+	// Inputs
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnergyAbsorb", InputAbsorbEnergy ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnergyEmit", InputEmitEnergy ),
+
+END_DATADESC()
+
+//------------------------------------------------------------------------------
+// Purpose : Init
+//------------------------------------------------------------------------------
+void CFuncBrushGlow::Spawn()
+{
+	// Find our desired transition time, divide by delta to find change rate.
+	m_flAbsorbRate = DT_BRUSH_GLOW / m_flAbsorbTime;
+	m_flEmitRate = DT_BRUSH_GLOW / m_flEmitTime;
+
+	m_fIsIlluminated = false;
+
+	if ( m_bStartOff )
+	{
+		m_bAbsorbing = false;
+		m_Energy.Set(0.0f, UTIL_GetLocalPlayer(), this);
+	}
+	else
+	{
+		m_bAbsorbing = true;
+		m_Energy.Set(1.0f, UTIL_GetLocalPlayer(), this);
+	}
+
+	RegisterThinkContext( "IllumContext" );
+	SetContextThink( &CFuncBrushGlow::IllumThink, gpGlobals->curtime + 0.01f, "IllumContext" );
+
+	BaseClass::Spawn();
+}
+
+
+//------------------------------------------------------------------------------
+// Purpose : Begin building energy towards 1.0
+// Input   : m_Energy
+//------------------------------------------------------------------------------
+void CFuncBrushGlow::InputAbsorbEnergy( inputdata_t &inputdata )
+{
+	m_bAbsorbing = true;
+
+	// Use think to start building up energy
+	SetThink( &CFuncBrushGlow::UpdateThink );
+	SetNextThink( gpGlobals->curtime + DT_BRUSH_GLOW );
+}
+
+//------------------------------------------------------------------------------
+// Purpose : Begin building energy towards 0.0
+// Input   : m_Energy
+//------------------------------------------------------------------------------
+void CFuncBrushGlow::InputEmitEnergy( inputdata_t &inputdata )
+{
+	m_bAbsorbing = false;
+
+	// Use think to start building up energy
+	SetThink( &CFuncBrushGlow::UpdateThink );
+	SetNextThink( gpGlobals->curtime + DT_BRUSH_GLOW );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Think function for absorbing and emitting energy
+//-----------------------------------------------------------------------------
+void CFuncBrushGlow::UpdateThink( void )
+{
+	VPROF_BUDGET( "CVisibleShadowList::GlowCalc", VPROF_BUDGETGROUP_GLOWCALC );
+
+	float fCurrentEnergy = m_Energy.Get();
+
+	if ( m_bAbsorbing && fCurrentEnergy < 1.0f )
+	{
+		DevMsg( "Absorbing Energy %f at %f rate.\n", fCurrentEnergy, m_flAbsorbRate );
+
+		fCurrentEnergy = clamp(fCurrentEnergy + m_flAbsorbRate, 0.0f, 1.0f);
+
+		// Change at absorb rate every think until we reach 1.0
+		m_Energy.Set(fCurrentEnergy, UTIL_GetLocalPlayer(), this);
+
+		// If less than 1.0 then continue thinking
+		if ( fCurrentEnergy < 1.0f )
+			SetNextThink( gpGlobals->curtime + DT_BRUSH_GLOW );
+	}
+	else if ( fCurrentEnergy > 0.0f )
+	{
+		DevMsg( "Emitting Energy %f at %f rate.\n", fCurrentEnergy, m_flEmitRate );
+
+		fCurrentEnergy = clamp(fCurrentEnergy - m_flEmitRate, 0.0f, 1.0f);
+
+		// Change at emit rate every think until we reach 0.0
+		m_Energy.Set(fCurrentEnergy, UTIL_GetLocalPlayer(), this);
+
+		// If greater than 0.0 then continue thinking
+		if ( fCurrentEnergy > 0.0f )
+			SetNextThink( gpGlobals->curtime + DT_BRUSH_GLOW );
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Think function for outputing illumination events
+//-----------------------------------------------------------------------------
+void CFuncBrushGlow::IllumThink( void )
+{
+	VPROF_BUDGET( "CVisibleShadowList::IllumThink", VPROF_BUDGETGROUP_GLOWCALC );
+
+	if ( ( UTIL_FindClientInPVS( edict() ) != NULL ) || ( UTIL_ClientPVSIsExpanded() && UTIL_FindClientInVisibilityPVS( edict() ) ) )
+	{
+		CheckIlluminated();
+
+		// Think constantly
+		SetNextThink(gpGlobals->curtime + 0.01f, "IllumContext" );
+	}
+	else
+	{
+		// Think every 1 second
+		SetNextThink(gpGlobals->curtime + 1.0f, "IllumContext" );
+	}
+}
+
+void CFuncBrushGlow::CheckIlluminated()
+{
+	VPROF_BUDGET( "CVisibleShadowList::CheckIlluminated", VPROF_BUDGETGROUP_GLOWCALC );
+
+	// If we're being illuminated by the flashlight send output
+	CBasePlayer *pPlayer = AI_GetSinglePlayer();
+ 	if ( pPlayer )
+	{
+		float fDot;
+
+		pPlayer->IsIlluminatedByFlashlight( this, &fDot );
+
+		DevMsg( "fDot: %f\n", fDot );
+
+		// Is this glow entity within a 15 degree cone and visible?
+		if ( fDot > 0.96f && pPlayer->FVisible(this) )
+		{
+			if ( !m_fIsIlluminated )
+			{
+				m_fIsIlluminated = true;
+
+				// Send output that I am illuminated
+				m_OnIlluminated.FireOutput( this, this );
+				DevMsg( "I am illuminated!\n" ); //Debug
+			}
+		}
+		else if ( m_fIsIlluminated )
+		{
+			m_fIsIlluminated = false;
+
+			// Send out that I am no longer illuminated
+			m_OnNotIlluminated.FireOutput(this, this);
+
+			DevMsg( "I am no longer illuminated!\n" ); //Debug
+		}
+	}
+}
+//TE120--

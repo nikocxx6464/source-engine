@@ -65,6 +65,7 @@ void CHudCrosshair::ApplySchemeSettings( IScheme *scheme )
 {
 	BaseClass::ApplySchemeSettings( scheme );
 
+	m_pCrosshairUse = gHUD.GetIcon("crosshair_use");//TE120
 	m_pDefaultCrosshair = gHUD.GetIcon("crosshair_default");
 	SetPaintBackgroundEnabled( false );
 

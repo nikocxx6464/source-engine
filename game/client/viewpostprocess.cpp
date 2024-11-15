@@ -18,8 +18,14 @@
 #include "bitmap/tgawriter.h"
 #include "filesystem.h"
 #include "tier0/vprof.h"
-
 #include "proxyentity.h"
+//TE120--
+#include "c_te_effect_dispatch.h"
+#include "shadereditor/ivshadereditor.h"
+//TE120--
+
+// memdbgon must be the last include file in a .cpp file!!!
+#include "tier0/memdbgon.h"
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -1460,7 +1466,7 @@ static float GetBloomAmount( void )
 
 	if ( hdrType == HDR_TYPE_NONE )
 	{
-		flBloomAmount *= mat_non_hdr_bloom_scalefactor.GetFloat()/2.f;
+		flBloomAmount *= mat_non_hdr_bloom_scalefactor.GetFloat();
 	}
 
 	flBloomAmount *= mat_bloom_scalefactor_scalar.GetFloat();
@@ -2213,6 +2219,20 @@ static ConVar r_queued_post_processing( "r_queued_post_processing", "0" );
 static ConVar mat_postprocess_x( "mat_postprocess_x", "4" );
 static ConVar mat_postprocess_y( "mat_postprocess_y", "1" );
 
+//TE120--
+// Convars for controlling TE120 post processing
+static ConVar te120_combinedlensflare("te120_combinedlensflare", "1", FCVAR_ARCHIVE, "Toggles TE120 post-processing effects" );
+
+float g_DesiredDrunkValue = -1.0f;
+float g_ActualDrunkValue = 0.0f;
+float g_NextDrunkUpdateTime = 0.0f;
+
+float g_DesiredDirtyValue = -1.0f;
+float g_ActualDirtyValue = 1.0f;
+bool  g_ReturnToDefault = false;
+float g_NextDirtyUpdateTime = 0.0f;
+//TE120--
+
 void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, bool bPostVGui )
 {
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
@@ -2631,7 +2651,161 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 #if defined( _X360 )
 	pRenderContext->PopVertexShaderGPRAllocation();
 #endif
+//TE120--
+	// Here happens the SSE specific stuff
+	if ( shaderEdit )
+	{
+		static IMaterial *pMat = materials->FindMaterial( "drunk", TEXTURE_GROUP_OTHER );
+		if ( pMat )
+		{
+			static unsigned int ivar_tmp = 0;
+			IMaterialVar *pMutableVar = pMat->FindVarFast( "$MUTABLE_01", &ivar_tmp );
+
+			if ( pMutableVar )
+			{
+				g_ActualDrunkValue = 1 - pMutableVar->GetFloatValue();
+
+				if ( g_ActualDrunkValue != g_DesiredDrunkValue )
+				{
+					// If the map is just starting make sure this is reset back to 0
+					if ( g_DesiredDrunkValue == -1 )
+					{
+						g_NextDrunkUpdateTime = gpGlobals->curtime + 0.05f;
+						g_ActualDrunkValue = 0;
+						g_DesiredDrunkValue = 0;
+					}
+
+					if ( gpGlobals->curtime >= g_NextDrunkUpdateTime )
+					{
+						// Fade in or out the drunk effect
+						if ( g_DesiredDrunkValue < g_ActualDrunkValue )
+						{
+							g_ActualDrunkValue -= 0.015;
+
+							if ( g_ActualDrunkValue <= 0.0 )
+								g_ActualDrunkValue = 0.0;
+
+							g_NextDrunkUpdateTime = gpGlobals->curtime + 0.05f;
+						}
+						else
+						{
+							g_ActualDrunkValue += 0.2;
+
+							if ( g_ActualDrunkValue > 0.34 )
+								g_ActualDrunkValue = 0.34;
+
+							// When fully concussed begin cool down in 1 second
+							if ( g_ActualDrunkValue >= 0.34 )
+							{
+								g_DesiredDrunkValue = 0.0;
+								g_NextDrunkUpdateTime = gpGlobals->curtime + 2.0f;
+							}
+							else
+							{
+								g_NextDrunkUpdateTime = gpGlobals->curtime + 0.05f;
+							}
+						}
+					}
+
+					pMutableVar->SetFloatValue( 1.0f - g_ActualDrunkValue );
+
+					// Run Drunk Post
+					UpdateScreenEffectTexture();
+					pMat->IncrementReferenceCount();
+					pRenderContext->DrawScreenSpaceRectangle( pMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h );
+					pMat->DecrementReferenceCount();
+				}
+			}
+		}
+
+		ShaderEditVarToken ivar_tmp = SHADEREDIT_MVAR_TOKEN_INVALID;
+		IMaterialVar *pMutableVar = shaderEdit->GetPPEMaterialVarFast( ivar_tmp, "ppe_combined_lens", "combinedlens", "$MUTABLE_01" );
+
+		if (pMutableVar)
+		{
+			// Toggle the effect via cvar
+			if ( !te120_combinedlensflare.GetBool() )
+			{
+				pMutableVar->SetFloatValue( 0.0f );
+				return;
+			}
+
+			g_ActualDirtyValue = pMutableVar->GetFloatValue();
+			//DevMsg("g_ActualDirtyValue = %f\n", g_ActualDirtyValue );
+
+			if ( g_ActualDirtyValue != g_DesiredDirtyValue )
+			{
+				// If the map is just starting make sure this is reset back to 1
+				if ( g_DesiredDirtyValue == -1 )
+				{
+					g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+					g_ActualDirtyValue = 1;
+					g_DesiredDirtyValue = 1;
+				}
+
+				if ( gpGlobals->curtime >= g_NextDirtyUpdateTime )
+				{
+					if ( g_DesiredDirtyValue < g_ActualDirtyValue )
+					{
+						g_ActualDirtyValue -= 0.2;
+
+						if ( g_ActualDirtyValue <= 0.0 )
+						{
+							g_ActualDirtyValue = 0.0;
+
+							if (g_ReturnToDefault)
+							{
+								g_DesiredDirtyValue = 1.0;
+								g_ReturnToDefault = false;
+								g_NextDirtyUpdateTime = gpGlobals->curtime + 2.0f;
+							}
+							else
+								g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+						}
+						else
+							g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+					}
+					else
+					{
+						g_ActualDirtyValue += 0.015;
+
+						if ( g_ActualDirtyValue >= 1.0 )
+							g_ActualDirtyValue = 1.0;
+
+						g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+					}
+				}
+
+				pMutableVar->SetFloatValue( g_ActualDirtyValue );
+			}
+		}
+	}
+//TE120--
 }
+
+//TE120--
+void GravityBallFadeConcCallback( const CEffectData &data )
+{
+	g_DesiredDrunkValue = data.m_flScale;
+	g_NextDrunkUpdateTime = gpGlobals->curtime + 0.05f;
+}
+DECLARE_CLIENT_EFFECT( "CE_GravityBallFadeConcOn", GravityBallFadeConcCallback );
+
+void DisableDirtyLens( const CEffectData &data )
+{
+	g_DesiredDirtyValue = data.m_flScale;
+	g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+}
+DECLARE_CLIENT_EFFECT( "CE_DisableDirtyLens", DisableDirtyLens );
+
+void DisableDirtyLensFade( const CEffectData &data )
+{
+	g_DesiredDirtyValue = data.m_flScale;
+	g_ReturnToDefault = true;
+	g_NextDirtyUpdateTime = gpGlobals->curtime + 0.05f;
+}
+DECLARE_CLIENT_EFFECT( "CE_DisableDirtyLensFade", DisableDirtyLensFade );
+//TE120--
 
 // Motion Blur Material Proxy =========================================================================================
 static float g_vMotionBlurValues[4] = { 0.0f, 0.0f, 0.0f, 0.0f };

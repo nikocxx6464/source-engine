@@ -298,8 +298,10 @@ protected:
     MESSAGE_FUNC_HANDLE( OnCursorEnteredMenuItem, "CursorEnteredMenuItem", menuItem);
     MESSAGE_FUNC_HANDLE( OnCursorExitedMenuItem, "CursorExitedMenuItem", menuItem);
 
-	void MoveAlongMenuItemList(int direction, int loopCount); 
 
+public:
+	void MoveAlongMenuItemList(int direction, int loopCount); 
+	
 	enum 
 	{
 		DEFAULT_MENU_ITEM_HEIGHT = 22, // height of items in the menu
@@ -307,6 +309,7 @@ protected:
 		MENU_DOWN = 1
 	};
 
+protected:
 #ifdef DBGFLAG_VALIDATE
 	virtual void Validate( CValidator &validator, char *pchName );
 #endif // DBGFLAG_VALIDATE

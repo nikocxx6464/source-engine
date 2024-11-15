@@ -373,6 +373,12 @@ int	CNPC_Barnacle::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 	{
 		info.SetDamage( m_iHealth );
 	}
+//TE120--
+	else if ( info.GetDamageType() & DMG_PHYSGUN ) // Kill barnacles with physconcussion
+	{
+		info.SetDamage( m_iHealth );
+	}
+//TE120--
 
 	if ( GetActivity() == ACT_IDLE )
 	{
@@ -676,6 +682,10 @@ bool CNPC_Barnacle::CanPickup( CBaseCombatCharacter *pBCC )
 
 		// Don't pick up a player held by another barnacle
 		if( pPlayer->HasPhysicsFlag(PFLAG_ONBARNACLE) )
+			return false;
+
+		// Don't pick up a player who has noclip enabled
+		if( pPlayer->GetMoveType() == MOVETYPE_NOCLIP )
 			return false;
 	}
 	else if ( pBCC->IsInAVehicle() )

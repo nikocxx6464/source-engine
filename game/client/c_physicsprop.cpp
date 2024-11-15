@@ -20,17 +20,12 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define PBR_CHANGE
-
 IMPLEMENT_CLIENTCLASS_DT(C_PhysicsProp, DT_PhysicsProp, CPhysicsProp)
 	RecvPropBool( RECVINFO( m_bAwake ) ),
+	RecvPropBool( RECVINFO( m_bEnableGlow ) ),//TE120
 END_RECV_TABLE()
 
-#ifdef PBR_CHANGE
-	ConVar r_PhysPropStaticLighting( "r_PhysPropStaticLighting", "0" );
-#else
 	ConVar r_PhysPropStaticLighting( "r_PhysPropStaticLighting", "1" );
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -43,6 +38,10 @@ C_PhysicsProp::C_PhysicsProp( void )
 
 	// default true so static lighting will get recomputed when we go to sleep
 	m_bAwakeLastTime = true;
+//TE120--
+	m_bClientGlow = false;
+	m_pEntGlowEffect = ( CEntGlowEffect* )g_pScreenSpaceEffects->GetScreenSpaceEffect( "ge_entglow" );
+//TE120--
 }
 
 //-----------------------------------------------------------------------------
@@ -96,6 +95,24 @@ bool C_PhysicsProp::OnInternalDrawModel( ClientModelRenderInfo_t *pInfo )
 	
 	// track state
 	m_bAwakeLastTime = m_bAwake;
+
+//TE120--
+	if ( m_bClientGlow != m_bEnableGlow )
+	{
+		if ( m_bEnableGlow )
+		{
+			// Register us with the effect
+			m_pEntGlowEffect->RegisterEnt( this, Color(255, 255, 255, 100) ); //255, 70, 0 for hud color
+		}
+		else
+		{
+			// Stop glowing
+			m_pEntGlowEffect->DeregisterEnt( this );
+		}
+
+		m_bClientGlow = m_bEnableGlow;
+	}
+//TE120--
 
 	return true;
 }

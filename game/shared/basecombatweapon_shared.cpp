@@ -499,7 +499,15 @@ CHudTexture const *CBaseCombatWeapon::GetSpriteCrosshair( void ) const
 {
 	return GetWpnData().iconCrosshair;
 }
-
+//TE120--
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+CHudTexture const *CBaseCombatWeapon::GetSpriteCrosshairUse( void ) const
+{
+	return GetWpnData().iconCrosshairUse;
+}
+//TE120--
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -1059,7 +1067,12 @@ int CBaseCombatWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		}
 		else
 		{
+//TE120--
+			if ( pPlayer->m_fOnUsable )
+				iNewState = WEAPON_ON_USABLE;
+			else
 			iNewState = WEAPON_IS_ACTIVE;
+//TE120--
 		}
 	}
 	else
@@ -1725,7 +1738,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		{
 			// This weapon doesn't fire underwater
 			WeaponSound(EMPTY);
-			m_flNextPrimaryAttack = gpGlobals->curtime + 0.2;
+			m_flNextPrimaryAttack = m_flNextEmptySoundTime = gpGlobals->curtime + 0.2;//TE120
 			return;
 		}
 		else

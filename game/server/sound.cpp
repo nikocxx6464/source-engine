@@ -407,14 +407,21 @@ void CAmbientGeneric::InputFadeOut( inputdata_t &inputdata )
 {
 	// cancel any fade in that might be happening
 	m_dpv.fadein = 0;
-
+//TE120--
+	if (m_dpv.vol > 0)
+	{
 	m_dpv.fadeout = inputdata.value.Float();
 
-	if (m_dpv.fadeout > 100) m_dpv.fadeout = 100;
-	if (m_dpv.fadeout < 0) m_dpv.fadeout = 0;
+		if (m_dpv.fadeout > 100)
+			m_dpv.fadeout = 100;
+
+		if (m_dpv.fadeout < 0)
+			m_dpv.fadeout = 0;
 
 	if (m_dpv.fadeout > 0)
 		m_dpv.fadeout = ( 100 << 8 ) / ( m_dpv.fadeout * AMBIENT_GENERIC_UPDATE_RATE );
+	}
+//TE120--
 
 	SetNextThink( gpGlobals->curtime + 0.1f );
 }
@@ -885,11 +892,14 @@ void CAmbientGeneric::SendSound( SoundFlags_t flags)
 		{
 			UTIL_EmitAmbientSound(pSoundSource->GetSoundSourceIndex(), pSoundSource->GetAbsOrigin(), szSoundFile, 
 						0, SNDLVL_NONE, flags, 0);
+			m_fActive = false;
 		}
 		else
 		{
 			UTIL_EmitAmbientSound(pSoundSource->GetSoundSourceIndex(), pSoundSource->GetAbsOrigin(), szSoundFile, 
 				(m_dpv.vol * 0.01), m_iSoundLevel, flags, m_dpv.pitch);
+			if (m_fLooping)
+				m_fActive = true;
 		}
 	}	
 	else
@@ -899,6 +909,7 @@ void CAmbientGeneric::SendSound( SoundFlags_t flags)
 		{
 			UTIL_EmitAmbientSound(m_nSoundSourceEntIndex, GetAbsOrigin(), szSoundFile, 
 					0, SNDLVL_NONE, flags, 0);
+			m_fActive = false;
 		}
 	}
 }

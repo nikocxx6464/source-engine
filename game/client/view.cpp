@@ -545,8 +545,12 @@ void CViewRender::OnRenderStart()
 			if ( localFOV == iDefaultFOV )
 			{
 #ifndef _XBOX
-				// reset to saved sensitivity
+//TE120--
+				if ( player->m_Local.m_iHideHUD & HIDEHUD_ALL )
+					gHUD.m_flMouseSensitivity = 0.15f;
+				else // reset to saved sensitivity
 				gHUD.m_flMouseSensitivity = 0;
+//TE120--
 #endif
 			}
 			else
@@ -562,7 +566,12 @@ void CViewRender::OnRenderStart()
 					((float)localFOV / (float)iDefaultFOV) * // linear fov downscale
 					zoom_sensitivity_ratio.GetFloat(); // sensitivity scale factor
 #ifndef _XBOX
+//TE120--
+				if ( player->m_Local.m_iHideHUD & HIDEHUD_ALL )
+					gHUD.m_flMouseSensitivity = 0.15f;
+				else
 				gHUD.m_flMouseSensitivity = gHUD.m_flFOVSensitivityAdjust * sensitivity.GetFloat(); // regular sensitivity
+//TE120--
 #endif
 			}
 		}
@@ -1360,4 +1369,3 @@ CON_COMMAND( getpos, "dump position and angles to the console" )
 	Warning( "%s %f %f %f;", pCommand1, vecOrigin.x, vecOrigin.y, vecOrigin.z );
 	Warning( "%s %f %f %f\n", pCommand2, angles.x, angles.y, angles.z );
 }
-

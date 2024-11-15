@@ -647,10 +647,21 @@ void CGamePlayerEquip::Touch( CBaseEntity *pOther )
 
 void CGamePlayerEquip::EquipPlayer( CBaseEntity *pEntity )
 {
-	CBasePlayer *pPlayer = ToBasePlayer(pEntity);
+	CBasePlayer *pPlayer = NULL;
 
-	if ( !pPlayer )
-		return;
+	// Fix for crash on use game_player_equip with logic_auto
+	// When using logic_auto pEntity is not the player.
+	if (pEntity && !pEntity->IsPlayer() )
+	{		
+		pEntity = NULL;
+	}
+
+	// If no entity found use player (sp only)
+	if ( pEntity == NULL )
+		pEntity = UTIL_GetLocalPlayer();
+
+	if (pEntity && pEntity->IsPlayer() )
+		pPlayer = (CBasePlayer *)pEntity;
 
 	for ( int i = 0; i < MAX_EQUIP; i++ )
 	{
@@ -733,5 +744,3 @@ void CGamePlayerTeam::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 		UTIL_Remove( this );
 	}
 }
-
-

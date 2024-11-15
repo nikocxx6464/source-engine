@@ -134,8 +134,13 @@ public:
 	virtual void	AvoidPhysicsProps( CUserCmd *pCmd );
 	
 	virtual void	PlayerUse( void );
+	virtual bool	FindAnyUsable( void );//TE120
 	CBaseEntity		*FindUseEntity( void );
 	virtual bool	IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredCaps );
+	//TE120--
+	virtual void	CheckUsable( void );
+	void	SetOnUsable( bool bOnUsable ) { m_fOnUsable = bOnUsable; }
+	//TE120--
 
 	// Data handlers
 	virtual bool	IsPlayer( void ) const { return true; }
@@ -425,6 +430,7 @@ public:
 
 	// For weapon prediction
 	bool			m_fOnTarget;		//Is the crosshair on a target?
+	bool			m_fOnUsable;		//Is the crosshair on a usable?//TE120
 	
 	char			m_szAnimExtension[32];
 

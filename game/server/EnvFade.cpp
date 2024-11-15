@@ -7,6 +7,7 @@
 
 #include "cbase.h"
 #include "shake.h"
+#include "te_effect_dispatch.h"//TE120
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -58,6 +59,9 @@ END_DATADESC()
 #define SF_FADE_MODULATE		0x0002		// Modulate, don't blend
 #define SF_FADE_ONLYONE			0x0004
 #define SF_FADE_STAYOUT			0x0008
+//TE120--
+#define SF_FADE_DONTDIRTY		0x0010		// If true dont fade dirty lens
+//TE120--
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -81,6 +85,24 @@ void CEnvFade::InputFade( inputdata_t &inputdata )
 	else
 	{
 		fadeFlags |= FFADE_OUT;
+
+//TE120--
+		if ( m_spawnflags & SF_FADE_DONTDIRTY )
+		{
+			// Hack: If SF_FADE_DONTDIRTY flag is set, disable but
+			// fade back to on.
+			CEffectData	data;
+			data.m_flScale = 0;
+			DispatchEffect( "CE_DisableDirtyLensFade", data );
+		}
+		else
+		{
+			// Otherwise turn off and stay off
+			CEffectData	data;
+			data.m_flScale = 0;
+			DispatchEffect( "CE_DisableDirtyLens", data );
+		}
+//TE120--
 	}
 
 	if ( m_spawnflags & SF_FADE_MODULATE )

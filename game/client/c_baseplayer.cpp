@@ -87,7 +87,7 @@ extern ConVar sensitivity;
 
 static C_BasePlayer *s_pLocalPlayer = NULL;
 
-static ConVar	cl_customsounds ( "cl_customsounds", "1", 0, "Enable customized player sound playback" );
+static ConVar	cl_customsounds ( "cl_customsounds", "0", 0, "Enable customized player sound playback" );
 static ConVar	spec_track		( "spec_track", "0", 0, "Tracks an entity in spec mode" );
 static ConVar	cl_smooth		( "cl_smooth", "1", 0, "Smooth view/eye origin after prediction errors" );
 static ConVar	cl_smoothtime	( 
@@ -221,6 +221,7 @@ END_RECV_TABLE()
 		RecvPropArray3		( RECVINFO_ARRAY(m_iAmmo), RecvPropInt( RECVINFO(m_iAmmo[0])) ),
 		
 		RecvPropInt			( RECVINFO(m_fOnTarget) ),
+		RecvPropInt			( RECVINFO(m_fOnUsable) ),//TE120
 
 		RecvPropInt			( RECVINFO( m_nTickBase ) ),
 		RecvPropInt			( RECVINFO( m_nNextThinkTick ) ),
@@ -359,6 +360,7 @@ BEGIN_PREDICTION_DATA( C_BasePlayer )
 	DEFINE_PRED_FIELD( m_iBonusProgress, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_iBonusChallenge, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_fOnTarget, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
+	DEFINE_PRED_FIELD( m_fOnUsable, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),//TE120
 	DEFINE_PRED_FIELD( m_nNextThinkTick, FIELD_INTEGER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_lifeState, FIELD_CHARACTER, FTYPEDESC_INSENDTABLE ),
 	DEFINE_PRED_FIELD( m_nWaterLevel, FIELD_CHARACTER, FTYPEDESC_INSENDTABLE ),
@@ -409,6 +411,10 @@ C_BasePlayer::C_BasePlayer() : m_iv_vecViewOffset( "C_BasePlayer::m_iv_vecViewOf
 	m_vecLadderNormal.Init();
 	m_vecOldViewAngles.Init();
 #endif
+
+	// Prevent clip with dynamic lights
+	ConVarRef r_flashlightscissor( "r_flashlightscissor" );
+	r_flashlightscissor.SetValue( "0" );
 
 	m_pFlashlight = NULL;
 
@@ -2358,6 +2364,22 @@ bool C_BasePlayer::IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredC
 	return false;
 }
 
+//TE120--
+//-----------------------------------------------------------------------------
+// Purpose: Let player know when his crosshair is on a usable
+//-----------------------------------------------------------------------------
+void C_BasePlayer::CheckUsable( void )
+{
+	// First do a cheap find to see if there are any usables
+	bool bFoundAnyUsable = FindAnyUsable();
+
+	// More expensive search to verify item is usable with traces/collision checks/etc.
+	if ( bFoundAnyUsable && FindUseEntity() )
+		SetOnUsable( true );
+	else
+		SetOnUsable( false );
+}
+//TE120--
 
 //-----------------------------------------------------------------------------
 // Purpose: 

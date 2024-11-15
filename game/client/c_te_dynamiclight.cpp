@@ -83,6 +83,7 @@ C_TEDynamicLight::~C_TEDynamicLight( void )
 void TE_DynamicLight( IRecipientFilter& filter, float delay,
 	const Vector* org, int r, int g, int b, int exponent, float radius, float time, float decay, int nLightIndex )
 {
+	// Create a "Dynamic" light that will illuminate the world
 	dlight_t *dl = effects->CL_AllocDlight( nLightIndex );
 	if ( !dl )
 		return;

@@ -35,6 +35,9 @@ extern IFileSystem *filesystem;
 	static ConVar dispcoll_drawplane( "dispcoll_drawplane", "0" );
 #endif
 
+// memdbgon must be the last include file in a .cpp file!!!
+#include "tier0/memdbgon.h"
+
 
 // tickcount currently isn't set during prediction, although gpGlobals->curtime and
 // gpGlobals->frametime are. We should probably set tickcount (to player->m_nTickBase),
@@ -60,6 +63,11 @@ ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCH
 ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
 #endif
 #endif
+
+// Camera Bob
+ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "0", 0, "Oscillation Toggle", true, 0, true, 1 );
+ConVar cl_viewbob_timer		( "cl_viewbob_timer", "10", 0, "Speed of Oscillation");
+ConVar cl_viewbob_scale		( "cl_viewbob_scale", "0.01", 0, "Magnitude of Oscillation");
 
 // [MD] I'll remove this eventually. For now, I want the ability to A/B the optimizations.
 bool g_bMovementOptimizations = true;
@@ -1894,6 +1902,14 @@ void CGameMovement::StayOnGround( void )
 //-----------------------------------------------------------------------------
 void CGameMovement::WalkMove( void )
 {
+	// Camera Bob
+	if ( cl_viewbob_enabled.GetInt() == 1 && !engine->IsPaused() )
+	{
+		float xoffset = sin( gpGlobals->curtime * cl_viewbob_timer.GetFloat() ) * player->GetAbsVelocity().Length() * cl_viewbob_scale.GetFloat() / 100;
+		float yoffset = sin( 2 * gpGlobals->curtime * cl_viewbob_timer.GetFloat() ) * player->GetAbsVelocity().Length() * cl_viewbob_scale.GetFloat() / 400;
+		player->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
+
 	int i;
 
 	Vector wishvel;

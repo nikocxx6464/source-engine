@@ -237,6 +237,13 @@ void CCredits::InputRollOutroCredits( inputdata_t &inputdata )
 	m_bRolledOutroCredits = true;
 
 	gamestats->Event_Credits();
+
+//TE120--
+	// Fire event for achievement: E120_CHAPTER_4
+	IGameEvent *event = gameeventmanager->CreateEvent( "chapter_4_complete" );
+	if ( event )
+		gameeventmanager->FireEvent( event );
+//TE120--
 }
 
 void CCredits::InputShowLogo( inputdata_t &inputdata )

@@ -1640,6 +1640,28 @@ void CHLClient::LevelInitPreEntity( char const* pMapName )
 		CReplayRagdollRecorder::Instance().Init();
 	}
 #endif
+
+//TE120--
+	/*
+	During the end sequence, physics time is scaled to give the appearance
+	of slowed time. If you load another save during this scene the physics
+	speed does not reset. This will make sure it does!
+	*/
+	static ConVar *pCVcl_phys_timescale = NULL;
+	pCVcl_phys_timescale = ( ConVar * )cvar->FindVar( "phys_timescale" );
+
+	if (pCVcl_phys_timescale && (pCVcl_phys_timescale->GetFloat() < 1) )
+		engine->ClientCmd( "phys_timescale 1" );
+
+	// Reset all achievements and stats (for development only)
+	// This should only used during development!
+	//#define RESETSTATS
+#ifdef RESETSTATS
+	DevMsg("Reset all stats!\n");
+	steamapicontext->SteamUserStats()->ResetAllStats( true );
+	steamapicontext->SteamUserStats()->StoreStats();
+#endif
+//TE120--
 }
 
 
@@ -1677,6 +1699,21 @@ void CHLClient::ResetStringTablePointers()
 //-----------------------------------------------------------------------------
 void CHLClient::LevelShutdown( void )
 {
+//TE120--
+	/*
+	This is a hacky fix for a bug in chapter_4. If the level is reloaded
+	before r_unloadlightmaps value has returned to 0 then on the next
+	load the level appears black. r_unloadlightmaps needs about 1-2
+	minutes to refresh the lightmaps. Not sure why this helps with perf
+	but chapter_4 needs it!
+	*/
+	static ConVar *pCVcl_unloadedlightmaps = NULL;
+	pCVcl_unloadedlightmaps = ( ConVar * )cvar->FindVar( "r_unloadlightmaps" );
+
+	if (pCVcl_unloadedlightmaps && (pCVcl_unloadedlightmaps->GetFloat() > 0) )
+		engine->ClientCmd( "r_unloadlightmaps 0" );
+//TE120--
+
 	// HACK: Bogus, but the logic is too complicated in the engine
 	if (!g_bLevelInitialized)
 		return;

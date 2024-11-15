@@ -243,6 +243,16 @@ void CNPC_CScanner::Spawn(void)
 		m_flSpotlightGoalWidth = MAX_BEAM_WIDTH; 
 	}
 
+	if ( IsStriderScout() )
+	{
+		// Streetwar scanners are claw scanners
+		m_bIsClawScanner = true;
+	}
+	else
+	{
+		m_bIsClawScanner = false;
+	}
+
 	Precache();
 
 	if( m_bIsClawScanner )

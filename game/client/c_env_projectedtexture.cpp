@@ -17,8 +17,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static ConVar mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap", "16", FCVAR_CHEAT );
-static ConVar mat_depthbias_shadowmap(	"mat_depthbias_shadowmap", "0.0005", FCVAR_CHEAT  );
+static ConVar mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap", "4", FCVAR_CHEAT );
+static ConVar mat_depthbias_shadowmap( "mat_depthbias_shadowmap", "0.00001", FCVAR_CHEAT );
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -33,6 +33,7 @@ public:
 	void	ShutDownLightHandle( void );
 
 	virtual void Simulate();
+	virtual void CreateShadow();//TE120
 
 	void	UpdateLight( bool bForceUpdate );
 
@@ -106,6 +107,14 @@ void C_EnvProjectedTexture::OnDataChanged( DataUpdateType_t updateType )
 	UpdateLight( true );
 	BaseClass::OnDataChanged( updateType );
 }
+
+//TE120--
+void C_EnvProjectedTexture::CreateShadow()
+{
+	if ( m_bState == true )
+		BaseClass::CreateShadow();
+}
+//TE120--
 
 void C_EnvProjectedTexture::UpdateLight( bool bForceUpdate )
 {

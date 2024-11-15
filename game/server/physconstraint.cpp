@@ -795,9 +795,10 @@ public:
 	void NotifyVPhysicsStateChanged( IPhysicsObject *pPhysics, CBaseEntity *pEntity, bool bAwake )
 	{
 #if HINGE_NOTIFY
-		Assert(m_pConstraint);
 		if (!m_pConstraint) 
 			return;
+
+		Assert(m_pConstraint);//TE120
 
 		// if something woke up, start thinking. If everything is asleep, stop thinking.
 		if ( bAwake )
@@ -816,11 +817,16 @@ public:
 		}
 		else
 		{
-			// Is everything asleep? If so, stop thinking.
-			if ( GetNextThink() != TICK_NEVER_THINK				&&
-				m_pConstraint->GetAttachedObject()->IsAsleep() &&
-				m_pConstraint->GetReferenceObject()->IsAsleep() )
+//TE120--
+			if ( !m_pConstraint->GetAttachedObject() )
 			{
+				m_soundInfo.StopThinking(this);
+				SetNextThink(TICK_NEVER_THINK);
+			}
+			// Is everything asleep? If so, stop thinking.
+			else if ( GetNextThink() != TICK_NEVER_THINK && m_pConstraint->GetAttachedObject()->IsAsleep() && m_pConstraint->GetReferenceObject()->IsAsleep() )
+			{
+//TE120--
 				m_soundInfo.StopThinking(this);
 				SetNextThink(TICK_NEVER_THINK);
 			}
@@ -985,6 +991,10 @@ static int GetUnitAxisIndex( const Vector &axis )
 
 bool CPhysHinge::IsWorldHinge( const hl_constraint_info_t &info, int *pAxisOut )
 {
+//TE120--
+	if ( !info.pObjects[0] )
+		return false;
+//TE120--
 	if ( HasSpawnFlags( SF_CONSTRAINT_ASSUME_WORLD_GEOMETRY ) && info.pObjects[0] == g_PhysWorldObject )
 	{
 		Vector localHinge;
@@ -1004,12 +1014,13 @@ bool CPhysHinge::IsWorldHinge( const hl_constraint_info_t &info, int *pAxisOut )
 #if HINGE_NOTIFY
 void CPhysHinge::SoundThink( void )
 {
-	Assert(m_pConstraint);
 	if (!m_pConstraint)
 		return;
 
+	Assert(m_pConstraint);//TE120
+
 	IPhysicsObject * pAttached = m_pConstraint->GetAttachedObject(), *pReference = m_pConstraint->GetReferenceObject();
-	Assert( pAttached && pReference );
+
 	if (pAttached && pReference)
 	{
 		Vector relativeVel = VelocitySampler::GetRelativeAngularVelocity(pAttached,pReference);
@@ -1038,6 +1049,18 @@ public:
 		for ( int i = 0; i < 2; i++ )
 		{
 			info.pObjects[i]->WorldToLocal( &ballsocket.constraintPosition[i], GetAbsOrigin() );
+			// HACKHACK - the mapper forgot to put in some sane physics damping
+      float damping, adamping;
+      info.pObjects[i]->GetDamping(&damping, &adamping);
+      if ( damping < .2f )
+			{
+      	damping = .2f;
+      }
+			if ( adamping < .2f )
+			{
+        adamping = .2f;
+      }
+      info.pObjects[i]->SetDamping(&damping, &damping);
 		}
 		GetBreakParams( ballsocket.constraint, info );
 		ballsocket.constraint.torqueLimit = 0;
@@ -1531,7 +1554,7 @@ public:
 		BaseClass::DrawDebugGeometryOverlays();
 	}
 #endif
-
+	bool ActivateConstraint( void );//TE120
 	IPhysicsConstraint *CreateConstraint( IPhysicsConstraintGroup *pGroup, const hl_constraint_info_t &info );
 
 private:
@@ -1563,6 +1586,94 @@ END_DATADESC()
 
 
 LINK_ENTITY_TO_CLASS( phys_ragdollconstraint, CRagdollConstraint );
+//TE120--
+bool CRagdollConstraint::ActivateConstraint( void )
+{
+	// A constraint attaches two objects to each other.
+	// The constraint is specified in the coordinate frame of the "reference" object
+	// and constrains the "attached" object
+	hl_constraint_info_t info;
+	if ( m_pConstraint )
+	{
+		// already have a constraint, don't make a new one
+		info.pObjects[0] = m_pConstraint->GetReferenceObject();
+		info.pObjects[1] = m_pConstraint->GetAttachedObject();
+		OnConstraintSetup(info);
+		return true;
+	}
+
+	GetConstraintObjects( info );
+	if ( !info.pObjects[0] && !info.pObjects[1] )
+		return false;
+
+	if ( info.pObjects[0]->IsStatic() && info.pObjects[1]->IsStatic() )
+	{
+		Warning("Constraint (%s) attached to two static objects (%s and %s)!!!\n", STRING(GetEntityName()), STRING(m_nameAttach1), m_nameAttach2 == NULL_STRING ? "world" : STRING(m_nameAttach2) );
+		return false;
+	}
+
+	if ( info.pObjects[0]->GetShadowController() && info.pObjects[1]->GetShadowController() )
+	{
+		Warning("Constraint (%s) attached to two shadow objects (%s and %s)!!!\n", STRING(GetEntityName()), STRING(m_nameAttach1), m_nameAttach2 == NULL_STRING ? "world" : STRING(m_nameAttach2) );
+		return false;
+	}
+	IPhysicsConstraintGroup *pGroup = GetConstraintGroup( m_nameSystem );
+	if ( !pGroup )
+	{
+		pGroup = info.pGroup;
+	}
+
+	// Check for a ragdoll
+	CBaseEntity *pTarget = (CBaseEntity *)info.pObjects[1]->GetGameData();
+	if ( pTarget )
+	{
+		if ( dynamic_cast<CRagdollProp*>( pTarget ) )
+		{
+			Vector position = this->GetAbsOrigin();
+
+			// Get the root
+			IPhysicsObject *pList[VPHYSICS_MAX_OBJECT_LIST_COUNT];
+			int count = pTarget->VPhysicsGetObjectList( pList, ARRAYSIZE( pList ) );
+
+			IPhysicsObject *pBestChild = NULL;
+			float			flBestDist = 99999999.0f;
+			float			flDist;
+			Vector			vPos;
+
+			// Find the nearest child to where we're looking
+			for ( int i = 0; i < count; i++ )
+			{
+				pList[i]->GetPosition( &vPos, NULL );
+
+				flDist = ( position - vPos ).LengthSqr();
+
+				if ( flDist < flBestDist )
+				{
+					pBestChild = pList[i];
+					flBestDist = flDist;
+				}
+			}
+
+			// Make this our base now
+			pTarget->VPhysicsSwapObject( pBestChild );
+			info.pObjects[1] = pTarget->VPhysicsGetObject();
+		}
+	}
+
+	m_pConstraint = CreateConstraint( pGroup, info );
+	if ( !m_pConstraint )
+		return false;
+
+	m_pConstraint->SetGameData( (void *)this );
+
+	if ( pGroup )
+		pGroup->Activate();
+
+	OnConstraintSetup(info);
+
+	return true;
+}
+//TE120--
 
 //-----------------------------------------------------------------------------
 // Purpose: Activate/create the constraint

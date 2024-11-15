@@ -26,9 +26,7 @@
 #include <algorithm>
 #include "tier0/valve_minmax_on.h"
 
-#if defined(DOD_DLL) || defined(CSTRIKE_DLL)
-#define USE_DETAIL_SHAPES
-#endif
+#define USE_DETAIL_SHAPES //TE120
 
 #ifdef USE_DETAIL_SHAPES
 #include "engine/ivdebugoverlay.h"
@@ -47,8 +45,8 @@
 //-----------------------------------------------------------------------------
 struct model_t;
 
-
-ConVar cl_detaildist( "cl_detaildist", "1200", 0, "Distance at which detail props are no longer visible" );
+ConVar cl_detaildistdesired( "cl_detaildistdesired", "2000", 0, "Desired Distance" );//TE120
+ConVar cl_detaildist( "cl_detaildist", "2000", 0, "Distance at which detail props are no longer visible" );//TE120
 ConVar cl_detailfade( "cl_detailfade", "400", 0, "Distance across which detail props fade in" );
 #if defined( USE_DETAIL_SHAPES ) 
 ConVar cl_detail_max_sway( "cl_detail_max_sway", "0", FCVAR_ARCHIVE, "Amplitude of the detail prop sway" );
@@ -489,6 +487,7 @@ private:
 	float m_flDefaultFadeStart;
 	float m_flDefaultFadeEnd;
 
+	float m_flDelta;//TE120
 
 	// pre calcs for the current render frame
 	float m_flCurMaxSqDist;
@@ -901,6 +900,16 @@ void CDetailModel::GetColorModulation( float *color )
 	color[0] = tmp[0] + val * TexLightToLinear( m_Color.r, m_Color.exponent );
 	color[1] = tmp[1] + val * TexLightToLinear( m_Color.g, m_Color.exponent );
 	color[2] = tmp[2] + val * TexLightToLinear( m_Color.b, m_Color.exponent );
+
+//TE120--
+	// Minimum light value of 0.12
+	if ( ( color[0] + color[1] + color[2] ) < 0.11f )
+	{
+		color[0] = 0.03f;
+		color[1] = 0.04f;
+		color[2] = 0.04f;
+	}
+//TE120--
 
 	// Add in the lightstyles
 	if ( m_bHasLightStyle )
@@ -1402,6 +1411,7 @@ CDetailObjectSystem::CDetailObjectSystem() : m_DetailSpriteDict( 0, 32 ), m_Deta
 	m_pSortInfo = NULL;
 	m_pFastSortInfo = NULL;
 	m_pBuildoutBuffer = NULL;
+	m_flDelta = 0.0f;//TE120
 }
 
 void CDetailObjectSystem::FreeSortBuffers( void )
@@ -1512,24 +1522,44 @@ void CDetailObjectSystem::LevelInitPreEntity()
 
 void CDetailObjectSystem::LevelInitPostEntity()
 {
+	if ( m_DetailObjects.Count() || m_DetailSpriteDict.Count() )
+	{
 	const char *pDetailSpriteMaterial = DETAIL_SPRITE_MATERIAL;
 	C_World *pWorld = GetClientWorldEntity();
 	if ( pWorld && pWorld->GetDetailSpriteMaterial() && *(pWorld->GetDetailSpriteMaterial()) )
-	{
 		pDetailSpriteMaterial = pWorld->GetDetailSpriteMaterial(); 
-	}
-	m_DetailSpriteMaterial.Init( pDetailSpriteMaterial, TEXTURE_GROUP_OTHER );
 
+	m_DetailSpriteMaterial.Init( pDetailSpriteMaterial, TEXTURE_GROUP_OTHER );
+		PrecacheMaterial( pDetailSpriteMaterial );
+		IMaterial *pMat = m_DetailSpriteMaterial;
+
+		// adjust for non-square textures (cropped)
+		float flRatio = pMat->GetMappingWidth() / pMat->GetMappingHeight();
+		if ( flRatio > 1.0 )
+		{
+			for( int i = 0; i < m_DetailSpriteDict.Count(); i++ )
+			{
+				m_DetailSpriteDict[i].m_TexUL.y *= flRatio;
+				m_DetailSpriteDict[i].m_TexLR.y *= flRatio;
+				m_DetailSpriteDictFlipped[i].m_TexUL.y *= flRatio;
+				m_DetailSpriteDictFlipped[i].m_TexLR.y *= flRatio;
+			}
+		}
+	}
 	if ( GetDetailController() )
 	{
-		cl_detailfade.SetValue( MIN( m_flDefaultFadeStart, GetDetailController()->m_flFadeStartDist ) );
-		cl_detaildist.SetValue( MIN( m_flDefaultFadeEnd, GetDetailController()->m_flFadeEndDist ) );
+//TE120--
+		cl_detailfade.SetValue( GetDetailController()->m_flFadeStartDist );
+		cl_detaildist.SetValue( GetDetailController()->m_flFadeEndDist );
+		cl_detaildistdesired.SetValue( GetDetailController()->m_flFadeEndDist );
+//TE120--
 	}
 	else
 	{
 		// revert to default values if the map doesn't specify
 		cl_detailfade.SetValue( m_flDefaultFadeStart );
 		cl_detaildist.SetValue( m_flDefaultFadeEnd );
+		cl_detaildistdesired.SetValue( m_flDefaultFadeEnd );//TE120
 	}
 }
 
@@ -2790,14 +2820,35 @@ void CDetailObjectSystem::BuildDetailObjectRenderLists( const Vector &vViewOrigi
 	ctx.m_vViewOrigin = vViewOrigin;
  	ctx.m_BuildWorldListNumber = view->BuildWorldListsNumber();
 
+//TE120--
 	// We need to recompute translucency information for all detail props
-	for (int i = m_DetailObjectDict.Size(); --i >= 0; )
+	m_flCurMaxSqDist = cl_detaildist.GetFloat();
+	if (cl_detaildistdesired.GetFloat() != m_flCurMaxSqDist )
 	{
-		if (modelinfo->ModelHasMaterialProxy( m_DetailObjectDict[i].m_pModel ))
+		// Computer delta if not set
+		if ( m_flDelta == 0.0f )
+	{
+			float dt = gpGlobals->frametime;
+			if ( dt == 0.0f )
 		{
-			modelinfo->RecomputeTranslucency( m_DetailObjectDict[i].m_pModel, 0, 0, NULL );
+			 	dt = 0.1f;
 		}
+
+			// Msg( "Frametime: %4.2f\n", dt );
+
+			// Fade over 12 seconds, compute delta
+			m_flDelta = 12.0f / dt;
+			m_flDelta = abs((m_flCurMaxSqDist - cl_detaildistdesired.GetFloat()) / m_flDelta);
+			// Msg( "Delta: %4.2f\n", m_flDelta );
+		}
+
+		cl_detaildist.SetValue( Approach(cl_detaildistdesired.GetFloat(), m_flCurMaxSqDist, m_flDelta) ) ;
 	}
+	else if ( m_flDelta != 0.0f )
+	{
+		m_flDelta = 0.0f;
+	}
+//TE120--
 
 	float factor = 1.0f;
 	C_BasePlayer *local = C_BasePlayer::GetLocalPlayer();

@@ -14,15 +14,12 @@
 // An entity used to access overlays (and change their texture)
 // -------------------------------------------------------------------------------- //
 
-class CInfoOverlayAccessor : public CPointEntity
+class CInfoOverlayAccessor : public CServerOnlyPointEntity//TE120
 {
 public:
 
-	DECLARE_CLASS( CInfoOverlayAccessor, CPointEntity );
-
+	DECLARE_CLASS( CInfoOverlayAccessor, CServerOnlyPointEntity );//TE120
 	int  	UpdateTransmitState();
-
-	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
 private:
@@ -31,11 +28,11 @@ private:
 };
 							  
 
-// This table encodes the CBaseEntity data.
+/*// This table encodes the CBaseEntity data.
 IMPLEMENT_SERVERCLASS_ST_NOBASE(CInfoOverlayAccessor, DT_InfoOverlayAccessor)
 	SendPropInt	(	SENDINFO(m_iTextureFrameIndex),		8,	SPROP_UNSIGNED ),
 	SendPropInt	(	SENDINFO(m_iOverlayID),				32,	SPROP_UNSIGNED ),
-END_SEND_TABLE()
+END_SEND_TABLE()*/
 
 LINK_ENTITY_TO_CLASS( info_overlay_accessor, CInfoOverlayAccessor );
 

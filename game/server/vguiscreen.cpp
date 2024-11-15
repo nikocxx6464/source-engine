@@ -36,7 +36,6 @@ PRECACHE_REGISTER( vgui_screen );
 // Save/load
 //-----------------------------------------------------------------------------
 BEGIN_DATADESC( CVGuiScreen )
-
 	DEFINE_CUSTOM_FIELD( m_nPanelName, &g_VguiScreenStringOps ),
 	DEFINE_FIELD( m_nAttachmentIndex, FIELD_INTEGER ),
 //	DEFINE_FIELD( m_nOverlayMaterial, FIELD_INTEGER ),

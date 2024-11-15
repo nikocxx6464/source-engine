@@ -36,6 +36,8 @@ public:
 
 	int			DrawDebugTextOverlays(void);
 
+	virtual void SetParent( CBaseEntity* pNewParent, int iAttachment = -1 );
+
 	// Input handlers
 	void InputOpen( inputdata_t &inputdata );
 	void InputClose( inputdata_t &inputdata );
@@ -53,6 +55,11 @@ public:
 	float		m_flBlockDamage;		// Damage inflicted when blocked.
 	float		m_flStartPosition;		// Position of brush when spawned
 	float		m_flMoveDistance;		// Total distance the brush can move
+
+//TE120----
+	EHANDLE		m_hPosition1;			// Used to mark end position
+	EHANDLE		m_hPosition2;			// Used to mark start position
+//TE120----
 
 	IPhysicsFluidController *m_pFluidController;
 
