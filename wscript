@@ -94,6 +94,8 @@ projects={
 		'utils/vtex',
 		'unicode',
 		'video',
+		'shadereditor',
+		'vgui_editor',
 	],
 	'tests': [
 		'appframework',
