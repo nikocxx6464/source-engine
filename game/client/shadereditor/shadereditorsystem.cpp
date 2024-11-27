@@ -86,7 +86,7 @@ bool ShaderEditorHandler::Init()
 #elif SOURCE_2006
 	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2006.dll", engine->GetGameDirectory() );
 #elif SOURCE_2013
-	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2013.dll", engine->GetGameDirectory() );
+	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2013.so", engine->GetGameDirectory() );
 #else
 	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2007.dll", engine->GetGameDirectory() );
 #endif
