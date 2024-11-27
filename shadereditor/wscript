@@ -249,6 +249,7 @@ def build(bld):
 		'RT',
 		'ZLIB',
 		'JPEG',
+		'boost_regex',
 	]
 	
 	if bld.env.DEST_OS == 'win32':
