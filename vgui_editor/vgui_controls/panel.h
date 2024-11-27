@@ -398,6 +398,7 @@ public:
 	virtual void OnMousePressed(MouseCode code);
 	virtual void OnMouseDoublePressed(MouseCode code);
 	virtual void OnMouseReleased(MouseCode code);
+	virtual void OnMouseMismatchedRelease( MouseCode code, Panel* pPressedPanel );
 	virtual void OnMouseWheeled(int delta);
 
 	// Trip pressing (e.g., select all text in a TextEntry) requires this to be enabled
@@ -665,6 +666,8 @@ protected:
 	virtual void PaintTraverse(bool Repaint, bool allowForce = true);
 
 protected:
+	virtual void OnChildSettingsApplied( KeyValues *pInResourceData, Panel *pChild );
+
 	MESSAGE_FUNC_ENUM_ENUM( OnRequestFocus, "OnRequestFocus", VPANEL, subFocus, VPANEL, defaultPanel);
 	MESSAGE_FUNC_INT_INT( OnScreenSizeChanged, "OnScreenSizeChanged", oldwide, oldtall );
 	virtual void *QueryInterface(EInterfaceID id);

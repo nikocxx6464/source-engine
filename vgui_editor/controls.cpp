@@ -14,14 +14,14 @@
 extern int g_nYou_Must_Add_Public_Vgui_Controls_Vgui_ControlsCpp_To_Your_Project;
 
 class CircularProgressBar;
-CircularProgressBar *g_CircularProgressBarLinkerHack;
+//CircularProgressBar *g_CircularProgressBarLinkerHack;
 
 namespace vgui
 {
 	class Slider;
 }
 
-vgui::Slider *g_SliderLinkerHack;
+//vgui::Slider *g_SliderLinkerHack;
 
 namespace vgui
 {

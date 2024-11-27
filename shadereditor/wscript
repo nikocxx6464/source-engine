@@ -12,6 +12,7 @@ def options(opt):
 	return
 
 def configure(conf):
+	conf.env.LINK = 'ld.lld'
 	conf.env.append_unique('DEFINES',[
 		'SHADER_EDITOR_DLL',
 		'SHADER_EDITOR_DLL_2013',
@@ -219,7 +220,7 @@ def build(bld):
 		'properties/postprocessing',
 		'properties/smarttext',
 		'nodes/postprocessing',
-		'vgui_controls',
+		'vgui_controls_editor',
 		'../public',
 		'../public/tier1',
 		'../public/tier0',
@@ -235,12 +236,13 @@ def build(bld):
 		'tier0',
 		'particles',
 		'dmxloader',
-		'vgui_controls_editor',
+		'mathlib',
+		'vtf',
 		'matsys_controls',
 		'tier1',
 		'tier2',
 		'tier3',
-		'mathlib',
+		'vgui_controls_editor',
 		'vstdlib',
 		'choreoobjects',
 		'steam_api',
@@ -248,6 +250,7 @@ def build(bld):
 		'RT',
 		'ZLIB',
 		'JPEG',
+		'boost_regex',
 	]
 	
 	if bld.env.DEST_OS == 'win32':

@@ -599,19 +599,19 @@ int GetVarFlagsVarValue( int flag );
 const char *GetVarCodeNameFromFlag( int flag );
 int GetVarFlagsRowsRequired( int flag );
 
-extern inline void AutoCopyFloats( const void *src, void *dst, const int amt );
-extern inline void AutoCopyStringPtr( const char *src, char **dst );
+extern void AutoCopyFloats( const void *src, void *dst, const int amt );
+void AutoCopyStringPtr( const char *src, char **dst );
 
-//extern inline int GetChannelNumFromChar( const char *c );
-//extern inline char GetCharFromChannelNum( const int i );
+int GetChannelNumFromChar( const char *c );
+char GetCharFromChannelNum( const int i );
 
-extern inline int GetSlotsFromTypeFlag( int flag );
-extern inline int GetTypeFlagFromEnum( int i );
+int GetSlotsFromTypeFlag( int flag );
+int GetTypeFlagFromEnum( int i );
 
-extern inline void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds );
-extern inline bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds );
+void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds );
+bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds );
 
-extern inline void ClipToScreenBounds( int &_x, int &_y, int &_sx, int &_sy );
+void ClipToScreenBounds( int &_x, int &_y, int &_sx, int &_sy );
 
 template <class T>
 void SaveDeleteVector( CUtlVector<T> &m_hItems )

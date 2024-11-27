@@ -6,7 +6,7 @@
 #undef new
 #endif
 
-#include <tr1/regex>
+#include <regex>
 #include "cregex.h"
 
 static const char *g_szSyntaxList_Keywords[] =
@@ -217,9 +217,9 @@ bool CRegex::RegexMatch( const char *cStr, const char *exp )
 	//std::string stdStr;
 	//stdStr.append( cStr );
 
-	std::tr1::regex reg( exp );
+	std::regex reg( exp );
 	//return std::tr1::regex_match( stdStr.begin(), stdStr.end(), reg, std::tr1::regex_constants::match_default );
-	return std::tr1::regex_match( cStr, reg, std::tr1::regex_constants::match_default );
+	return std::regex_match( cStr, reg, std::regex_constants::match_default );
 }
 bool CRegex::RegexMatch( const wchar_t *lStr, const char *exp )
 {
