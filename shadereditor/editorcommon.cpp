@@ -204,7 +204,7 @@ void PaintDynamicRotationStructure(DynRenderHelper info)
 	vgui::surface()->DrawTexturedPolygon( 4, verts );
 }
 
-inline void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds )
+void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds )
 {
 	bounds.x = pos.x - BOUNDS_EXTRUDE;
 	bounds.y = pos.y + BOUNDS_EXTRUDE;
@@ -226,7 +226,7 @@ inline bool __CrossesBounds( float &p_min, float &p_max, float &b_min, float &b_
 		return false;
 	return true;
 }
-inline bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D &bounds )
+bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D &bounds )
 {
 	Vector2D bpoint_00( bounds.x, bounds.y );
 	Vector2D bpoint_11( bounds.z, bounds.w );
@@ -444,7 +444,7 @@ void CopySolvers( const CUtlVector< CHLSL_SolverBase* > &m_hInput,
 	m_hCopied_Variables.Purge();
 }
 
-inline void ClipToScreenBounds( int &_x, int &_y, int &_sx, int &_sy )
+void ClipToScreenBounds( int &_x, int &_y, int &_sx, int &_sy )
 {
 	int w,t;
 	engine->GetScreenSize( w, t );
