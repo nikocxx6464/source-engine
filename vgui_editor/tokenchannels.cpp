@@ -30,7 +30,52 @@
 							ISCHAR_BCLOSE(x) )
 
 
-
+char GetCharFromChannelNum( const int i )
+{
+	switch (i)
+	{
+	case 0:
+		return 'x';
+	case 1:
+		return 'y';
+	case 2:
+		return 'z';
+	case 3:
+		return 'w';
+	}
+	return 'x';
+}
+int GetChannelNumFromChar( const char *c )
+{
+	switch ( *c )
+	{
+	case 'r':
+	case 'R':
+	case 'x':
+	case 'X':
+			return 0;
+		break;
+	case 'g':
+	case 'G':
+	case 'y':
+	case 'Y':
+			return 1;
+		break;
+	case 'b':
+	case 'B':
+	case 'z':
+	case 'Z':
+			return 2;
+		break;
+	case 'a':
+	case 'A':
+	case 'w':
+	case 'W':
+			return 3;
+		break;
+	}
+	return -1;
+}
 void SnipCharFromString( char *c )
 {
 	if ( !c || !*c )

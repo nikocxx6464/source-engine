@@ -600,13 +600,13 @@ const char *GetVarCodeNameFromFlag( int flag );
 int GetVarFlagsRowsRequired( int flag );
 
 extern void AutoCopyFloats( const void *src, void *dst, const int amt );
-extern inline void AutoCopyStringPtr( const char *src, char **dst );
+void AutoCopyStringPtr( const char *src, char **dst );
 
 int GetChannelNumFromChar( const char *c );
 char GetCharFromChannelNum( const int i );
 
-extern inline int GetSlotsFromTypeFlag( int flag );
-extern inline int GetTypeFlagFromEnum( int i );
+int GetSlotsFromTypeFlag( int flag );
+int GetTypeFlagFromEnum( int i );
 
 void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds );
 bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds );

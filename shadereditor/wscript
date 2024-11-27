@@ -243,7 +243,6 @@ def build(bld):
 		'tier2',
 		'tier3',
 		'vgui_controls_editor',
-		'vgui2',
 		'vstdlib',
 		'choreoobjects',
 		'steam_api',

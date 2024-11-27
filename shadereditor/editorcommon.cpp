@@ -211,14 +211,14 @@ void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds )
 	bounds.z = pos.x + size.x + BOUNDS_EXTRUDE;
 	bounds.w = pos.y + size.y - BOUNDS_EXTRUDE;
 }
-inline bool __InBounds( Vector2D &p, Vector2D &smin, Vector2D &smax )
+bool __InBounds( Vector2D &p, Vector2D &smin, Vector2D &smax )
 {
 	if ( p.x >= smin.x && p.x <= smax.x &&
 		p.y >= smin.y && p.y <= smax.y )
 		return true;
 	return false;
 }
-inline bool __CrossesBounds( float &p_min, float &p_max, float &b_min, float &b_max )
+bool __CrossesBounds( float &p_min, float &p_max, float &b_min, float &b_max )
 {
 	if ( p_max < b_min )
 		return false;
@@ -226,7 +226,7 @@ inline bool __CrossesBounds( float &p_min, float &p_max, float &b_min, float &b_
 		return false;
 	return true;
 }
-bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D &bounds )
+bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds )
 {
 	Vector2D bpoint_00( bounds.x, bounds.y );
 	Vector2D bpoint_11( bounds.z, bounds.w );
@@ -962,7 +962,7 @@ inline void AutoCopyStringPtr( const char *src, char **dst )
 	(*dst)[len-1] = '\0';
 }
 
-inline int GetChannelNumFromChar( const char *c )
+int GetChannelNumFromChar( const char *c )
 {
 	switch ( *c )
 	{
