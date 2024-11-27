@@ -74,7 +74,11 @@ def build(bld):
 	if bld.env.DEST_OS == 'win32':
 		libs += ['USER32']
 
-	source += game["sources"] + ['../../public/tier0/memoverride.cpp']
+	source += game["sources"] + ['../../public/tier0/memoverride.cpp'] + [
+		'shadereditor/shadereditorsystem.cpp',
+		'shadereditor/sedit_modelrender.cpp',
+		#'shadereditor/grass/cgrasscluster.cpp',
+		]
 	includes += game["includes"]
 	defines = game["defines"]
 
