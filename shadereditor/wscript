@@ -12,6 +12,7 @@ def options(opt):
 	return
 
 def configure(conf):
+	conf.env.LINK = 'ld.lld'
 	conf.env.append_unique('DEFINES',[
 		'SHADER_EDITOR_DLL',
 		'SHADER_EDITOR_DLL_2013',
@@ -242,6 +243,7 @@ def build(bld):
 		'tier2',
 		'tier3',
 		'vgui_controls_editor',
+		'vgui2',
 		'vstdlib',
 		'choreoobjects',
 		'steam_api',

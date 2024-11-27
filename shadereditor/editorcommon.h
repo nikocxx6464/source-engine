@@ -599,17 +599,17 @@ int GetVarFlagsVarValue( int flag );
 const char *GetVarCodeNameFromFlag( int flag );
 int GetVarFlagsRowsRequired( int flag );
 
-extern inline void AutoCopyFloats( const void *src, void *dst, const int amt );
+extern void AutoCopyFloats( const void *src, void *dst, const int amt );
 extern inline void AutoCopyStringPtr( const char *src, char **dst );
 
-//extern inline int GetChannelNumFromChar( const char *c );
-//extern inline char GetCharFromChannelNum( const int i );
+extern int GetChannelNumFromChar( const char *c );
+extern char GetCharFromChannelNum( const int i );
 
 extern inline int GetSlotsFromTypeFlag( int flag );
 extern inline int GetTypeFlagFromEnum( int i );
 
-extern inline void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds );
-extern inline bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds );
+extern void UpdateSimpleObjectBounds( Vector2D &pos, Vector2D &size, Vector4D &bounds );
+extern bool ShouldSimpleDrawObject( vgui::Panel *parent, CNodeView *coordSystem, Vector4D const &bounds );
 
 extern inline void ClipToScreenBounds( int &_x, int &_y, int &_sx, int &_sy );
 

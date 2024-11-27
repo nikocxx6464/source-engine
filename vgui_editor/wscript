@@ -133,12 +133,12 @@ def build(bld):
 		'RT',
 		'ZLIB'
 	]
-	
+
 	if bld.env.DEST_OS == 'win32':
 		libs += ['RPCRT4']
 	elif bld.env.DEST_OS == "darwin":
 		libs += ['ICONV']
-		
+
 	bld.stlib(
 		source   = source,
 		target   = PROJECT_NAME,

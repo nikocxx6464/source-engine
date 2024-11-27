@@ -1069,6 +1069,17 @@ void Panel::Think()
 	OnThink();
 }
 
+void Panel::OnChildSettingsApplied( KeyValues *pInResourceData, Panel *pChild  )
+{
+	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s - %s", __FUNCTION__, GetName() );
+
+	Panel* pParent = GetParent();
+	if( pParent )
+	{
+		pParent->OnChildSettingsApplied( pInResourceData, pChild );
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -2945,6 +2956,10 @@ void Panel::OnMouseTriplePressed(MouseCode code)
 }
 
 void Panel::OnMouseReleased(MouseCode code)
+{
+}
+
+void Panel::OnMouseMismatchedRelease( MouseCode code, Panel* pPressedPanel )
 {
 }
 

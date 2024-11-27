@@ -946,7 +946,7 @@ bool SolverResources::IsVertexShader()
 }
 
 static const int __FloatSize = sizeof( float );
-inline void AutoCopyFloats( const void *src, void *dst, const int amt )
+void AutoCopyFloats( const void *src, void *dst, const int amt )
 {
 	Q_memcpy( dst, src, __FloatSize * amt );
 }
@@ -962,52 +962,52 @@ inline void AutoCopyStringPtr( const char *src, char **dst )
 	(*dst)[len-1] = '\0';
 }
 
-//inline int GetChannelNumFromChar( const char *c )
-//{
-//	switch ( *c )
-//	{
-//	case 'r':
-//	case 'R':
-//	case 'x':
-//	case 'X':
-//			return 0;
-//		break;
-//	case 'g':
-//	case 'G':
-//	case 'y':
-//	case 'Y':
-//			return 1;
-//		break;
-//	case 'b':
-//	case 'B':
-//	case 'z':
-//	case 'Z':
-//			return 2;
-//		break;
-//	case 'a':
-//	case 'A':
-//	case 'w':
-//	case 'W':
-//			return 3;
-//		break;
-//	}
-//	return -1;
-//}
-//inline char GetCharFromChannelNum( const int i )
-//{
-//	switch (i)
-//	{
-//	case 0:
-//		return 'x';
-//	case 1:
-//		return 'y';
-//	case 2:
-//		return 'z';
-//	case 3:
-//		return 'w';
-//	}
-//	return 'x';
-//}
+inline int GetChannelNumFromChar( const char *c )
+{
+	switch ( *c )
+	{
+	case 'r':
+	case 'R':
+	case 'x':
+	case 'X':
+			return 0;
+		break;
+	case 'g':
+	case 'G':
+	case 'y':
+	case 'Y':
+			return 1;
+		break;
+	case 'b':
+	case 'B':
+	case 'z':
+	case 'Z':
+			return 2;
+		break;
+	case 'a':
+	case 'A':
+	case 'w':
+	case 'W':
+			return 3;
+		break;
+	}
+	return -1;
+}
+char GetCharFromChannelNum( const int i )
+{
+	switch (i)
+	{
+	case 0:
+		return 'x';
+	case 1:
+		return 'y';
+	case 2:
+		return 'z';
+	case 3:
+		return 'w';
+	}
+	return 'x';
+}
 
 int StringTabsWorth( const char *text )
 {
