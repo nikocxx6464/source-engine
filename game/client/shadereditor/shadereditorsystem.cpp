@@ -81,14 +81,20 @@ bool ShaderEditorHandler::Init()
 #endif
 
 	char modulePath[MAX_PATH*4];
-#ifdef SWARM_DLL
-	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_swarm.dll", engine->GetGameDirectory() );
-#elif SOURCE_2006
-	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2006.dll", engine->GetGameDirectory() );
-#elif SOURCE_2013
-	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/libshadereditor_2013.so", engine->GetGameDirectory() );
+#ifdef WIN32
+#define EXT ".dll"
 #else
-	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2007.dll", engine->GetGameDirectory() );
+#define EXT ".so"
+#endif
+
+#ifdef SWARM_DLL
+	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_swarm%s\0", engine->GetGameDirectory(), EXT);
+#elif SOURCE_2006
+	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2006.dll\0", engine->GetGameDirectory() );
+#elif SOURCE_2013
+	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2013%s\0", engine->GetGameDirectory(), EXT);
+#else
+	Q_snprintf( modulePath, sizeof( modulePath ), "%s/bin/shadereditor_2007.dll\0", engine->GetGameDirectory() );
 #endif
 	shaderEditorModule = Sys_LoadModule( modulePath );
 	if ( shaderEditorModule )
@@ -109,7 +115,7 @@ bool ShaderEditorHandler::Init()
 	}
 	else
 	{
-		Warning( "Cannot load shadereditor.dll from %s!\n", modulePath );
+		Warning( "Cannot load shadereditor%s from %s!\n", EXT, modulePath );
 	}
 
 	m_bReady = shaderEdit != NULL;

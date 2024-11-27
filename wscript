@@ -96,6 +96,7 @@ projects={
 		'video',
 		'shadereditor',
 		'vgui_editor',
+		'materialsystem/procshader',
 	],
 	'tests': [
 		'appframework',

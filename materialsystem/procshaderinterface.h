@@ -60,7 +60,7 @@ void BindTextureByAutoType( bool bPreview, IShaderDynamicAPI *pShaderAPI, CBaseV
 void UpdateConstantByIdentifier( CBaseVSShader *pShader, IShaderDynamicAPI* pShaderAPI, IMaterialVar **params, SimpleEnvConstant *pConst, CProceduralContext *pContext,
 								bool bPS, int iFirstMutable = -1, int iFirstStatic = -1 );
 
-extern IUniformRandomStream *random;
+extern IUniformRandomStream *vrandom;
 extern IFileSystem *g_pFullFileSystem;
 
 #endif

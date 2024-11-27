@@ -600,10 +600,65 @@ const char *GetVarCodeNameFromFlag( int flag );
 int GetVarFlagsRowsRequired( int flag );
 
 extern void AutoCopyFloats( const void *src, void *dst, const int amt );
-void AutoCopyStringPtr( const char *src, char **dst );
 
-int GetChannelNumFromChar( const char *c );
-char GetCharFromChannelNum( const int i );
+inline void AutoCopyStringPtr( const char *src, char **dst )
+{
+	*dst = NULL;
+	if ( !src || !*src )
+		return;
+
+	int len = Q_strlen( src ) + 1;
+	*dst = new char[len];
+	Q_snprintf( *dst, len, "%s", src );
+	(*dst)[len-1] = '\0';
+}
+
+inline int GetChannelNumFromChar( const char *c )
+{
+	switch ( *c )
+	{
+	case 'r':
+	case 'R':
+	case 'x':
+	case 'X':
+			return 0;
+		break;
+	case 'g':
+	case 'G':
+	case 'y':
+	case 'Y':
+			return 1;
+		break;
+	case 'b':
+	case 'B':
+	case 'z':
+	case 'Z':
+			return 2;
+		break;
+	case 'a':
+	case 'A':
+	case 'w':
+	case 'W':
+			return 3;
+		break;
+	}
+	return -1;
+}
+inline char GetCharFromChannelNum( const int i )
+{
+	switch (i)
+	{
+	case 0:
+		return 'x';
+	case 1:
+		return 'y';
+	case 2:
+		return 'z';
+	case 3:
+		return 'w';
+	}
+	return 'x';
+}
 
 int GetSlotsFromTypeFlag( int flag );
 int GetTypeFlagFromEnum( int i );

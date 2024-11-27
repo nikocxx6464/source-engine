@@ -12,7 +12,6 @@ def options(opt):
 	return
 
 def configure(conf):
-	conf.env.LINK = 'ld.lld'
 	conf.env.append_unique('DEFINES',[
 		'SHADER_EDITOR_DLL',
 		'SHADER_EDITOR_DLL_2013',
@@ -23,6 +22,9 @@ def configure(conf):
 		'strncpy=use_Q_strncpy_instead',
 		'_snprintf=use_Q_snprintf_instead'
 	])
+
+	game = conf.options.GAMES
+	conf.env.GAMES = game
 
 def build(bld):
 	source = [
@@ -257,6 +259,10 @@ def build(bld):
 		libs += ['RPCRT4']
 	elif bld.env.DEST_OS == "darwin":
 		libs += ['ICONV']
+
+	install_path = bld.env.PREFIX
+	if bld.env.DEST_OS != 'android':
+		install_path += '/'+bld.env.GAMES+'/bin'
 		
 	bld.shlib(
 		source   = source,

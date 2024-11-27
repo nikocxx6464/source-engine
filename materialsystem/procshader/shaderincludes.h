@@ -30,7 +30,7 @@
 typedef int VertexCompressionType_t;
 
 #else
-#include "procshader/basevsshader.h"
+#include "basevsshader.h"
 
 #define VERTEXSHADERVERTEXFORMAT( flags, coords, dims, userdatasize )\
 	pShaderShadow->VertexShaderVertexFormat( flags, coords, dims, userdatasize );

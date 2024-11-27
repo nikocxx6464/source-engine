@@ -27,7 +27,7 @@ def configure(conf):
 	game = conf.options.GAMES
 	conf.env.GAMES = game
 
-	conf.env.append_unique('DEFINES', ['DISABLE_STEAM=1'])
+	conf.env.append_unique('DEFINES', ['DISABLE_STEAM=1', 'SOURCE_2013', 'SHADEREDITOR_FORCE_ENABLED' ])
 
 	if game not in games.keys():
 		conf.fatal("Couldn't find game: ", game)
