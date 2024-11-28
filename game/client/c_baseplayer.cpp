@@ -245,6 +245,8 @@ END_RECV_TABLE()
 		RecvPropInt			( RECVINFO( m_nWaterLevel ) ),
 		RecvPropFloat		( RECVINFO( m_flLaggedMovementValue )),
 
+		RecvPropBool		( RECVINFO( m_bInRain )),
+
 	END_RECV_TABLE()
 
 	
@@ -480,6 +482,7 @@ void C_BasePlayer::Spawn( void )
 	m_bWasFreezeFraming = false;
 
 	m_bFiredWeapon = false;
+	m_bInRain = false;
 }
 
 //-----------------------------------------------------------------------------

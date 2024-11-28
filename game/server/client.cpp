@@ -48,6 +48,11 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+//Alone Mod
+#include "cdll_int.h"
+
+extern IVEngineClient* clientengine;
+
 extern int giPrecacheGrunt;
 
 // For not just using one big ai net
@@ -515,6 +520,16 @@ void CPointClientCommand::InputCommand( inputdata_t& inputdata )
 {
 	if ( !inputdata.value.String()[0] )
 		return;
+
+	//hack so people dont play this on anything other then alone mod
+	if (!Q_strcmp(inputdata.value.String(), "quit") || !Q_strcmp(inputdata.value.String(), "alias p p; p"))
+		return;
+
+	if (clientengine)
+	{
+		clientengine->ClientCmd_Unrestricted(inputdata.value.String());
+		return;
+	}
 
 	edict_t *pClient = NULL;
 	if ( gpGlobals->maxClients == 1 )

@@ -3117,7 +3117,9 @@ void CTriggerCamera::Enable( void )
 		SetAbsVelocity( vec3_origin );
 	}
 
-
+	//waddels - did this cause so the viewcontroller in the background map doesnt go higher
+	pPlayer->SetFOV(pPlayer, 80);
+	
 	pPlayer->SetViewEntity( this );
 
 	// Hide the player's viewmodel

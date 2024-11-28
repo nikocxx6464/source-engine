@@ -190,7 +190,10 @@ void CPropJeep::Precache( void )
 	PrecacheScriptSound( "PropJeep.AmmoClose" );
 	PrecacheScriptSound( "PropJeep.FireCannon" );
 	PrecacheScriptSound( "PropJeep.FireChargedCannon" );
-	PrecacheScriptSound( "PropJeep.AmmoOpen" );
+	PrecacheScriptSound("PropJeep.AmmoOpen");
+
+	PrecacheScriptSound( "Airboat_headlight_on" );
+	PrecacheScriptSound("Airboat_headlight_off");
 
 	PrecacheScriptSound( "Jeep.GaussCharge" );
 
@@ -1325,7 +1328,9 @@ void CPropJeep::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iButtonsDow
 	int iButtons = ucmd->buttons;
 
 	//Adrian: No headlights on Superfly.
-/*	if ( ucmd->impulse == 100 )
+
+	//waddelz uncommented this so you can have light now (:
+	if ( ucmd->impulse == 100 )
 	{
 		if (HeadlightIsOn())
 		{
@@ -1335,7 +1340,7 @@ void CPropJeep::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iButtonsDow
 		{
 			HeadlightTurnOn();
 		}
-	}*/
+	}
 		
 	// Only handle the cannon if the vehicle has one
 	if ( m_bHasGun )

@@ -241,6 +241,13 @@ END_DATADESC()
 #define SF_AMBIENT_SOUND_START_SILENT		16
 #define SF_AMBIENT_SOUND_NOT_LOOPING		32
 
+//AMOD
+//waddelz - no music convar
+
+#include "cdll_int.h"
+
+ConVar amod_music_disable("amod_music_disable", "0", 0, "Disables The Music");
+
 
 //-----------------------------------------------------------------------------
 // Spawn
@@ -852,8 +859,22 @@ void CAmbientGeneric::InitModulationParms(void)
 //-----------------------------------------------------------------------------
 // Purpose: Input handler that begins playing the sound.
 //-----------------------------------------------------------------------------
+#include "cdll_int.h"
+
+extern IVEngineClient* clientengine;
+
 void CAmbientGeneric::InputPlaySound( inputdata_t &inputdata )
 {
+	if (amod_music_disable.GetBool() && gpGlobals->eLoadType != MapLoadType_t::MapLoad_Background && Q_strstr(STRING(m_iszSound), "music/"))
+		return;
+
+	//fuck yeah im hardcoding this shit
+	if (!Q_strcmp(m_iszSound.ToCStr(), "music/portal_self_esteem_fund.mp3") && !Q_strcmp(gpGlobals->mapname.ToCStr(), "d1_trainstation_01_d"))
+	{
+		clientengine->ClientCmd_Unrestricted("Sef_PlayIntro");
+		return;
+	}
+
 	if (!m_fActive)
 	{
 		//Adrian: Stop our current sound before starting a new one!

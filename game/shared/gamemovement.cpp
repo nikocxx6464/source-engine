@@ -14,6 +14,7 @@
 #include "decals.h"
 #include "coordsize.h"
 #include "rumble_shared.h"
+#include "AloneMod/AmodCvars.h"
 
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 	#include "hl_movedata.h"
@@ -1915,6 +1916,15 @@ void CGameMovement::WalkMove( void )
 	fmove = mv->m_flForwardMove;
 	smove = mv->m_flSideMove;
 
+	if (amod_viewbob_enabled.GetBool() && !engine->IsPaused())
+	{
+		float xoffset = cos(2 * gpGlobals->curtime * amod_viewbob_speed_x.GetFloat()) * player->GetAbsVelocity().Length() * amod_viewbob_scale_x.GetFloat() / 400;
+		float yoffset = sin(2 * gpGlobals->curtime * amod_viewbob_speed_y.GetFloat()) * player->GetAbsVelocity().Length() * amod_viewbob_scale_y.GetFloat() / 250;
+		float zoffset = cos(2 * gpGlobals->curtime * amod_viewbob_speed_z.GetFloat()) * player->GetAbsVelocity().Length() * amod_viewbob_scale_z.GetFloat() / 375;
+
+		player->ViewPunch(QAngle(xoffset, yoffset, zoffset));
+	}
+
 	// Zero out z components of movement vectors
 	if ( g_bMovementOptimizations )
 	{
@@ -2253,6 +2263,10 @@ void CGameMovement::FullObserverMove( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
+float CalculateVelocity(float vx, float vy, float vz) {
+	return sqrt(vx * vx + vy * vy + vz *  vz);
+}
+
 void CGameMovement::FullNoClipMove( float factor, float maxacceleration )
 {
 	Vector wishvel;
@@ -2265,7 +2279,11 @@ void CGameMovement::FullNoClipMove( float factor, float maxacceleration )
 
 	if ( mv->m_nButtons & IN_SPEED )
 	{
-		factor /= 2.0f;
+		factor *= 2.5f;
+	}
+	if (mv->m_nButtons & IN_DUCK)
+	{
+		factor /= 2.5f;
 	}
 	
 	// Copy movement amounts
@@ -2327,6 +2345,8 @@ void CGameMovement::FullNoClipMove( float factor, float maxacceleration )
 	}
 
 	// Just move ( don't clip or anything )
+	
+	Vector oldorigin = player->GetAbsOrigin();
 	Vector out;
 	VectorMA( mv->GetAbsOrigin(), gpGlobals->frametime, mv->m_vecVelocity, out );
 	mv->SetAbsOrigin( out );
@@ -2448,6 +2468,14 @@ bool CGameMovement::CheckJumpButton( void )
 
 	// Acclerate upward
 	// If we are ducking...
+	if (amod_jump_punch_enable.GetBool())
+	{
+		if (player->GetAbsVelocity().x <= amod_jump_vel_min.GetFloat() && player->GetAbsVelocity().y <= amod_jump_vel_min.GetFloat())
+		{
+			player->ViewPunch(QAngle(random->RandomFloat(-0.4, 0.92), random->RandomFloat(-0.1, 0.425), random->RandomFloat(-0.35, 0.775)));
+		}
+	}
+
 	float startz = mv->m_vecVelocity[2];
 	if ( (  player->m_Local.m_bDucking ) || (  player->GetFlags() & FL_DUCKING ) )
 	{
@@ -3901,6 +3929,14 @@ void CGameMovement::CheckFalling( void )
 	// this function really deals with landing, not falling, so early out otherwise
 	if ( player->GetGroundEntity() == NULL || player->m_Local.m_flFallVelocity <= 0 )
 		return;
+
+	if (amod_land_punch_enable.GetBool())
+	{
+		if (player->GetAbsVelocity().z <= amod_land_zvel_min.GetFloat())
+		{
+			player->ViewPunch(QAngle(random->RandomFloat(6, 8.2), random->RandomFloat(-0.26, 0.7), random->RandomFloat(-0.3, 0.8)));
+		}
+	}
 
 	if ( !IsDead() && player->m_Local.m_flFallVelocity >= PLAYER_FALL_PUNCH_THRESHOLD )
 	{

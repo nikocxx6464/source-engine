@@ -3303,30 +3303,51 @@ int C_BaseAnimating::InternalDrawModel( int flags )
 	return bMarkAsDrawn;
 }
 
-extern ConVar muzzleflash_light;
+ConVar amod_muzzleflash_light("amod_muzzleflash_light", "1");
 
 void C_BaseAnimating::ProcessMuzzleFlashEvent()
 {
 	// If we have an attachment, then stick a light on it.
-	if ( muzzleflash_light.GetBool() )
+	if (amod_muzzleflash_light.GetBool() )
 	{
-		//FIXME: We should really use a named attachment for this
-		if ( m_Attachments.Count() > 0 )
+		if (Q_strcmp((GetActiveWeapon()) ? GetActiveWeapon()->GetClassname() : "", "weapon_ar2"))
 		{
-			Vector vAttachment;
-			QAngle dummyAngles;
-			GetAttachment( 1, vAttachment, dummyAngles );
+			if (m_Attachments.Count() > 0)
+			{
+				Vector vAttachment;
+				QAngle dummyAngles;
+				GetAttachment(1, vAttachment, dummyAngles);
 
-			// Make an elight
-			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + index );
-			el->origin = vAttachment;
-			el->radius = random->RandomInt( 32, 64 ); 
-			el->decay = el->radius / 0.05f;
-			el->die = gpGlobals->curtime + 0.05f;
-			el->color.r = 255;
-			el->color.g = 192;
-			el->color.b = 64;
-			el->color.exponent = 5;
+				// Make an elight
+				dlight_t* el = effects->CL_AllocDlight(LIGHT_INDEX_MUZZLEFLASH + index);
+				el->origin = vAttachment;
+				el->radius = random->RandomInt(40, 60);
+				el->decay = el->radius / 0.03f;
+				el->die = gpGlobals->curtime + 0.1f;
+				el->color.r = 255;
+				el->color.g = 192;
+				el->color.b = 64;
+				el->color.exponent = 5;
+			}
+		}
+		else
+		{
+			if (m_Attachments.Count() > 0)
+			{
+				Vector vAttachment;
+				QAngle dummyAngles;
+				GetAttachment(1, vAttachment, dummyAngles);
+
+				dlight_t* el = effects->CL_AllocDlight(LIGHT_INDEX_MUZZLEFLASH + index);
+				el->origin = vAttachment;
+				el->radius = random->RandomInt(45, 64);
+				el->decay = el->radius / 0.05f;
+				el->die = gpGlobals->curtime + 0.1f;
+				el->color.r = 242;
+				el->color.g = 239;
+				el->color.b = 254;
+				el->color.exponent = 3;
+			}
 		}
 	}
 }

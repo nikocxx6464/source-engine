@@ -165,6 +165,42 @@ $Project
 		
 	$Folder	"Source Files"
 	{
+		$Folder	"Alone Mod"
+		{
+			$Folder "Commands"
+			{
+				$File "AloneMod\AmodCommands.cpp"
+			}
+			$Folder "Convars"
+			{
+				$File "$SRCDIR\game\shared\AloneMod\AmodCvars.cpp"
+				$File "$SRCDIR\game\shared\AloneMod\AmodCvars.h"
+			}
+			$Folder "Entities"
+			{
+				$File "$SRCDIR\game\client\AloneMod\c_amod_entities.cpp"
+				$File "$SRCDIR\game\client\AloneMod\c_amod_entities.h"
+			}
+			$Folder "Shared Definitions"
+			{
+				$File "$SRCDIR\game\shared\AloneMod\Amod_SharedDefs.cpp"
+				$File "$SRCDIR\game\shared\AloneMod\Amod_SharedDefs.h"
+			}
+			$Folder "UI"
+			{
+				$File 	"AloneMod\BackgroundPanel.cpp"
+				$File 	"AloneMod\IBackgroundPanel.h"
+				$File 	"AloneMod\INewGamePanel.h"
+				$File 	"AloneMod\IOptionsPanel.h"
+				$File 	"AloneMod\ISongPanel.h"
+				$File 	"AloneMod\IEffectsPanel.h"
+				$File 	"AloneMod\NewGamePanel.cpp"
+				$File 	"AloneMod\OptionsPanel.cpp"
+				$File 	"AloneMod\SongPanel.cpp"
+				$File 	"AloneMod\EffectsPanel.cpp"
+			}
+		}
+		
 		$File	"hl2\C_Func_Monitor.cpp"
 		$File	"geiger.cpp"
 		$File	"history_resource.cpp"

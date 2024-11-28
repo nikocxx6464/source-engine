@@ -456,10 +456,44 @@ void IN_LookupDown( const CCommand &args ) {KeyDown(&in_lookup, args[1] );}
 void IN_LookupUp( const CCommand &args ) {KeyUp(&in_lookup, args[1] );}
 void IN_LookdownDown( const CCommand &args ) {KeyDown(&in_lookdown, args[1] );}
 void IN_LookdownUp( const CCommand &args ) {KeyUp(&in_lookdown, args[1] );}
-void IN_MoveleftDown( const CCommand &args ) {KeyDown(&in_moveleft, args[1] );}
-void IN_MoveleftUp( const CCommand &args ) {KeyUp(&in_moveleft, args[1] );}
-void IN_MoverightDown( const CCommand &args ) {KeyDown(&in_moveright, args[1] );}
-void IN_MoverightUp( const CCommand &args ) {KeyUp(&in_moveright, args[1] );}
+
+//waddelz - for mirrored effect
+void IN_MoveleftDown( const CCommand &args ) 
+{
+	ConVarRef amod_mirrored("amod_mirrored");
+	if (amod_mirrored.GetBool())
+		KeyDown(&in_moveright, args[1]);
+	else
+		KeyDown(&in_moveleft, args[1]);
+}
+
+void IN_MoveleftUp( const CCommand &args ) 
+{
+	ConVarRef amod_mirrored("amod_mirrored"); 
+	if (amod_mirrored.GetBool())
+		KeyUp(&in_moveright, args[1]);
+	else
+		KeyUp(&in_moveleft, args[1]);
+}
+
+void IN_MoverightDown( const CCommand &args ) 
+{
+	ConVarRef amod_mirrored("amod_mirrored");
+	if (amod_mirrored.GetBool())
+		KeyDown(&in_moveleft, args[1]);
+	else
+		KeyDown(&in_moveright, args[1] );
+}
+
+void IN_MoverightUp( const CCommand &args ) 
+{
+	ConVarRef amod_mirrored("amod_mirrored");
+	if (amod_mirrored.GetBool())
+		KeyUp(&in_moveleft, args[1]);
+	else
+		KeyUp(&in_moveright, args[1]);
+}
+
 void IN_WalkDown( const CCommand &args ) {KeyDown(&in_walk, args[1] );}
 void IN_WalkUp( const CCommand &args ) {KeyUp(&in_walk, args[1] );}
 void IN_SpeedDown( const CCommand &args ) {KeyDown(&in_speed, args[1] );}

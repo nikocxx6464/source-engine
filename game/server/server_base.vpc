@@ -78,6 +78,25 @@ $Project
 	
 	$Folder	"Source Files"
 	{
+		$Folder "Alone Mod"
+		{
+			$Folder "Convars"
+			{
+				$File "$SRCDIR\game\shared\AloneMod\AmodCvars.h"
+				$File "$SRCDIR\game\shared\AloneMod\AmodCvars.cpp"
+			}
+			$Folder "Game Systems"
+			{
+				$File "$SRCDIR\game\server\AloneMod\GlobalAmodSystems.cpp"
+				$File "$SRCDIR\game\server\AloneMod\AmodServerCommands.cpp"
+				$File "$SRCDIR\game\server\AloneMod\AmodRainSystem.cpp"
+			}
+			$Folder "Shared Definitions"
+			{
+				$File "$SRCDIR\game\shared\AloneMod\Amod_SharedDefs.cpp"
+				$File "$SRCDIR\game\shared\AloneMod\Amod_SharedDefs.h"
+			}
+		}
 		$File	"$SRCDIR\game\shared\achievement_saverestore.cpp"
 		$File	"$SRCDIR\game\shared\achievement_saverestore.h"
 		$File	"$SRCDIR\game\shared\achievementmgr.cpp"

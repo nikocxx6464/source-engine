@@ -16,6 +16,8 @@
 #include "engine/ivdebugoverlay.h"
 #include "tier0/icommandline.h"
 
+#include "AloneMod/Amod_SharedDefs.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -229,7 +231,9 @@ private:
 	CUtlVector< KeyValues * >	m_SoundscapeScripts;	// The whole script file in memory
 	CUtlVector<KeyValues *>		m_soundscapes;			// Lookup by index of each root section
 	audioparams_t				m_params;				// current player audio params
+public:
 	CUtlVector<loopingsound_t>	m_loopingSounds;		// list of currently playing sounds
+private:
 	CUtlVector<randomsound_t>	m_randomSounds;			// list of random sound commands
 	float						m_nextRandomTime;		// next time to play a random sound
 	int							m_loopingSoundId;		// marks when the sound was issued
@@ -461,6 +465,37 @@ CON_COMMAND_F_COMPLETION( playsoundscape, "Forces a soundscape to play", FCVAR_C
 	g_SoundscapeSystem.ForceSoundscape( pSoundscapeName, radius );
 }
 
+float GetVolumeFromSoundscapeName(const char* name)
+{
+	if (Q_strstr(name, "klab") || Q_strstr(name, "inside.ravenholm_cave"))
+		return 0.1f;
+	else if (Q_strstr(name, "inside.prison") || Q_strstr(name, "inside_prison"))
+		return 0.15f;
+	else if (Q_strstr(name, "inside"))
+		return Q_strstr(name, "citad") ? 0.09f : 0.3f;
+	else if (Q_strstr(name, "Nothing"))
+		return 0.4f;
+
+	return 0.9f;
+}
+
+CON_COMMAND(amod_soundscape_stoprain, "")
+{
+	for (int i = 0; i < g_SoundscapeSystem.m_loopingSounds.Count(); i++)
+	{
+		loopingsound_t& loopingsound = g_SoundscapeSystem.m_loopingSounds[i];
+		if (Q_strstr(loopingsound.pWaveName, "rain"))
+		{
+			loopingsound.volumeTarget = 0.0f;
+		}
+	}
+}
+
+CON_COMMAND(amod_soundscape_startrain, "")
+{
+	int current = g_SoundscapeSystem.GetCurrentSoundscape();
+	g_SoundscapeSystem.StartNewSoundscape(g_SoundscapeSystem.SoundscapeByIndex(current));
+}
 
 CON_COMMAND_F( stopsoundscape, "Stops all soundscape processing and fades current looping sounds", FCVAR_CHEAT )
 {
@@ -602,6 +637,35 @@ void C_SoundscapeSystem::StartNewSoundscape( KeyValues *pSoundscape )
 
 	if ( pSoundscape )
 	{
+		static ConVarRef amod_rain_type("amod_rain_type");
+		static ConVarRef amod_rain_enable("amod_rain_enable");
+		if (amod_rain_type.GetInt() && amod_rain_enable.GetInt())
+		{
+			bool bDo = true;
+			if (amod_rain_type.GetInt() == 2)
+			{
+				CBasePlayer* pPlayer = CBasePlayer::GetLocalPlayer();
+				if (pPlayer)
+					bDo = pPlayer->m_bInRain;
+			}
+
+			if (bDo)
+			{
+				subsoundscapeparams_t params;
+				params.allowDSP = false;
+				params.wroteSoundMixer = false;
+				params.wroteDSPVolume = false;
+
+				params.masterVolume = GetVolumeFromSoundscapeName(pSoundscape->GetName());
+				params.startingPosition = 0;
+				params.recurseLevel = 0;
+				params.positionOverride = -1;
+				params.ambientPositionOverride = -1;
+
+				StartSubSoundscape(SoundscapeByIndex(FindSoundscapeByName("common.rain")), params);
+			}
+		}
+
 		subsoundscapeparams_t params;
 		params.allowDSP = true;
 		params.wroteSoundMixer = false;

@@ -171,6 +171,9 @@ extern vgui::IInputInternal *g_InputInternal;
 #include "sixense/in_sixense.h"
 #endif
 
+//alone mod
+#include "AloneMod/ISongPanel.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1675,6 +1678,33 @@ void CHLClient::ResetStringTablePointers()
 //-----------------------------------------------------------------------------
 // Purpose: Per level de-init
 //-----------------------------------------------------------------------------
+static float SefEndTime = 0.0f;
+static bool SefStillIn = true;
+
+CON_COMMAND(Amod_SefStart, "")
+{
+	if (!SefStillIn)
+		return;
+
+	float start = -(SefEndTime - 3 - gpGlobals->curtime);
+	enginesound->EmitAmbientSound("music/portal_self_esteem_fund.mp3", 0.5, 100, SND_SHOULDPAUSE, start);
+}
+
+CON_COMMAND(Sef_PlayIntro, "")
+{
+	enginesound->EmitAmbientSound("music/portal_self_esteem_fund.mp3", 5, 100, SND_SHOULDPAUSE);
+}
+
+CON_COMMAND(Amod_SefStop, "")
+{
+	SefStillIn = false;
+}
+
+CON_COMMAND(Amod_SefStart_01, "")
+{
+	SefStillIn = true;
+}
+
 void CHLClient::LevelShutdown( void )
 {
 	// HACK: Bogus, but the logic is too complicated in the engine
@@ -1682,6 +1712,8 @@ void CHLClient::LevelShutdown( void )
 		return;
 
 	g_bLevelInitialized = false;
+
+	songpanel->OnLevelShutdown();
 
 	// Disable abs recomputations when everything is shutting down
 	CBaseEntity::EnableAbsRecomputations( false );
@@ -1742,6 +1774,9 @@ void CHLClient::LevelShutdown( void )
 	CReplayRagdollRecorder::Instance().Shutdown();
 	CReplayRagdollCache::Instance().Shutdown();
 #endif
+
+	if (SefStillIn)
+		SefEndTime = gpGlobals->curtime;
 }
 
 

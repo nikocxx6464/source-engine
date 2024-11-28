@@ -23,6 +23,8 @@
 #include "tier0/vprof.h"
 #include "viewrender.h"
 
+#include "AloneMod/AmodCvars.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -173,6 +175,7 @@ private:
 	float			m_Width;		// Tracer width
 	float			m_Remainder;	// particles we should render next time
 	PrecipitationType_t	m_nPrecipType;			// Precip type
+	bool m_bEnabled;
 	float			m_flHalfScreenWidth;	// Precalculated each frame.
 
 	float			m_flDensity;
@@ -204,7 +207,8 @@ private:
 
 // Just receive the normal data table stuff
 IMPLEMENT_CLIENTCLASS_DT(CClient_Precipitation, DT_Precipitation, CPrecipitation)
-	RecvPropInt( RECVINFO( m_nPrecipType ) )
+	RecvPropInt( RECVINFO( m_nPrecipType ) ),
+	RecvPropBool( RECVINFO( m_bEnabled ) ),
 END_RECV_TABLE()
 
 static ConVar r_SnowEnable( "r_SnowEnable", "1", FCVAR_CHEAT, "Snow Enable" );
@@ -294,6 +298,8 @@ void CClient_Precipitation::ClientThink()
 //-----------------------------------------------------------------------------
 inline bool CClient_Precipitation::SimulateRain( CPrecipitationParticle* pParticle, float dt )
 {
+
+
 	if (GetRemainingLifetime( pParticle ) < 0.0f)
 		return false;
 
@@ -425,7 +431,7 @@ void CClient_Precipitation::Simulate( float dt )
 		m_Lifetime = (WorldAlignMaxs()[2] - WorldAlignMins()[2]) / m_Speed;
 
 
-	if ( !r_RainSimulate.GetInt() )
+	if ( !r_RainSimulate.GetInt() || !m_bEnabled)
 		return;
 
 	CFastTimer timer;
@@ -559,7 +565,7 @@ void CClient_Precipitation::CreateWaterSplashes()
 
 void CClient_Precipitation::Render()
 {
-	if ( !r_DrawRain.GetInt() )
+	if ( !r_DrawRain.GetInt())
 		return;
 
 	// Don't render in monitors or in reflections or refractions.
@@ -630,6 +636,7 @@ void CClient_Precipitation::Render()
 CClient_Precipitation::CClient_Precipitation() : m_Remainder(0.0f)
 {
 	m_nPrecipType = PRECIPITATION_TYPE_RAIN;
+	m_bEnabled = true;
 	m_MatHandle = INVALID_MATERIAL_HANDLE;
 	m_flHalfScreenWidth = 1;
 	
@@ -1033,6 +1040,21 @@ void CClient_Precipitation::CreateRainOrSnowParticle( Vector vSpawnPosition, Vec
 
 void CClient_Precipitation::EmitParticles( float fTimeDelta )
 {
+	static ConVarRef amod_rain_enable("amod_rain_enable");
+	static ConVarRef amod_rain_type("amod_rain_type");
+	if (!amod_rain_enable.GetBool())
+		return;
+	
+	if (amod_rain_type.GetInt() == 2)
+	{
+		CBasePlayer* pPlayer = CBasePlayer::GetLocalPlayer();
+		if (!pPlayer)
+			return;
+
+		if (!pPlayer->m_bInRain)
+			return;
+	}
+
 	Vector2D size;
 	Vector vel, org;
 

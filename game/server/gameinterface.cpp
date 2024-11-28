@@ -90,6 +90,8 @@
 #include "serverbenchmark_base.h"
 #include "querycache.h"
 
+//alone mod 
+#include "cdll_int.h"
 
 #ifdef TF_DLL
 #include "gc_clientsystem.h"
@@ -159,6 +161,11 @@ ISaveRestoreBlockHandler *GetCommentarySaveRestoreBlockHandler();
 CUtlLinkedList<CMapEntityRef, unsigned short> g_MapEntityRefs;
 
 // Engine interfaces.
+
+//waddelz - im sorry im doing this i just need it for game_text and other things in the future for the server if 
+//i need to
+IVEngineClient* clientengine = NULL;
+
 IVEngineServer	*engine = NULL;
 IVoiceServer	*g_pVoiceServer = NULL;
 #if !defined(_STATIC_LINKED)
@@ -583,6 +590,8 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 #endif
 
 	// init each (seperated for ease of debugging)
+	if ( (clientengine = (IVEngineClient*)appSystemFactory(VENGINE_CLIENT_INTERFACE_VERSION, NULL)) == NULL )
+		ConWarning("Failed To Load IVEngineClient For gameinterface.cpp\n");
 	if ( (engine = (IVEngineServer*)appSystemFactory(INTERFACEVERSION_VENGINESERVER, NULL)) == NULL )
 		return false;
 	if ( (g_pVoiceServer = (IVoiceServer*)appSystemFactory(INTERFACEVERSION_VOICESERVER, NULL)) == NULL )

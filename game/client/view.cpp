@@ -326,6 +326,48 @@ void CViewRender::Init( void )
 	m_flLastFOV = default_fov.GetFloat();
 #endif
 
+	//waddelz - added this
+	m_ScreenFlipMaterial.Init(materials->FindMaterial("engine/mirror_screen", TEXTURE_GROUP_VGUI));
+	m_ScreenFlipMaterial->IncrementReferenceCount();
+
+	m_lenseDirtMaterial.Init(materials->FindMaterial("effects/view/lense_dirt", TEXTURE_GROUP_VGUI));
+	m_lenseDirtMaterial->IncrementReferenceCount();
+
+	m_filterBinoculars.Init(materials->FindMaterial("effects/combine_binocoverlay.", TEXTURE_GROUP_VGUI));
+	m_filterBinoculars->IncrementReferenceCount();
+
+	m_filterBodyCam.Init(materials->FindMaterial("effects/view/bodycam", TEXTURE_GROUP_VGUI));
+	m_filterBodyCam->IncrementReferenceCount();
+
+	m_filterBlur.Init(materials->FindMaterial("effects/view/blur", TEXTURE_GROUP_VGUI));
+	m_filterBlur->IncrementReferenceCount();
+
+	m_screenBlackMaterial.Init(materials->FindMaterial("effects/view/black", TEXTURE_GROUP_VGUI));
+	m_screenBlackMaterial->IncrementReferenceCount();
+
+	m_filterVideo1.Init(materials->FindMaterial("effects/view/filter_for_video1", TEXTURE_GROUP_VGUI));
+	m_filterVideo1->IncrementReferenceCount();
+
+	m_filterVideo2.Init(materials->FindMaterial("effects/view/filter_for_video2", TEXTURE_GROUP_VGUI));
+	m_filterVideo2->IncrementReferenceCount();
+
+	m_filterVideo3.Init(materials->FindMaterial("effects/view/filter_for_video3", TEXTURE_GROUP_VGUI));
+	m_filterVideo3->IncrementReferenceCount();
+
+	m_filterVideo4.Init(materials->FindMaterial("effects/view/filter_for_video4", TEXTURE_GROUP_VGUI));
+	m_filterVideo4->IncrementReferenceCount();
+
+	m_filterVideo5.Init(materials->FindMaterial("effects/view/filter_for_video5", TEXTURE_GROUP_VGUI));
+	m_filterVideo5->IncrementReferenceCount();
+
+	m_filterVideo6.Init(materials->FindMaterial("effects/view/filter_for_video6", TEXTURE_GROUP_VGUI));
+	m_filterVideo6->IncrementReferenceCount();
+
+	m_filterVideo7.Init(materials->FindMaterial("effects/view/filter_for_video7", TEXTURE_GROUP_VGUI));
+	m_filterVideo7->IncrementReferenceCount();
+
+	m_filterVideo8.Init(materials->FindMaterial("effects/view/filter_for_video8", TEXTURE_GROUP_VGUI));
+	m_filterVideo8->IncrementReferenceCount();
 }
 
 //-----------------------------------------------------------------------------

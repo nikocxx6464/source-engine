@@ -101,7 +101,7 @@ ConVar player_showpredictedposition_timestep( "player_showpredictedposition_time
 ConVar player_squad_transient_commands( "player_squad_transient_commands", "1", FCVAR_REPLICATED );
 ConVar player_squad_double_tap_time( "player_squad_double_tap_time", "0.25" );
 
-ConVar sv_infinite_aux_power( "sv_infinite_aux_power", "0", FCVAR_CHEAT );
+ConVar sv_infinite_aux_power( "sv_infinite_aux_power", "1", FCVAR_CHEAT );
 
 ConVar autoaim_unlock_target( "autoaim_unlock_target", "0.8666" );
 
@@ -191,6 +191,7 @@ private:
 
 public:
 
+	COutputEvent m_OnPlayerHack;
 	COutputEvent m_OnFlashlightOn;
 	COutputEvent m_OnFlashlightOff;
 	COutputEvent m_PlayerHasAmmo;
@@ -208,7 +209,14 @@ public:
 	void InputLowerWeapon( inputdata_t &inputdata );
 	void InputEnableCappedPhysicsDamage( inputdata_t &inputdata );
 	void InputDisableCappedPhysicsDamage( inputdata_t &inputdata );
-	void InputSetLocatorTargetEntity( inputdata_t &inputdata );
+	void InputSetLocatorTargetEntity(inputdata_t &inputdata );
+
+	//alone mod stuff
+	void InputEnableFlashlight(inputdata_t& inputdata);
+	void InputDisableFlashlight(inputdata_t &inputdata);
+	void InputSetCanHack(inputdata_t& inputdata);
+	void InputOutputIfHack(inputdata_t& inputdata);
+
 #ifdef PORTAL
 	void InputSuppressCrosshair( inputdata_t &inputdata );
 #endif // PORTAL2
@@ -315,6 +323,10 @@ END_DATADESC()
 // Global Savedata for HL2 player
 BEGIN_DATADESC( CHL2_Player )
 
+	//amod
+	DEFINE_FIELD( m_bPickupThatCanInBinHack, FIELD_BOOLEAN ),
+
+	//other
 	DEFINE_FIELD( m_nControlClass, FIELD_INTEGER ),
 	DEFINE_EMBEDDED( m_HL2Local ),
 
@@ -395,6 +407,9 @@ CHL2_Player::CHL2_Player()
 
 	m_flArmorReductionTime = 0.0f;
 	m_iArmorReductionFrom = 0;
+
+	//Amod
+	m_bPickupThatCanInBinHack = false;
 }
 
 //
@@ -1117,7 +1132,9 @@ void CHL2_Player::Spawn(void)
 
 	BaseClass::Spawn();
 
-	//
+	if (gpGlobals->eLoadType != MapLoadType_t::MapLoad_Background)
+		UTIL_ScreenFade(this, color32{ 0,0,0,255 }, 0.3f, 0.5f, FFADE_IN | FFADE_PURGE);
+
 	// Our player movement speed is set once here. This will override the cl_xxxx
 	// cvars unless they are set to be lower than this.
 	//
@@ -2025,8 +2042,11 @@ int CHL2_Player::FlashlightIsOn( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::FlashlightTurnOn( void )
 {
-	if( m_bFlashlightDisabled )
+	if (m_bFlashlightDisabled)
+	{
+		EmitSound("HL2Player.SprintNoPower");
 		return;
+	}
 
 	if ( Flashlight_UseLegacyVersion() )
 	{
@@ -2187,6 +2207,12 @@ bool CHL2_Player::PassesDamageFilter( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 void CHL2_Player::SetFlashlightEnabled( bool bState )
 {
+	if (!bState)
+	{
+		if (FlashlightIsOn())
+			FlashlightTurnOff();
+	}
+
 	m_bFlashlightDisabled = !bState;
 }
 
@@ -3774,6 +3800,7 @@ BEGIN_DATADESC( CLogicPlayerProxy )
 	DEFINE_OUTPUT( m_PlayerHasNoAmmo, "PlayerHasNoAmmo" ),
 	DEFINE_OUTPUT( m_PlayerDied,	"PlayerDied" ),
 	DEFINE_OUTPUT( m_PlayerMissedAR2AltFire, "PlayerMissedAR2AltFire" ),
+	DEFINE_OUTPUT( m_OnPlayerHack, "OnPlayerHackTrue" ),
 	DEFINE_INPUTFUNC( FIELD_VOID,	"RequestPlayerHealth",	InputRequestPlayerHealth ),
 	DEFINE_INPUTFUNC( FIELD_VOID,	"SetFlashlightSlowDrain",	InputSetFlashlightSlowDrain ),
 	DEFINE_INPUTFUNC( FIELD_VOID,	"SetFlashlightNormalDrain",	InputSetFlashlightNormalDrain ),
@@ -3783,6 +3810,10 @@ BEGIN_DATADESC( CLogicPlayerProxy )
 	DEFINE_INPUTFUNC( FIELD_VOID,	"EnableCappedPhysicsDamage", InputEnableCappedPhysicsDamage ),
 	DEFINE_INPUTFUNC( FIELD_VOID,	"DisableCappedPhysicsDamage", InputDisableCappedPhysicsDamage ),
 	DEFINE_INPUTFUNC( FIELD_STRING,	"SetLocatorTargetEntity", InputSetLocatorTargetEntity ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "EnableFlashlight", InputEnableFlashlight),
+	DEFINE_INPUTFUNC( FIELD_VOID, "DisableFlashlight", InputDisableFlashlight),
+	DEFINE_INPUTFUNC( FIELD_VOID, "OutputIfCanHack", InputOutputIfHack),
+	DEFINE_INPUTFUNC( FIELD_BOOLEAN, "SetCanHackState", InputSetCanHack),
 #ifdef PORTAL
 	DEFINE_INPUTFUNC( FIELD_VOID,	"SuppressCrosshair", InputSuppressCrosshair ),
 #endif // PORTAL
@@ -3916,6 +3947,43 @@ void CLogicPlayerProxy::InputSetLocatorTargetEntity( inputdata_t &inputdata )
 
 	CHL2_Player *pPlayer = dynamic_cast<CHL2_Player*>(m_hPlayer.Get());
 	pPlayer->SetLocatorTargetEntity(pTarget);
+}
+
+void CLogicPlayerProxy::InputEnableFlashlight(inputdata_t& inputdata)
+{
+	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
+	if (!pPlayer)
+		return;
+
+	pPlayer->SetFlashlightEnabled(true);
+}
+
+void CLogicPlayerProxy::InputDisableFlashlight(inputdata_t& inputdata)
+{
+	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
+	if (!pPlayer)
+		return;
+
+	pPlayer->SetFlashlightEnabled(false);
+}
+
+void CLogicPlayerProxy::InputSetCanHack(inputdata_t& inputdata)
+{
+	CHL2_Player* pPlayer = (CHL2_Player*)UTIL_GetLocalPlayer();
+	if (!pPlayer)
+		return;
+
+	pPlayer->SetCanHack(inputdata.value.Bool() == 0 ? false : true );
+}
+
+void CLogicPlayerProxy::InputOutputIfHack(inputdata_t& inputdata)
+{
+	CHL2_Player* pPlayer = (CHL2_Player*)UTIL_GetLocalPlayer();
+	if (!pPlayer)
+		return;
+
+	if (pPlayer->GetCanHack())
+		m_OnPlayerHack.FireOutput(this, 0);
 }
 
 #ifdef PORTAL

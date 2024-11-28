@@ -25,6 +25,13 @@
 #include "touch.h"
 #include "matsys_controls/matsyscontrols.h"
 
+//Alone Mod
+#include "AloneMod/IBackgroundPanel.h"
+#include "AloneMod/ISongPanel.h"
+#include "AloneMod/IOptionsPanel.h"
+#include "AloneMod/INewGamePanel.h"
+#include "AloneMod/IEffectsPanel.h"
+
 #ifdef SIXENSE
 #include "sixense/in_sixense.h"
 #endif
@@ -200,6 +207,16 @@ void VGui_CreateGlobalPanels( void )
 {
 	VPANEL gameToolParent = enginevgui->GetPanel( PANEL_CLIENTDLL_TOOLS );
 	VPANEL toolParent = enginevgui->GetPanel( PANEL_TOOLS );
+
+	//Alone Mod
+	VPANEL GameUiDll = enginevgui->GetPanel(PANEL_GAMEUIDLL);
+	backgroundpanel->Create(GameUiDll);
+	optionspanel->Create(GameUiDll);
+	newgamepanel->Create(GameUiDll);
+	oldnewgamepanel->Create(GameUiDll);
+	effectspanel->Create(toolParent);
+	songpanel->Create(toolParent);
+
 #if defined( TRACK_BLOCKING_IO )
 	VPANEL gameDLLPanel = enginevgui->GetPanel( PANEL_GAMEDLL );
 #endif
@@ -229,6 +246,14 @@ void VGui_CreateGlobalPanels( void )
 
 void VGui_Shutdown()
 {
+	//Alone Mod
+	backgroundpanel->Destroy();
+	songpanel->Destroy();
+	optionspanel->Destroy();
+	newgamepanel->Destroy();
+	oldnewgamepanel->Destroy();
+	effectspanel->Destroy();
+
 	VGUI_DestroyClientDLLRootPanel();
 
 #ifndef _X360

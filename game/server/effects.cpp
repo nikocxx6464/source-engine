@@ -1487,24 +1487,30 @@ public:
 	CPrecipitation();
 	void	Spawn( void );
 
+	void InputDisable(inputdata_t& input);
+
 	CNetworkVar( PrecipitationType_t, m_nPrecipType );
+	CNetworkVar( bool, m_bEnabled );
 };
 
 LINK_ENTITY_TO_CLASS( func_precipitation, CPrecipitation );
 
 BEGIN_DATADESC( CPrecipitation )
 	DEFINE_KEYFIELD( m_nPrecipType, FIELD_INTEGER, "preciptype" ),
+	DEFINE_INPUTFUNC( FIELD_VOID, "Disable", InputDisable ),
 END_DATADESC()
 
 // Just send the normal entity crap
 IMPLEMENT_SERVERCLASS_ST( CPrecipitation, DT_Precipitation)
-	SendPropInt( SENDINFO( m_nPrecipType ), Q_log2( NUM_PRECIPITATION_TYPES ) + 1, SPROP_UNSIGNED )
+	SendPropInt( SENDINFO( m_nPrecipType ), Q_log2( NUM_PRECIPITATION_TYPES ) + 1, SPROP_UNSIGNED ),
+	SendPropBool( SENDINFO( m_bEnabled ) ),
 END_SEND_TABLE()
 
 
 CPrecipitation::CPrecipitation()
 {
 	m_nPrecipType = PRECIPITATION_TYPE_RAIN; // default to rain.
+	m_bEnabled = true;
 }
 
 void CPrecipitation::Spawn( void )
@@ -1526,6 +1532,11 @@ void CPrecipitation::Spawn( void )
 	m_nRenderMode = kRenderEnvironmental;
 }
 #endif
+
+void CPrecipitation::InputDisable(inputdata_t& input)
+{
+	m_bEnabled = false;
+}
 
 //-----------------------------------------------------------------------------
 // EnvWind - global wind info

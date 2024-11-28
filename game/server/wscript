@@ -9,7 +9,7 @@ top = '.'
 PROJECT_NAME = 'server'
 
 games = {
-	'hl2': ['server_base.vpc', 'server_hl2.vpc'],
+	'hl2_alonemod': ['server_base.vpc', 'server_hl2.vpc'],
 	'episodic':['server_base.vpc', 'server_episodic.vpc'],
 	'lostcoast':['server_base.vpc', 'server_lostcoast.vpc'],
 	'hl2mp': ['server_base.vpc', 'server_hl2mp.vpc'],

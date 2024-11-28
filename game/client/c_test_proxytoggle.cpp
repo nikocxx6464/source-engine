@@ -57,7 +57,7 @@ END_RECV_TABLE()
 // ---------------------------------------------------------------------------------------- //
 
 // The engine uses this to get the current value.
-CON_COMMAND_F( Test_ProxyToggle_EnsureValue, "Test_ProxyToggle_EnsureValue", FCVAR_CHEAT )
+CON_COMMAND_F( Test_ProxyToggle_EnsureValue, "SO_WISH_ME_LUCK_Test_ProxyToggle_EnsureValue", FCVAR_CHEAT )
 {
 	if ( args.ArgC() < 2 )
 	{

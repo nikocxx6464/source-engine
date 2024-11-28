@@ -1,6 +1,6 @@
-export ICON=lc.png
-export PACKAGE=lostcoast
-export APP_NAME="Half-Life 2: Lost Coast"
+export ICON=alone.png
+export PACKAGE=HL2_AloneMod
+export APP_NAME="Half-Life 2: Alone"
 cd srceng-mod-launcher
 git clone https://gitlab.com/LostGamer/android-sdk
 export ANDROID_SDK_HOME=$PWD/android-sdk
