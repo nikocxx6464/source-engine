@@ -96,6 +96,17 @@ CNewGamePanel::CNewGamePanel(vgui::VPANEL parent)
 	SetMoveable(true);
 	SetVisible(true);
 
+	int w = 520;
+	int h = 193;
+
+	if (IsProportional())
+	{
+		w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+	}
+
+	SetSize(w, h);
+
 	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
 	vgui::ivgui()->AddTickSignal(GetVPanel(), 50);
@@ -118,17 +129,6 @@ void CNewGamePanel::Init()
 	}
 
 	SetTitle("Chapter Select", false);
-	
-	int w = 520;
-	int h = 193;
-
-	if (IsProportional())
-	{
-		w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
-		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
-	}
-
-	SetSize(w, h);
 
 	int screenWidth, screenHeight;
 	vgui::surface()->GetScreenSize(screenWidth, screenHeight);
@@ -138,57 +138,71 @@ void CNewGamePanel::Init()
 
 	SetPos(xPos, yPos);
 
+	int w = 190;
+	int h = 90;
+	int w_1 = 170;
+	int h_1 = 20;
+	int w_2 = 80;
+	int h_2 = 25;
+
+	w_1 = scheme()->GetProportionalScaledValueEx( GetScheme(), w_1 );
+	w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+	h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+	h_1 =  scheme()->GetProportionalScaledValueEx(GetScheme(), h_1 );
+	w_2 = scheme()->GetProportionalScaledValueEx(GetScheme(), w_2);
+	h_2 = scheme()->GetProportionalScaledValueEx(GetScheme(), h_2);
+
 	ImageC1 = new ImagePanel(this, "ImageC1");
-	ImageC1->SetBounds(10, 40, 160, 90);
+	ImageC1->SetBounds(10, 40, w, h);
 	ImageC1->SetImage("chapters/chapter1");
 
 	ImageC2 = new ImagePanel(this, "ImageC2");
-	ImageC2->SetBounds(180, 40, 160, 90);
+	ImageC2->SetBounds(180, 40, w, h);
 	ImageC2->SetImage("chapters/chapter2");
 
 	ImageC3 = new ImagePanel(this, "ImageC2");
-	ImageC3->SetBounds(350, 40, 160, 90);
+	ImageC3->SetBounds(350, 40, w, h);
 	ImageC3->SetImage("chapters/chapter3");
 
 	chapter1l = new Label(this, "Chapter1l", ChapterNames[0]);
-	chapter1l->SetBounds(10, 20, 170, 20);
+	chapter1l->SetBounds(10, 20, w_1, h_1);
 
 	chapter2l = new Label(this, "Chapter2l", ChapterNames[1]);
-	chapter2l->SetBounds(180, 20, 165, 20);
+	chapter2l->SetBounds(180, 20, w, h_1);
 
 	chapter3l = new Label(this, "Chapter3l", ChapterNames[2]);
-	chapter3l->SetBounds(350, 20, 165, 20);
+	chapter3l->SetBounds(350, 20, w, h_1);
 
 	//Divider* div1 = new Divider(this, "div1");
 	//div1->SetBounds(5, 23, 510, 2);
 
 	prev = new Button(this, "prev", "Previous");
-	prev->SetBounds(10, 165, 80, 25);
+	prev->SetBounds(10, 165, w_2, h_2);
 	prev->SetCommand("Prev");
 	prev->SetEnabled(false);
 
 	next = new Button(this, "next", "Next");
-	next->SetBounds(430, 165, 80, 25);
+	next->SetBounds(430, 165, w_2, h_2);
 	next->SetCommand("Next");
 
 	Divider* div2 = new Divider(this, "div1");
 	div2->SetBounds(5, 158, 510, 2);
 
 	chapter1b = new Button(this, "Chapter1b", "Load Chapter 1");
-	chapter1b->SetBounds(10, 135, 160, 20);
+	chapter1b->SetBounds(10, 135, w, h_1);
 	chapter1b->SetCommand("chapter1");
 
 	chapter2b = new Button(this, "Chapter2b", "Load Chapter 2");
-	chapter2b->SetBounds(180, 135, 160, 20);
+	chapter2b->SetBounds(180, 135, w, h_1);
 	chapter2b->SetCommand("chapter2");
 
 	chapter3b = new Button(this, "Chapter3b", "Load Chapter 3");
-	chapter3b->SetBounds(350, 135, 160, 20);
+	chapter3b->SetBounds(350, 135, w, h_1);
 	chapter3b->SetCommand("chapter3");
 
 	oldpanelbutfornew = new CheckButton(this, "oldbuttonfornewpanel", "Use Other Panel");
 	oldpanelbutfornew->SetCommand("OBPress");
-	oldpanelbutfornew->SetBounds(186, 165, 150, 25);
+	oldpanelbutfornew->SetBounds(186, 165, w, h_1);
 }
 
 class CNGPanellInterface : public NewGamePanel

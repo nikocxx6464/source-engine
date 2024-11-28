@@ -137,7 +137,7 @@ class CAModWeatherPanel : public vgui::Frame
 		SetKeyBoardInputEnabled(true);
 		SetMouseInputEnabled(true);
 
-		SetProportional(false);
+		SetProportional( true );
 		SetTitleBarVisible(true);
 		SetMinimizeButtonVisible(false);
 		SetMaximizeButtonVisible(false);
@@ -146,9 +146,18 @@ class CAModWeatherPanel : public vgui::Frame
 		SetMoveable(true);
 		SetVisible(true);
 
+		w = 180;
+		h = 190;
+
+		if (IsProportional())
+		{
+			w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+			h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+		}
+
 		SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
-		SetBounds(100, 100, 180, 190);
+		SetBounds(100, 100, w, h);
 		SetTitle("Weather Panel", false);
 
 		ConVarRef amod_rain_type("amod_rain_type");
