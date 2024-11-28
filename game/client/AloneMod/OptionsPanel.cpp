@@ -146,8 +146,8 @@ class CAModWeatherPanel : public vgui::Frame
 		SetMoveable(true);
 		SetVisible(true);
 
-		w = 180;
-		h = 190;
+		int w = 180;
+		int h = 190;
 
 		if (IsProportional())
 		{
