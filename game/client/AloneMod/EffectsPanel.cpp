@@ -107,7 +107,7 @@ CEffectsPanel::CEffectsPanel(vgui::VPANEL parent)
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
 
-	SetProportional(false);
+	SetProportional(true);
 	SetTitleBarVisible(true);
 	SetMinimizeButtonVisible(false);
 	SetMaximizeButtonVisible(false);
@@ -115,6 +115,17 @@ CEffectsPanel::CEffectsPanel(vgui::VPANEL parent)
 	SetSizeable(false);
 	SetMoveable(true);
 	SetVisible(true);
+
+	int w = 505;
+	int h = 487;
+
+	if (IsProportional())
+	{
+		w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+	}
+
+	SetSize( w, h );
 
 	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
@@ -131,7 +142,7 @@ void CEffectsPanel::Init()
 	int xPos = (screenWidth - 505) / 2;
 	int yPos = (screenHeight - 487) / 2;
 
-	SetSize(505, 487);
+	//SetSize( 505, 487 );
 	SetPos(xPos, yPos);
 
 	SetTitle("Effects Panel", false);

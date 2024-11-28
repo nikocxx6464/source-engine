@@ -43,7 +43,7 @@ CBackgroundPanel::CBackgroundPanel(vgui::VPANEL parent)
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
 
-	SetProportional(false);
+	SetProportional(true);
 	SetTitleBarVisible(true);
 	SetMinimizeButtonVisible(false);
 	SetMaximizeButtonVisible(false);

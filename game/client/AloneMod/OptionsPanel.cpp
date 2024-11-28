@@ -56,7 +56,9 @@ class CAModCreditsPanel : public vgui::Frame
 		SetKeyBoardInputEnabled(true);
 		SetMouseInputEnabled(true);
 
-		SetProportional(false);
+		SetProportional(true);
+
+
 		SetTitleBarVisible(true);
 		SetMinimizeButtonVisible(false);
 		SetMaximizeButtonVisible(false);
@@ -67,7 +69,16 @@ class CAModCreditsPanel : public vgui::Frame
 
 		SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
-		SetBounds(100, 100, 245, 360);
+		int w = 245;
+		int h = 360;
+
+		if (IsProportional())
+		{
+			w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+			h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+		}
+		
+		SetBounds(100, 100, w, h);
 		SetTitle("Credits", false);
 
 		RichText* rt = new RichText(this, "rt");

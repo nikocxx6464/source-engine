@@ -87,7 +87,7 @@ CNewGamePanel::CNewGamePanel(vgui::VPANEL parent)
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
 
-	SetProportional(false);
+	SetProportional(true);
 	SetTitleBarVisible(true);
 	SetMinimizeButtonVisible(false);
 	SetMaximizeButtonVisible(false);
@@ -118,7 +118,17 @@ void CNewGamePanel::Init()
 	}
 
 	SetTitle("Chapter Select", false);
-	SetSize(520, 193);
+	
+	int w = 520;
+	int h = 193;
+
+	if (IsProportional())
+	{
+		w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+	}
+
+	SetSize(w, h);
 
 	int screenWidth, screenHeight;
 	vgui::surface()->GetScreenSize(screenWidth, screenHeight);
