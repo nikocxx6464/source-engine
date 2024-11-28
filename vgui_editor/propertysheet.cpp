@@ -2118,20 +2118,23 @@ void PropertySheet::OnKeyCodePressed(KeyCode code)
 //-----------------------------------------------------------------------------
 // Purpose: Called by the associated combo box (if in that mode), changes the current panel
 //-----------------------------------------------------------------------------
-void PropertySheet::OnTextChanged(Panel *panel,const wchar_t *wszText)
+void PropertySheet::OnTextChanged(Panel *panel, const wchar_t *wszText)
 {
 	if ( panel == _combo )
 	{
-		wchar_t tabText[30];
-		for(int i = 0 ; i < m_PageTabs.Count() ; i++ )
+		if ( wszText  )
 		{
-			tabText[0] = 0;
-			m_PageTabs[i]->GetText(tabText,30);
-			if ( !wcsicmp(wszText,tabText) )
+			wchar_t tabText[30];
+			for(int i = 0 ; i < m_PageTabs.Count() ; i++ )
 			{
-				ChangeActiveTab(i);
+				tabText[0] = 0;
+				m_PageTabs[i]->GetText(tabText,30);
+				if ( !wcsicmp(wszText, tabText) )
+				{
+					ChangeActiveTab(i);
+				}
 			}
-		}
+		}	
 	}
 }
 

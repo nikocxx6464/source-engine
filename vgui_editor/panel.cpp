@@ -3519,11 +3519,14 @@ void Panel::OnMouseCaptureLost()
 //-----------------------------------------------------------------------------
 void Panel::AddActionSignalTarget(Panel *messageTarget)
 {
-	HPanel target = ivgui()->PanelToHandle(messageTarget->GetVPanel());
-	if (!_actionSignalTargetDar.HasElement(target))
-	{
-		_actionSignalTargetDar.AddElement(target);
-	}
+	// if ( messageTarget->GetVPanel() && messageTarget  )
+	// {
+	// 	HPanel target = ivgui()->PanelToHandle(messageTarget->GetVPanel());
+	// 	if (!_actionSignalTargetDar.HasElement(target))
+	// 	{
+	// 		_actionSignalTargetDar.AddElement(target);
+	// 	}
+	// }
 }
 
 //-----------------------------------------------------------------------------

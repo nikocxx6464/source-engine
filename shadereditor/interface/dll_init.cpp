@@ -40,10 +40,10 @@ IGameUIFuncs *gameuifuncs = NULL;
 IInputSystem *inputsystem = NULL;
 IUploadGameStats *gamestatsuploader = NULL;
 
-#if 0
+#ifndef SHADER_EDITOR_DLL_2006
 ISoundEmitterSystemBase *soundemitterbase = NULL;
-static CSteamAPIContext g_SteamAPIContext;
-CSteamAPIContext *steamapicontext = &g_SteamAPIContext;
+//static CSteamAPIContext g_SteamAPIContext;
+//CSteamAPIContext *steamapicontext = &g_SteamAPIContext;
 #endif
 
 static CGlobalVarsBase dummyvars( true );
@@ -161,8 +161,12 @@ bool ShaderEditorInterface::Init( CreateInterfaceFn appSystemFactory, CGlobalVar
 #elif SHADER_EDITOR_DLL_2006
 	const char *pszModuleName = "game_shader_generic_eshader_2006.dll";
 #elif SHADER_EDITOR_DLL_2013
-	//const char *pszModuleName = "game_shader_generic_eshader_2013.dll";
-	const char *pszModuleName = "game_shader_dx6.dll";
+	#ifdef WIN32
+		//const char *pszModuleName = "game_shader_generic_eshader_2013.dll";
+		const char *pszModuleName = "game_shader_dx6.dll";
+	#else
+		const char *pszModuleName = "libgame_shader_dx9.so";
+	#endif
 #elif SHADER_EDITOR_DLL_PORTAL2
 	const char *pszModuleName = "game_shader_generic_eshader_PORTAL2.dll";
 #else

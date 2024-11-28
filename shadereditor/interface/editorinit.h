@@ -48,6 +48,7 @@ public:
 	void		SetPPEEnabled( const int &index, const bool &bEnabled );
 	IMaterial	*GetPPEMaterial( const int &index, const char *pszNodeName );
 	void		DrawPPEOnDemand( const int &index, const bool bInScene );
+	void		DrawPPEOnDemand( const int &index, int x, int y, int w, int h, const bool bInScene );
 	IMaterialVar	*GetPPEMaterialVarFast( ShaderEditVarToken &token,
 		const char *pszPPEName, const char *pszNodeName, const char *pszVarName );
 

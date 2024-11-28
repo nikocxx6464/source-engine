@@ -254,6 +254,7 @@ void ShaderEditorInterface::OnUpdateSkymask( bool bCombineMode )
 #endif
 
 	pRenderContext->PushRenderTargetAndViewport( NULL );
+	//pRenderContext->Viewport( x, y, w, h );
 	//pRenderContext->DepthRange( 0, 1 );
 	//MaterialHeightClipMode_t hClipLast = pRenderContext->GetHeightClipMode();
 	//pRenderContext->SetHeightClipMode( MATERIAL_HEIGHTCLIPMODE_DISABLE );
