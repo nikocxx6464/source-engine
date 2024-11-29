@@ -13,6 +13,8 @@
 #include <vgui/ISurface.h>
 #include "AloneMod/AmodCvars.h"
 
+#define SetBounds( x, y, w, h ) SetBounds( GetProportionalValue( x ), GetProportionalValue( y ), GetProportionalValue( w ), GetProportionalValue( h ) )
+
 using namespace vgui;
 
 extern ConVar fov_desired;
@@ -45,6 +47,13 @@ class CEffectsPanel : public vgui::Frame
 
 	CEffectsPanel(vgui::VPANEL parent);
 	~CEffectsPanel() {};
+
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
+	}
 
 	MESSAGE_FUNC_CHARPTR(OnFileSelected, "FileSelected", fullpath);
 

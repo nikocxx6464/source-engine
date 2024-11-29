@@ -63,6 +63,8 @@ class CNewGamePanel : public vgui::Frame
 
 	void DoDayCheck();
 
+	int GetProportionalValue( int a );
+
 	void OnClose();
 protected:
 	//VGUI overrides:
@@ -96,6 +98,11 @@ CNewGamePanel::CNewGamePanel(vgui::VPANEL parent)
 	SetMoveable(true);
 	SetVisible(true);
 
+	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
+
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 50);
+
+	
 	int w = 520;
 	int h = 193;
 
@@ -105,13 +112,17 @@ CNewGamePanel::CNewGamePanel(vgui::VPANEL parent)
 		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
 	}
 
-	SetSize(w, h);
-
-	SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
-
-	vgui::ivgui()->AddTickSignal(GetVPanel(), 50);
+	SetSize( w , h );
 
 	Init();
+}
+
+int CNewGamePanel::GetProportionalValue( int a )
+{
+	if ( IsProportional() )
+		return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+	else
+		return a;
 }
 
 void CNewGamePanel::Init()
@@ -138,71 +149,69 @@ void CNewGamePanel::Init()
 
 	SetPos(xPos, yPos);
 
-	int w = 190;
+	int w = 160;
 	int h = 90;
-	int w_1 = 170;
-	int h_1 = 20;
-	int w_2 = 80;
-	int h_2 = 25;
 
-	w_1 = scheme()->GetProportionalScaledValueEx( GetScheme(), w_1 );
-	w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
-	h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
-	h_1 =  scheme()->GetProportionalScaledValueEx(GetScheme(), h_1 );
-	w_2 = scheme()->GetProportionalScaledValueEx(GetScheme(), w_2);
-	h_2 = scheme()->GetProportionalScaledValueEx(GetScheme(), h_2);
+	if (IsProportional())
+	{
+		w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
+		h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
+	}
 
 	ImageC1 = new ImagePanel(this, "ImageC1");
-	ImageC1->SetBounds(10, 40, w, h);
+	ImageC1->SetBounds(GetProportionalValue(6), GetProportionalValue( 26 ), w, h);
 	ImageC1->SetImage("chapters/chapter1");
 
 	ImageC2 = new ImagePanel(this, "ImageC2");
-	ImageC2->SetBounds(180, 40, w, h);
+	ImageC2->SetBounds(GetProportionalValue( 176 ),  GetProportionalValue( 26 ), w, h);
 	ImageC2->SetImage("chapters/chapter2");
 
 	ImageC3 = new ImagePanel(this, "ImageC2");
-	ImageC3->SetBounds(350, 40, w, h);
+	ImageC3->SetBounds( GetProportionalValue( 348 ),  GetProportionalValue( 26 ), w, h);
 	ImageC3->SetImage("chapters/chapter3");
 
 	chapter1l = new Label(this, "Chapter1l", ChapterNames[0]);
-	chapter1l->SetBounds(10, 20, w_1, h_1);
+	chapter1l->SetBounds(10, 20, 170, 20);
 
 	chapter2l = new Label(this, "Chapter2l", ChapterNames[1]);
-	chapter2l->SetBounds(180, 20, w, h_1);
+	chapter2l->SetBounds(180, 20, 165, 20);
 
 	chapter3l = new Label(this, "Chapter3l", ChapterNames[2]);
-	chapter3l->SetBounds(350, 20, w, h_1);
+	chapter3l->SetBounds(350, 20, 165, 20);
 
 	//Divider* div1 = new Divider(this, "div1");
 	//div1->SetBounds(5, 23, 510, 2);
 
 	prev = new Button(this, "prev", "Previous");
-	prev->SetBounds(10, 165, w_2, h_2);
+	prev->SetBounds(GetProportionalValue(10), GetProportionalValue(165), GetProportionalValue(80), GetProportionalValue(25) );
 	prev->SetCommand("Prev");
 	prev->SetEnabled(false);
 
 	next = new Button(this, "next", "Next");
-	next->SetBounds(430, 165, w_2, h_2);
+	next->SetBounds(GetProportionalValue(430), GetProportionalValue(165), GetProportionalValue(80), GetProportionalValue(25));
 	next->SetCommand("Next");
 
 	Divider* div2 = new Divider(this, "div1");
-	div2->SetBounds(5, 158, 510, 2);
+	div2->SetBounds(GetProportionalValue(5), GetProportionalValue(158), GetProportionalValue(510), GetProportionalValue(2));
+
+	int width = GetProportionalValue( 160 );
+	int height = GetProportionalValue ( 20 );
 
 	chapter1b = new Button(this, "Chapter1b", "Load Chapter 1");
-	chapter1b->SetBounds(10, 135, w, h_1);
+	chapter1b->SetBounds(GetProportionalValue (10) , GetProportionalValue (135), width, height);
 	chapter1b->SetCommand("chapter1");
 
 	chapter2b = new Button(this, "Chapter2b", "Load Chapter 2");
-	chapter2b->SetBounds(180, 135, w, h_1);
+	chapter2b->SetBounds(GetProportionalValue (180), GetProportionalValue ( 135 ), width, height);
 	chapter2b->SetCommand("chapter2");
 
 	chapter3b = new Button(this, "Chapter3b", "Load Chapter 3");
-	chapter3b->SetBounds(350, 135, w, h_1);
+	chapter3b->SetBounds( GetProportionalValue (350 ), GetProportionalValue ( 135 ), width, height);
 	chapter3b->SetCommand("chapter3");
 
 	oldpanelbutfornew = new CheckButton(this, "oldbuttonfornewpanel", "Use Other Panel");
 	oldpanelbutfornew->SetCommand("OBPress");
-	oldpanelbutfornew->SetBounds(186, 165, w, h_1);
+	oldpanelbutfornew->SetBounds(GetProportionalValue(186), GetProportionalValue(165), GetProportionalValue(150), GetProportionalValue(25));
 }
 
 class CNGPanellInterface : public NewGamePanel
@@ -303,11 +312,15 @@ void CNewGamePanel::OnCommand(const char* pcCommand)
 		if (ButtonExp == 0)
 			return;
 
-		chapter2b->SetSize(160, 20);
-		chapter3b->SetSize(160, 20);
+		int w = GetProportionalValue ( 160 );
+		int h = GetProportionalValue ( 20 );
+		int h_img = GetProportionalValue( 90 );
 
-		ImageC2->SetSize(160, 90);
-		ImageC3->SetSize(160, 90);
+		chapter2b->SetSize(w, h);
+		chapter3b->SetSize(w, h);
+
+		ImageC2->SetSize(w, h_img);
+		ImageC3->SetSize(w, h_img);
 
 		chapter1b->SetText(CFmtStr("Load Chapter %d", ButtonExp - 2));
 		chapter2b->SetText(CFmtStr("Load Chapter %d", ButtonExp - 1));
@@ -446,6 +459,13 @@ class COldNewGamePanel : public vgui::Frame
 	COldNewGamePanel(vgui::VPANEL parent);
 	~COldNewGamePanel() {};
 
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
+	}
+
 	void OnClose();
 protected:
 	//VGUI overrides:
@@ -484,7 +504,7 @@ COldNewGamePanel::COldNewGamePanel(vgui::VPANEL parent)
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
 
-	SetProportional(false);
+	SetProportional( true );
 	SetTitleBarVisible(true);
 	SetMinimizeButtonVisible(false);
 	SetMaximizeButtonVisible(false);
@@ -534,29 +554,32 @@ void COldNewGamePanel::Init()
 	Map_T* tmp = (*tmpvec)[0];
 
 	SetTitle("Chapter Select", false);
-	SetBounds(200, 200, 400, 285);
+	
+	int i = GetProportionalValue( 200 );
+
+	SetBounds(i, i, GetProportionalValue(400), GetProportionalValue(285) );
 
 	m_bPrev = new Button(this, "", "Previous Chapter");
-	m_bPrev->SetBounds(7, 185, 115, 25);
+	m_bPrev->SetBounds(GetProportionalValue(7), GetProportionalValue(185), GetProportionalValue(115), GetProportionalValue(25));
 	m_bPrev->SetCommand("prev");
 	m_bPrev->SetEnabled(false);
 
 	m_bNext = new Button(this, "", "Next Chapter");
-	m_bNext->SetBounds(296, 185, 100, 25);
+	m_bNext->SetBounds(GetProportionalValue(296), GetProportionalValue(185), GetProportionalValue(100), GetProportionalValue(25));
 	m_bNext->SetCommand("next");
 	m_bNext->SetEnabled(m_vMaps.Count() > 1);
 
 	m_bPlay = new Button(this, "", "Play Selected Map");
-	m_bPlay->SetBounds(276, 255, 120, 25);
+	m_bPlay->SetBounds(GetProportionalValue(276), GetProportionalValue(255), GetProportionalValue(120), GetProportionalValue(25));
 	m_bPlay->SetCommand("play");
 	m_bPlay->SetEnabled(tmp);
 
 	Label* maplab = new Label(this, "", "Current Map");
-	maplab->SetBounds(61, 52, 120, 20);
+	maplab->SetBounds( GetProportionalValue( 61), GetProportionalValue(52), GetProportionalValue(120), GetProportionalValue(20));
 
 	m_cbMapList = new ComboBox(this, 0, tmpvec->Count(), false);
 	m_cbMapList->SetEnabled(true);
-	m_cbMapList->SetBounds(10, 75, 200, 25);
+	m_cbMapList->SetBounds(GetProportionalValue(10), GetProportionalValue(75), GetProportionalValue(200), GetProportionalValue(25));
 
 	for (int i = 0; i < tmpvec->Size(); i++)
 	{
@@ -570,14 +593,14 @@ void COldNewGamePanel::Init()
 	m_cbMapList->ActivateItem(0);
 
 	div1 = new Divider(this, "");
-	div1->SetBounds(-2, 215, 500, 2);
+	div1->SetBounds(GetProportionalValue(-2), GetProportionalValue(215), GetProportionalValue(500), GetProportionalValue(2));
 
 	m_labelChapter = new Label(this, "", CFmtStr("Current Chapter: %s", (tmp) ? tmp->chaptertext : "Unknown Chapter"));
 	m_labelChapter->SetBounds(8, 18, 300, 35);
 
 	m_iIcon = new ImagePanel(this, "");
 	m_iIcon->SetImage(tmp ? tmp->imagefile : "");
-	m_iIcon->SetBounds(230, 65, 163, 93);
+	m_iIcon->SetBounds(GetProportionalValue(230), GetProportionalValue(65), GetProportionalValue(163), GetProportionalValue(93));
 
 	vgui::HFont customFont = vgui::surface()->CreateFont();
 	vgui::surface()->SetFontGlyphSet(customFont, "font", 24, 500, 0, 0, vgui::ISurface::FONTFLAG_ANTIALIAS);
@@ -588,7 +611,7 @@ void COldNewGamePanel::Init()
 	m_labelDescription->SetBounds(9, 210, 500, 50);
 
 	oldpanelbutforold = new CheckButton(this, "", "Use Other Panel");
-	oldpanelbutforold->SetBounds(130, 255, 135, 20);
+	oldpanelbutforold->SetBounds(GetProportionalValue(130), GetProportionalValue(255), GetProportionalValue(135), GetProportionalValue(20));
 	oldpanelbutforold->SetCommand("OBCheck");
 
 	bDidLoad = true;

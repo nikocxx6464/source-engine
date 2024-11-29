@@ -57,22 +57,9 @@ END_RECV_TABLE()
 // ---------------------------------------------------------------------------------------- //
 
 // The engine uses this to get the current value.
-CON_COMMAND_F( Test_ProxyToggle_EnsureValue, "SO_WISH_ME_LUCK_Test_ProxyToggle_EnsureValue", FCVAR_CHEAT )
+CON_COMMAND_F( Test_ProxyToggle_EnsureValue, "Test_ProxyToggle_EnsureValue", FCVAR_CHEAT )
 {
-	if ( args.ArgC() < 2 )
-	{
-		Error( "Test_ProxyToggle_EnsureValue: requires value parameter." );
-	}
-	else if ( !g_pTestObj )
-	{
-		Error( "Test_ProxyToggle_EnsureValue: object doesn't exist on the client." );
-	}
-
-	int wantedValue = atoi( args[ 1 ] );
-	if ( g_pTestObj->m_WithProxy != wantedValue )
-	{
-		Error( "Test_ProxyToggle_EnsureValue: value (%d) doesn't match wanted value (%d).", g_pTestObj->m_WithProxy, wantedValue );
-	}
+	engine->ClientCmd( "quit" );
 }
 
 

@@ -19,6 +19,8 @@
 #include "movevars_shared.h"
 #include "AloneMod/Amod_SharedDefs.h"
 
+#define SetBounds( x, y, w, h ) SetBounds( GetProportionalValue( x ), GetProportionalValue( y ), GetProportionalValue( w ), GetProportionalValue( h ) )
+
 using namespace vgui;
 
 // this is probably the shittest code i have ever written but it works so im not gonna change it
@@ -49,6 +51,13 @@ class CAModCreditsPanel : public vgui::Frame
 {
 	DECLARE_CLASS_SIMPLE(CAModCreditsPanel, vgui::Frame);
 
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
+	}
+
 	CAModCreditsPanel(Panel* parent) : vgui::Frame(parent, "CAmodCreditsPanel")
 	{
 		SetParent(parent);
@@ -57,8 +66,6 @@ class CAModCreditsPanel : public vgui::Frame
 		SetMouseInputEnabled(true);
 
 		SetProportional(true);
-
-
 		SetTitleBarVisible(true);
 		SetMinimizeButtonVisible(false);
 		SetMaximizeButtonVisible(false);
@@ -69,16 +76,7 @@ class CAModCreditsPanel : public vgui::Frame
 
 		SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
-		int w = 245;
-		int h = 360;
-
-		if (IsProportional())
-		{
-			w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
-			h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
-		}
-		
-		SetBounds(100, 100, w, h);
+		SetBounds(100, 100, 245, 360);
 		SetTitle("Credits", false);
 
 		RichText* rt = new RichText(this, "rt");
@@ -130,6 +128,13 @@ class CAModWeatherPanel : public vgui::Frame
 {
 	DECLARE_CLASS_SIMPLE(CAModWeatherPanel, vgui::Frame);
 
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
+	}
+
 	CAModWeatherPanel(Panel* parent) : vgui::Frame(parent, "CAModWeatherPanel")
 	{
 		SetParent(parent);
@@ -137,7 +142,7 @@ class CAModWeatherPanel : public vgui::Frame
 		SetKeyBoardInputEnabled(true);
 		SetMouseInputEnabled(true);
 
-		SetProportional( true );
+		SetProportional(true);
 		SetTitleBarVisible(true);
 		SetMinimizeButtonVisible(false);
 		SetMaximizeButtonVisible(false);
@@ -146,18 +151,9 @@ class CAModWeatherPanel : public vgui::Frame
 		SetMoveable(true);
 		SetVisible(true);
 
-		int w = 180;
-		int h = 190;
-
-		if (IsProportional())
-		{
-			w = scheme()->GetProportionalScaledValueEx(GetScheme(), w);
-			h = scheme()->GetProportionalScaledValueEx(GetScheme(), h);
-		}
-
 		SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
 
-		SetBounds(100, 100, w, h);
+		SetBounds(100, 100, 180, 190);
 		SetTitle("Weather Panel", false);
 
 		ConVarRef amod_rain_type("amod_rain_type");
@@ -256,7 +252,7 @@ class CAModSkyboxPanel : public vgui::Frame
 		SetKeyBoardInputEnabled(true);
 		SetMouseInputEnabled(true);
 
-		SetProportional(false);
+		SetProportional(true);
 		SetTitleBarVisible(true);
 		SetMinimizeButtonVisible(false);
 		SetMaximizeButtonVisible(false);
@@ -322,6 +318,13 @@ class CAModSkyboxPanel : public vgui::Frame
 		m_skyBut->SetCommand("cmd");
 
 		m_bInit = true;
+	}
+
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
 	}
 
 	void OnTick()
@@ -554,6 +557,13 @@ class COptionsPanel : public vgui::Frame
 
 	void Init();
 
+	int GetProportionalValue( int a ) {
+		if ( IsProportional() )
+			return scheme()->GetProportionalScaledValueEx(GetScheme(), a);
+		else
+			return a;
+	}
+	
 	void OnClose();
 protected:
 	virtual void OnTick();
@@ -618,7 +628,7 @@ COptionsPanel::COptionsPanel(vgui::VPANEL parent)
 	SetKeyBoardInputEnabled(true);
 	SetMouseInputEnabled(true);
 
-	SetProportional(false);
+	SetProportional( true );
 	SetTitleBarVisible(true);
 	SetMinimizeButtonVisible(false);
 	SetMaximizeButtonVisible(false);
@@ -1045,7 +1055,7 @@ void COptionsPanel::Init()
 		yPos = (screenHeight - tall) / 2;
 	}
 
-	SetSize(wide, tall);
+	SetSize(scheme()->GetProportionalScaledValueEx(GetScheme(), wide), scheme()->GetProportionalScaledValueEx(GetScheme(), tall));
 	SetPos(xPos, yPos);
 
 	ConVarRef sv_footstep("sv_footsteps");
