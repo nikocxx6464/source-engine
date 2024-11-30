@@ -195,7 +195,7 @@ void PhysicsReset()
 }
 
 
-ConVar cl_ragdoll_collide( "cl_ragdoll_collide", "0" );
+// ConVar cl_ragdoll_collide( "cl_ragdoll_collide", "0", FCVAR_ARCHIVE | FCVAR_REPLICATED );
 
 int CCollisionEvent::ShouldCollide( IPhysicsObject *pObj0, IPhysicsObject *pObj1, void *pGameData0, void *pGameData1 )
 #if _DEBUG
@@ -241,8 +241,12 @@ int CCollisionEvent::ShouldCollide_2( IPhysicsObject *pObj0, IPhysicsObject *pOb
 
 	if ( (pObj0->GetGameFlags() & FVPHYSICS_PART_OF_RAGDOLL) && (pObj1->GetGameFlags() & FVPHYSICS_PART_OF_RAGDOLL) )
 	{
+		/*
 		if ( !cl_ragdoll_collide.GetBool() )
 			return 0;
+		*/
+
+		return 1;
 	}
 
 	// check contents

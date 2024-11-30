@@ -59,7 +59,7 @@ void CTripmineGrenade::Spawn( void )
 	SetSolid( SOLID_BBOX );
 	SetModel( "models/Weapons/w_slam.mdl" );
 
-	IPhysicsObject *pObject = VPhysicsInitNormal( SOLID_BBOX, GetSolidFlags() | FSOLID_TRIGGER, true );
+    IPhysicsObject *pObject = VPhysicsInitNormal( SOLID_BBOX, GetSolidFlags() | FSOLID_TRIGGER, true );
 	pObject->EnableMotion( false );
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
 
@@ -70,11 +70,11 @@ void CTripmineGrenade::Spawn( void )
 
 	ResetSequenceInfo( );
 	m_flPlaybackRate	= 0;
-
+	
 	UTIL_SetSize(this, Vector( -4, -4, -2), Vector(4, 4, 2));
 
 	m_flPowerUp = gpGlobals->curtime + 2.0;
-
+	
 	SetThink( &CTripmineGrenade::PowerupThink );
 	SetNextThink( gpGlobals->curtime + 0.2 );
 

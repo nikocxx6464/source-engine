@@ -12,7 +12,8 @@ class C_WeaponCustom : public C_BaseHLCombatWeapon
 public:													
 	//DECLARE_PREDICTABLE();									
 	DECLARE_CLIENTCLASS();									
-	C_WeaponCustom() {};	
+	C_WeaponCustom() {
+	};	
 private:												
 //	C_WeaponCustom( const C_WeaponCustom & );	
 };				

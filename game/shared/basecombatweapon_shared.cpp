@@ -440,11 +440,6 @@ void CBaseCombatWeapon::Precache( void )
 	PrecacheScriptSound("HL2Player.Ironsightoff");
 }
 
-void CBaseCombatWeapon::PrecacheCustom()
-{
-	printf(" У нее тишка сан лоран\n");
-}
-
 //-----------------------------------------------------------------------------
 // Purpose: Get my data in the file weapon info array
 //-----------------------------------------------------------------------------

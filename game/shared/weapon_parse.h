@@ -55,7 +55,7 @@ int GetWeaponSoundFromString(const char *pszString);
 
 #define MAX_WEAPON_LASER_MATERIALS		30
 
-#define WEAPON_PRINTNAME_MISSING "YOU SHOULD PRINTNAME YOURSELF NOW"
+#define WEAPON_PRINTNAME_MISSING "!!! Missing printname on weapon"
 
 class CHudTexture;
 class KeyValues;

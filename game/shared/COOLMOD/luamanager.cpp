@@ -77,8 +77,6 @@ void LuaHandle::InitDll()
 	RegPublicGlobals(pL);
 
 	Init();
-
-	printf("Lua loaded bruh\n");
 }
 
 void LuaHandle::ShutdownDll()

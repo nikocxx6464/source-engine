@@ -172,7 +172,6 @@ public:
 
 	virtual void			Spawn( void );
 	virtual void			Precache( void );
-	virtual void			PrecacheCustom( void );
 
 	void					MakeTracer( const Vector &vecTracerSrc, const trace_t &tr, int iTracerType );
 

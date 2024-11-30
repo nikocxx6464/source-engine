@@ -316,7 +316,60 @@ int CWeaponCustom::ActivityListCount(void) {
 //-----------------------------------------------------------------------------
 void CWeaponCustom::Precache(void)
 {
-	BaseClass::PrecacheCustom();
+	m_iPrimaryAmmoType = m_iSecondaryAmmoType = -1;
+
+	// Add this weapon to the weapon registry, and get our index into it
+	// Get weapon data from script file
+	if (ReadWeaponDataFromFileForSlot(filesystem, GetClassname(), &m_hWeaponFileInfo, GetEncryptionKey()))
+	{
+		// Get the ammo indexes for the ammo's specified in the data file
+		if (GetWpnData().szAmmo1[0])
+		{
+			m_iPrimaryAmmoType = GetAmmoDef()->Index(GetWpnData().szAmmo1);
+			if (m_iPrimaryAmmoType == -1)
+			{
+				Msg("ERROR: Weapon (%s) using undefined primary ammo type (%s)\n", GetClassname(), GetWpnData().szAmmo1);
+			}
+		}
+		if (GetWpnData().szAmmo2[0])
+		{
+			m_iSecondaryAmmoType = GetAmmoDef()->Index(GetWpnData().szAmmo2);
+			if (m_iSecondaryAmmoType == -1)
+			{
+				Msg("ERROR: Weapon (%s) using undefined secondary ammo type (%s)\n", GetClassname(), GetWpnData().szAmmo2);
+			}
+
+		}
+		// Precache models (preload to avoid hitch)
+		m_iViewModelIndex = 0;
+		m_iWorldModelIndex = 0;
+		if (GetViewModel() && GetViewModel()[0])
+		{
+			m_iViewModelIndex = CBaseEntity::PrecacheModel(GetViewModel());
+		}
+		if (GetWorldModel() && GetWorldModel()[0])
+		{
+			m_iWorldModelIndex = CBaseEntity::PrecacheModel(GetWorldModel());
+		}
+
+		// Precache sounds, too
+		for (int i = 0; i < NUM_SHOOT_SOUND_TYPES; ++i)
+		{
+			const char *shootsound = GetShootSound(i);
+			if (shootsound && shootsound[0])
+			{
+				CBaseEntity::PrecacheScriptSound(shootsound);
+			}
+		}
+	}
+	else
+	{
+		// Couldn't read data file, remove myself
+		Warning("Error reading weapon data file for: %s\n", GetClassname());
+		//	Remove( );	//don't remove, this gets released soon!
+	}
+
+	UTIL_PrecacheOther( "bullet_9mm" );
 }
 
 //-----------------------------------------------------------------------------

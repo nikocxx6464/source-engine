@@ -267,6 +267,24 @@ void CHudSuitPower::Paint()
 			}
 			ypos += text2_gap;
 		}
+		/*
+		if (pPlayer->IsNightVisionActive())
+		{
+			tempString = g_pVGuiLocalize->Find("#Valve_Hud_NIGHTVISION");
+
+			surface()->DrawSetTextPos(text2_xpos, ypos);
+
+			if (tempString)
+			{
+				surface()->DrawPrintText(tempString, wcslen(tempString));
+			}
+			else
+			{
+				surface()->DrawPrintText(L"NIGHT VISION", wcslen(L"NIGHT VISION"));
+			}
+			ypos += text2_gap;
+		}
+		*/
 	}
 }
 

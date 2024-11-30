@@ -17,7 +17,6 @@
 #else
 #include "smmod/weapon_custom.h"
 #endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -44,14 +43,14 @@ const char *pWeaponSoundCategories[ NUM_SHOOT_SOUND_TYPES ] =
 	"deploy"
 };
 #else
-extern const char *pWeaponSoundCategories[ NUM_SHOOT_SOUND_TYPES ];
+extern const char *pWeaponSoundCategories[NUM_SHOOT_SOUND_TYPES];
 #endif
 
-int GetWeaponSoundFromString( const char *pszString )
+int GetWeaponSoundFromString(const char *pszString)
 {
-	for ( int i = EMPTY; i < NUM_SHOOT_SOUND_TYPES; i++ )
+	for (int i = EMPTY; i < NUM_SHOOT_SOUND_TYPES; i++)
 	{
-		if ( !Q_stricmp(pszString,pWeaponSoundCategories[i]) )
+		if (!Q_stricmp(pszString, pWeaponSoundCategories[i]))
 			return (WeaponSound_t)i;
 	}
 	return -1;
@@ -145,6 +144,7 @@ Activity StringToVMActivity(const char *szChar)
 	else
 		return ACT_VM_IDLE;
 }
+
 
 // Item flags that we parse out of the file.
 typedef struct
@@ -256,10 +256,12 @@ void ResetFileWeaponInfoDatabase( void )
 #endif
 
 #ifdef CLIENT_DLL
+
+
 #define CWeaponCustom C_WeaponCustom 
-static C_BaseEntity *CCHL2MPScriptedWeaponFactory(void)
+static C_BaseEntity *CCHL2MPScriptedWeaponFactory( void )
 {
-	return static_cast< C_BaseEntity * >(new CWeaponCustom);
+	return static_cast< C_BaseEntity * >( new CWeaponCustom );
 };
 #endif
 
@@ -267,70 +269,80 @@ static C_BaseEntity *CCHL2MPScriptedWeaponFactory(void)
 static CUtlDict< CEntityFactory<CWeaponCustom>*, unsigned short > m_WeaponFactoryDatabase;
 #endif
 
-void RegisterScriptedWeapon(const char *className)
+void RegisterScriptedWeapon( const char *className )
 {
 #ifdef CLIENT_DLL
-	if ( GetClassMap().FindFactory(className) )
-		{
-			return;
-		}
-	GetClassMap().Add(className, "CWeaponCustom", sizeof(CWeaponCustom), &CCHL2MPScriptedWeaponFactory, true );
+	//if (GetClassMap().FindFactory(className))
+	//{
+	return;
+	//}
+	GetClassMap().Add(className, "CWeaponCustom", sizeof(CWeaponCustom),
+		&CCHL2MPScriptedWeaponFactory);
 	//GetClassMap().Add( className, "CWeaponCustom", sizeof( C_HLSelectFireMachineGun));
 #else
-	if (EntityFactoryDictionary()->FindFactory(className))
+	if ( EntityFactoryDictionary()->FindFactory( className ) )
 	{
 		return;
 	}
 
-	unsigned short lookup = m_WeaponFactoryDatabase.Find(className);
-	if (lookup != m_WeaponFactoryDatabase.InvalidIndex())
+	unsigned short lookup = m_WeaponFactoryDatabase.Find( className );
+	if ( lookup != m_WeaponFactoryDatabase.InvalidIndex() )
 	{
 		return;
 	}
 
 	// Andrew; This fixes months worth of pain and anguish.
-	CEntityFactory<CWeaponCustom> *pFactory = new CEntityFactory<CWeaponCustom>(className);
+	CEntityFactory<CWeaponCustom> *pFactory = new CEntityFactory<CWeaponCustom>( className );
 
-	lookup = m_WeaponFactoryDatabase.Insert(className, pFactory);
-	Assert(lookup != m_WeaponFactoryDatabase.InvalidIndex());
+	lookup = m_WeaponFactoryDatabase.Insert( className, pFactory );
+	Assert( lookup != m_WeaponFactoryDatabase.InvalidIndex() );
 #endif
 	// BUGBUG: When attempting to precache weapons registered during runtime,
 	// they don't appear as valid registered entities.
 	// static CPrecacheRegister precache_weapon_(&CPrecacheRegister::PrecacheFn_Other, className);
 }
-void InitCustomWeapon()
+void InitCustomWeapon( )
 {
-	FileFindHandle_t findHandle; // note: FileFINDHandle
+		FileFindHandle_t findHandle; // note: FileFINDHandle
 
 	const char *pFilename = filesystem->FindFirstEx("scripts/weapon_custom*.txt", "MOD", &findHandle);
 	while (pFilename)
 	{
-		printf("%s added to custom weapons!\n", pFilename);
+		Msg("%s added to custom weapons!\n",pFilename);
+
+		#if !defined(CLIENT_DLL)
+		//	CEntityFactory<CWeaponCustom> weapon_custom( pFilename );
+		//	UTIL_PrecacheOther(pFilename);
+		#endif
 		char fileBase[512] = "";
-		Q_FileBase(pFilename, fileBase, sizeof(fileBase));
+		Q_FileBase( pFilename, fileBase, sizeof(fileBase) );
 		RegisterScriptedWeapon(fileBase);
-		UTIL_PrecacheOther(fileBase);
+		//CEntityFactory<CWeaponCustom>(CEntityFactory<CWeaponCustom> &);
+		//LINK_ENTITY_TO_CLASS2(pFilename,CWeaponCustom);
 
-		WEAPON_FILE_INFO_HANDLE tmp;
-#ifdef CLIENT_DLL
-		if ( ReadWeaponDataFromFileForSlot(filesystem, fileBase, &tmp))
-		{
-			gWR.LoadWeaponSprites(tmp, true);
-		}
-#else
-		ReadWeaponDataFromFileForSlot(filesystem, fileBase, &tmp);
-#endif
-		pFilename = filesystem->FindNext(findHandle);
+			WEAPON_FILE_INFO_HANDLE tmp;
+		#ifdef CLIENT_DLL
+			if ( ReadWeaponDataFromFileForSlot( filesystem, fileBase, &tmp ) )
+			{
+				gWR.LoadWeaponSprites( tmp, true );
+			}
+		#else
+			ReadWeaponDataFromFileForSlot( filesystem, fileBase, &tmp );
+		#endif
+
+
+		pFilename = filesystem->FindNext( findHandle );
 	}
+ 
+	filesystem->FindClose( findHandle );
 
-	filesystem->FindClose(findHandle);
 }
-
 void PrecacheFileWeaponInfoDatabase( IFileSystem *filesystem, const unsigned char *pICEKey )
 {
+
 	if ( m_WeaponInfoDatabase.Count() )
 		return;
-	InitCustomWeapon();
+		InitCustomWeapon( );
 	KeyValues *manifest = new KeyValues( "weaponscripts" );
 	if ( manifest->LoadFromFile( filesystem, "scripts/weapon_manifest.txt", "GAME" ) )
 	{
@@ -458,8 +470,7 @@ bool ReadWeaponDataFromFileForSlot( IFileSystem* filesystem, const char *szWeapo
 		false
 #endif
 		);
-
-	if ( !pKV )
+	if ( !pKV ) //If it failed even after the custom weapon check, then don't read it
 		return false;
 
 	pFileInfo->Parse( pKV, szWeaponName );
@@ -497,7 +508,7 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	iFlags = 0;
 	szAmmo1[0] = 0;
 	szAmmo2[0] = 0;
-	memset( aShootSounds, 0, sizeof( aShootSounds ) );
+	memset(aShootSounds, 0, sizeof(aShootSounds));
 	iAmmoType = 0;
 	iAmmo2Type = 0;
 	m_bMeleeWeapon = false;
@@ -513,6 +524,7 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 	bShowUsageHint = false;
 	m_bAllowFlipping = true;
 	m_bBuiltRightHanded = true;
+
 	// GSTRINGMIGRATION
 	flCameraMovementScale = 1.0f;
 	*szCameraAttachmentName = 0;
@@ -528,170 +540,172 @@ FileWeaponInfo_t::FileWeaponInfo_t()
 extern ConVar hud_fastswitch;
 #endif
 
-void FileWeaponInfo_t::Parse( KeyValues *pKeyValuesData, const char *szWeaponName )
+void FileWeaponInfo_t::Parse(KeyValues *pKeyValuesData, const char *szWeaponName)
 {
 	// Okay, we tried at least once to look this up...
 	bParsedScript = true;
 
 	// Classname
-	Q_strncpy( szClassName, szWeaponName, MAX_WEAPON_STRING );
+	Q_strncpy(szClassName, szWeaponName, MAX_WEAPON_STRING);
 	// Printable name
-	Q_strncpy( szPrintName, pKeyValuesData->GetString( "printname", WEAPON_PRINTNAME_MISSING ), MAX_WEAPON_STRING );
+	Q_strncpy(szPrintName, pKeyValuesData->GetString("printname", WEAPON_PRINTNAME_MISSING), MAX_WEAPON_STRING);
 	// View model & world model
-	Q_strncpy( szViewModel, pKeyValuesData->GetString( "viewmodel" ), MAX_WEAPON_STRING );
-	Q_strncpy( szWorldModel, pKeyValuesData->GetString( "playermodel" ), MAX_WEAPON_STRING );
-	Q_strncpy( szAnimationPrefix, pKeyValuesData->GetString( "anim_prefix" ), MAX_WEAPON_PREFIX );
-	iPosition = pKeyValuesData->GetInt( "bucket_position", 0 );
+	Q_strncpy(szViewModel, pKeyValuesData->GetString("viewmodel"), MAX_WEAPON_STRING);
+	Q_strncpy(szWorldModel, pKeyValuesData->GetString("playermodel"), MAX_WEAPON_STRING);
+	Q_strncpy(szAnimationPrefix, pKeyValuesData->GetString("anim_prefix"), MAX_WEAPON_PREFIX);
+	iPosition = pKeyValuesData->GetInt("bucket_position", 0);
+
 	const char *pBucket = pKeyValuesData->GetString("bucket", NULL);
- 	if (pBucket)
- 	{
- 		if (Q_stricmp(pBucket, "melee") == 0)
- 		{
- 			iSlot = 0;
- 		}
- 		else if (Q_stricmp(pBucket, "pistol") == 0)
- 		{
- 			iSlot = 1;
- 		}
- 		else if (Q_stricmp(pBucket, "light") == 0)
- 		{
- 			iSlot = 2;
- 		}
- 		else if (Q_stricmp(pBucket, "heavy") == 0)
- 		{
- 			iSlot = 3;
- 		}
- 		else if (Q_stricmp(pBucket, "grenades") == 0)
- 		{
- 			iSlot = 4;
- 		}
- 		else if (Q_stricmp(pBucket, "special") == 0)
- 		{
- 			iSlot = 5;
- 		}
- 		else if (Q_stricmp(pBucket, "tool") == 0)
- 		{
- 			iSlot = 6;
- 		}
- 		else if (Q_stricmp(pBucket, "disabled") == 0)
- 		{
- 			iSlot = 25;
- 		}
- 		else
- 		{
- 			iSlot = pKeyValuesData->GetInt("bucket", 0);
- 			Msg("Weapon %s (%s) is using old-style buckets, should really be using new ones.\n", szPrintName, szClassName);
- 		}
- 	}
- 	else
- 	{
- 		iSlot = pKeyValuesData->GetInt("bucket", 17);  //Default this to out-of-bounds so they don't cover up the crowbar...
- 		Warning("WARNING: Weapon %s (%s) is missing bucket info!!\n", szPrintName, szClassName);
- 	}
- 
- 	// Use the console (X360) buckets if hud_fastswitch is set to 2.
- 	//SMOD: Our new hud does not support X360-style hudbuckets
- 	//#ifdef CLIENT_DLL
- 	//	if ( hud_fastswitch.GetInt() == 2 )
- 	//#else
- 	//	if ( IsX360() )
- 	//#endif
- 	//	{
- 	//		iSlot = pKeyValuesData->GetInt( "bucket_360", iSlot );
- 	//		iPosition = pKeyValuesData->GetInt( "bucket_position_360", iPosition );
- 	//	}
-	
+	if (pBucket)
+	{
+		if (Q_stricmp(pBucket, "melee") == 0)
+		{
+			iSlot = 0;
+		}
+		else if (Q_stricmp(pBucket, "pistol") == 0)
+		{
+			iSlot = 1;
+		}
+		else if (Q_stricmp(pBucket, "light") == 0)
+		{
+			iSlot = 2;
+		}
+		else if (Q_stricmp(pBucket, "heavy") == 0)
+		{
+			iSlot = 3;
+		}
+		else if (Q_stricmp(pBucket, "grenades") == 0)
+		{
+			iSlot = 4;
+		}
+		else if (Q_stricmp(pBucket, "special") == 0)
+		{
+			iSlot = 5;
+		}
+		else if (Q_stricmp(pBucket, "tool") == 0)
+		{
+			iSlot = 6;
+		}
+		else if (Q_stricmp(pBucket, "disabled") == 0)
+		{
+			iSlot = 25;
+		}
+		else
+		{
+			iSlot = pKeyValuesData->GetInt("bucket", 0);
+			Msg("Weapon %s (%s) is using old-style buckets, should really be using new ones.\n", szPrintName, szClassName);
+		}
+	}
+	else
+	{
+		iSlot = pKeyValuesData->GetInt("bucket", 17);  //Default this to out-of-bounds so they don't cover up the crowbar...
+		Warning("WARNING: Weapon %s (%s) is missing bucket info!!\n", szPrintName, szClassName);
+	}
+
+	// Use the console (X360) buckets if hud_fastswitch is set to 2.
+	//SMOD: Our new hud does not support X360-style hudbuckets
+	//#ifdef CLIENT_DLL
+	//	if ( hud_fastswitch.GetInt() == 2 )
+	//#else
+	//	if ( IsX360() )
+	//#endif
+	//	{
+	//		iSlot = pKeyValuesData->GetInt( "bucket_360", iSlot );
+	//		iPosition = pKeyValuesData->GetInt( "bucket_position_360", iPosition );
+	//	}
+
 	// Use the console (X360) buckets if hud_fastswitch is set to 2.
 #ifdef CLIENT_DLL
-	if ( hud_fastswitch.GetInt() == 2 )
+	if (hud_fastswitch.GetInt() == 2)
 #else
-	if ( IsX360() )
+	if (IsX360())
 #endif
 	{
-		iSlot = pKeyValuesData->GetInt( "bucket_360", iSlot );
-		iPosition = pKeyValuesData->GetInt( "bucket_position_360", iPosition );
+		iSlot = pKeyValuesData->GetInt("bucket_360", iSlot);
+		iPosition = pKeyValuesData->GetInt("bucket_position_360", iPosition);
 	}
-	iMaxClip1 = pKeyValuesData->GetInt( "clip_size", WEAPON_NOCLIP );					// Max primary clips gun can hold (assume they don't use clips by default)
-	iMaxClip2 = pKeyValuesData->GetInt( "clip2_size", WEAPON_NOCLIP );					// Max secondary clips gun can hold (assume they don't use clips by default)
-	iDefaultClip1 = pKeyValuesData->GetInt( "default_clip", iMaxClip1 );		// amount of primary ammo placed in the primary clip when it's picked up
-	iDefaultClip2 = pKeyValuesData->GetInt( "default_clip2", iMaxClip2 );		// amount of secondary ammo placed in the secondary clip when it's picked up
-	iWeight = pKeyValuesData->GetInt( "weight", 0 );
+	iMaxClip1 = pKeyValuesData->GetInt("clip_size", WEAPON_NOCLIP);					// Max primary clips gun can hold (assume they don't use clips by default)
+	iMaxClip2 = pKeyValuesData->GetInt("clip2_size", WEAPON_NOCLIP);					// Max secondary clips gun can hold (assume they don't use clips by default)
+	iDefaultClip1 = pKeyValuesData->GetInt("default_clip", iMaxClip1);		// amount of primary ammo placed in the primary clip when it's picked up
+	iDefaultClip2 = pKeyValuesData->GetInt("default_clip2", iMaxClip2);		// amount of secondary ammo placed in the secondary clip when it's picked up
+	iWeight = pKeyValuesData->GetInt("weight", 0);
 
-	iRumbleEffect = pKeyValuesData->GetInt( "rumble", -1 );
-	
+	iRumbleEffect = pKeyValuesData->GetInt("rumble", -1);
+
 	// LAME old way to specify item flags.
 	// Weapon scripts should use the flag names.
-	iFlags = pKeyValuesData->GetInt( "item_flags", ITEM_FLAG_LIMITINWORLD );
+	iFlags = pKeyValuesData->GetInt("item_flags", ITEM_FLAG_LIMITINWORLD);
 
-	for ( int i=0; i < ARRAYSIZE( g_ItemFlags ); i++ )
+	for (int i = 0; i < ARRAYSIZE(g_ItemFlags); i++)
 	{
-		int iVal = pKeyValuesData->GetInt( g_ItemFlags[i].m_pFlagName, -1 );
-		if ( iVal == 0 )
+		int iVal = pKeyValuesData->GetInt(g_ItemFlags[i].m_pFlagName, -1);
+		if (iVal == 0)
 		{
 			iFlags &= ~g_ItemFlags[i].m_iFlagValue;
 		}
-		else if ( iVal == 1 )
+		else if (iVal == 1)
 		{
 			iFlags |= g_ItemFlags[i].m_iFlagValue;
 		}
 	}
 
 
-	bShowUsageHint = ( pKeyValuesData->GetInt( "showusagehint", 0 ) != 0 ) ? true : false;
-	bAutoSwitchTo = ( pKeyValuesData->GetInt( "autoswitchto", 1 ) != 0 ) ? true : false;
-	bAutoSwitchFrom = ( pKeyValuesData->GetInt( "autoswitchfrom", 1 ) != 0 ) ? true : false;
-	m_bBuiltRightHanded = ( pKeyValuesData->GetInt( "BuiltRightHanded", 1 ) != 0 ) ? true : false;
-	m_bAllowFlipping = ( pKeyValuesData->GetInt( "AllowFlipping", 1 ) != 0 ) ? true : false;
-	m_bMeleeWeapon = ( pKeyValuesData->GetInt( "MeleeWeapon", 0 ) != 0 ) ? true : false;
+	bShowUsageHint = (pKeyValuesData->GetInt("showusagehint", 0) != 0) ? true : false;
+	bAutoSwitchTo = (pKeyValuesData->GetInt("autoswitchto", 1) != 0) ? true : false;
+	bAutoSwitchFrom = (pKeyValuesData->GetInt("autoswitchfrom", 1) != 0) ? true : false;
+	m_bBuiltRightHanded = (pKeyValuesData->GetInt("BuiltRightHanded", 1) != 0) ? true : false;
+	m_bAllowFlipping = (pKeyValuesData->GetInt("AllowFlipping", 1) != 0) ? true : false;
+	m_bMeleeWeapon = (pKeyValuesData->GetInt("MeleeWeapon", 0) != 0) ? true : false;
 
 #if defined(_DEBUG) && defined(HL2_CLIENT_DLL)
 	// make sure two weapons aren't in the same slot & position
-	if ( iSlot >= MAX_WEAPON_SLOTS ||
-		iPosition >= MAX_WEAPON_POSITIONS )
+	if (iSlot >= MAX_WEAPON_SLOTS ||
+		iPosition >= MAX_WEAPON_POSITIONS)
 	{
-		Warning( "Invalid weapon slot or position [slot %d/%d max], pos[%d/%d max]\n",
-			iSlot, MAX_WEAPON_SLOTS - 1, iPosition, MAX_WEAPON_POSITIONS - 1 );
+		Warning("Invalid weapon slot or position [slot %d/%d max], pos[%d/%d max]\n",
+			iSlot, MAX_WEAPON_SLOTS - 1, iPosition, MAX_WEAPON_POSITIONS - 1);
 	}
 	else
 	{
 		if (g_bUsedWeaponSlots[iSlot][iPosition])
 		{
-			Warning( "Duplicately assigned weapon slots in selection hud:  %s (%d, %d)\n", szPrintName, iSlot, iPosition );
+			Warning("Duplicately assigned weapon slots in selection hud:  %s (%d, %d)\n", szPrintName, iSlot, iPosition);
 		}
 		g_bUsedWeaponSlots[iSlot][iPosition] = true;
 	}
 #endif
 
 	// Primary ammo used
-	const char *pAmmo = pKeyValuesData->GetString( "primary_ammo", "None" );
-	if ( strcmp("None", pAmmo) == 0 )
-		Q_strncpy( szAmmo1, "", sizeof( szAmmo1 ) );
+	const char *pAmmo = pKeyValuesData->GetString("primary_ammo", "None");
+	if (strcmp("None", pAmmo) == 0)
+		Q_strncpy(szAmmo1, "", sizeof(szAmmo1));
 	else
-		Q_strncpy( szAmmo1, pAmmo, sizeof( szAmmo1 )  );
-	iAmmoType = GetAmmoDef()->Index( szAmmo1 );
-	
+		Q_strncpy(szAmmo1, pAmmo, sizeof(szAmmo1));
+	iAmmoType = GetAmmoDef()->Index(szAmmo1);
+
 	// Secondary ammo used
-	pAmmo = pKeyValuesData->GetString( "secondary_ammo", "None" );
-	if ( strcmp("None", pAmmo) == 0)
-		Q_strncpy( szAmmo2, "", sizeof( szAmmo2 ) );
+	pAmmo = pKeyValuesData->GetString("secondary_ammo", "None");
+	if (strcmp("None", pAmmo) == 0)
+		Q_strncpy(szAmmo2, "", sizeof(szAmmo2));
 	else
-		Q_strncpy( szAmmo2, pAmmo, sizeof( szAmmo2 )  );
-	iAmmo2Type = GetAmmoDef()->Index( szAmmo2 );
+		Q_strncpy(szAmmo2, pAmmo, sizeof(szAmmo2));
+	iAmmo2Type = GetAmmoDef()->Index(szAmmo2);
 
 	// Now read the weapon sounds
-	memset( aShootSounds, 0, sizeof( aShootSounds ) );
-	KeyValues *pSoundData = pKeyValuesData->FindKey( "SoundData" );
-	if ( pSoundData )
+	memset(aShootSounds, 0, sizeof(aShootSounds));
+	KeyValues *pSoundData = pKeyValuesData->FindKey("SoundData");
+	if (pSoundData)
 	{
-		for ( int i = EMPTY; i < NUM_SHOOT_SOUND_TYPES; i++ )
+		for (int i = EMPTY; i < NUM_SHOOT_SOUND_TYPES; i++)
 		{
-			const char *soundname = pSoundData->GetString( pWeaponSoundCategories[i] );
-			if ( soundname && soundname[0] )
+			const char *soundname = pSoundData->GetString(pWeaponSoundCategories[i]);
+			if (soundname && soundname[0])
 			{
-				Q_strncpy( aShootSounds[i], soundname, MAX_WEAPON_STRING );
+				Q_strncpy(aShootSounds[i], soundname, MAX_WEAPON_STRING);
 			}
 		}
 	}
+
 	m_flAddFOV = pKeyValuesData->GetFloat("addfov", 0.0f);
 	m_flLagScale = pKeyValuesData->GetFloat("LagScale", 1.0f);
 
