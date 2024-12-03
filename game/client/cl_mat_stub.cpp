@@ -13,7 +13,7 @@
 #include "tier0/memdbgon.h"
 
 // Hook the engine's mat_stub cvar.
-ConVar mat_stub( "mat_stub", "0", FCVAR_CHEAT );
+ConVar mat_stub("mat_stub", "0", FCVAR_NONE);
 extern ConVar gl_clear;
 
 

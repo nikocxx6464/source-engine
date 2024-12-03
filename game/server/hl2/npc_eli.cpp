@@ -14,6 +14,7 @@
 #include	"ai_basenpc.h"
 #include	"ai_hull.h"
 #include "ai_baseactor.h"
+#include "npc_playercompanion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -25,10 +26,10 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CNPC_Eli : public CAI_BaseActor
+class CNPC_Eli : public CNPC_PlayerCompanion
 {
 public:
-	DECLARE_CLASS( CNPC_Eli, CAI_BaseActor );
+	DECLARE_CLASS(CNPC_Eli, CNPC_PlayerCompanion);
 
 	void	Spawn( void );
 	void	Precache( void );
@@ -80,6 +81,8 @@ int CNPC_Eli::GetSoundInterests ( void )
 //-----------------------------------------------------------------------------
 void CNPC_Eli::Spawn()
 {
+	if (!m_bChaosSpawned)
+		AddSpawnFlags(SF_NPC_NO_PLAYER_PUSHAWAY);
 	// Eli is allowed to use multiple models, because he appears in the pod.
 	// He defaults to his normal model.
 	char *szModel = (char *)STRING( GetModelName() );
@@ -111,10 +114,10 @@ void CNPC_Eli::Spawn()
 	{
 		SetupWithoutParent();
 	}
-
+	CapabilitiesAdd(bits_CAP_USE_WEAPONS | bits_CAP_WEAPON_RANGE_ATTACK1);
 	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
 	SetBloodColor( BLOOD_COLOR_RED );
-	m_iHealth			= 8;
+	m_iHealth			= 80;
 	m_flFieldOfView		= 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	m_NPCState			= NPC_STATE_NONE;
 

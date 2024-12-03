@@ -15,6 +15,7 @@
 #include "items.h"
 #include "item_dynamic_resupply.h"
 #include "npc_vortigaunt_episodic.h"
+#include "explode.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -22,7 +23,8 @@
 ConVar	sk_grubnugget_health_small( "sk_grubnugget_health_small", "1" );
 ConVar	sk_grubnugget_health_medium( "sk_grubnugget_health_medium", "4" );
 ConVar	sk_grubnugget_health_large( "sk_grubnugget_health_large", "6" );
-ConVar	sk_grubnugget_enabled( "sk_grubnugget_enabled", "1" );
+ConVar	sk_grubnugget_enabled("sk_grubnugget_enabled", "1");
+extern ConVar chaos_explode_on_death;
 
 #define	ANTLIONGRUB_MODEL				"models/antlion_grub.mdl"
 #define	ANTLIONGRUB_SQUASHED_MODEL		"models/antlion_grub_squashed.mdl"
@@ -298,9 +300,12 @@ void CAntlionGrub::Event_Killed( const CTakeDamageInfo &info )
 
 	// Crush and crowbar damage hurt us more than others
 	bool bSquashed = ( info.GetDamageType() & (DMG_CRUSH|DMG_CLUB)) ? true : false;
-	Squash( info.GetAttacker(), false, bSquashed );
-
+	Squash(info.GetAttacker(), false, bSquashed);
+	
 	m_takedamage = DAMAGE_NO;
+
+	if (chaos_explode_on_death.GetBool())
+		ExplosionCreate(GetAbsOrigin() + Vector(0, 0, 16), GetAbsAngles(), NULL, 100, 200, 0, 100, NULL);
 
 	if ( sk_grubnugget_enabled.GetBool() )
 	{

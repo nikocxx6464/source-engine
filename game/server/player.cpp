@@ -86,11 +86,11 @@ ConVar autoaim_max_dist( "autoaim_max_dist", "2160" ); // 2160 = 180 feet
 ConVar autoaim_max_deflect( "autoaim_max_deflect", "0.99" );
 
 #ifdef CSTRIKE_DLL
-ConVar	spec_freeze_time( "spec_freeze_time", "5.0", FCVAR_CHEAT | FCVAR_REPLICATED, "Time spend frozen in observer freeze cam." );
-ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.7", FCVAR_CHEAT | FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
+ConVar	spec_freeze_time( "spec_freeze_time", "5.0", FCVAR_REPLICATED, "Time spend frozen in observer freeze cam." );
+ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.7", FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
 #else
-ConVar	spec_freeze_time( "spec_freeze_time", "4.0", FCVAR_CHEAT | FCVAR_REPLICATED, "Time spend frozen in observer freeze cam." );
-ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.4", FCVAR_CHEAT | FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
+ConVar	spec_freeze_time( "spec_freeze_time", "4.0", FCVAR_REPLICATED, "Time spend frozen in observer freeze cam." );
+ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.4", FCVAR_REPLICATED, "Time taken to zoom in to frame a target in observer freeze cam.", true, 0.01, false, 0 );
 #endif
 
 ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to values other than 0 to select a bonus map challenge type." );
@@ -107,14 +107,14 @@ bool IsInCommentaryMode( void );
 bool IsListeningToCommentary( void );
 
 #if !defined( CSTRIKE_DLL )
-ConVar cl_sidespeed( "cl_sidespeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar cl_upspeed( "cl_upspeed", "320", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar cl_forwardspeed( "cl_forwardspeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar cl_backspeed( "cl_backspeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
+ConVar cl_sidespeed( "cl_sidespeed", "450", FCVAR_REPLICATED );
+ConVar cl_upspeed( "cl_upspeed", "320", FCVAR_REPLICATED );
+ConVar cl_forwardspeed( "cl_forwardspeed", "450", FCVAR_REPLICATED );
+ConVar cl_backspeed( "cl_backspeed", "450", FCVAR_REPLICATED );
 #endif // CSTRIKE_DLL
 
 // This is declared in the engine, too
-ConVar	sv_noclipduringpause( "sv_noclipduringpause", "0", FCVAR_REPLICATED | FCVAR_CHEAT, "If cheats are enabled, then you can noclip with the game paused (for doing screenshots, etc.)." );
+ConVar	sv_noclipduringpause( "sv_noclipduringpause", "0", FCVAR_REPLICATED, "If cheats are enabled, then you can noclip with the game paused (for doing screenshots, etc.)." );
 
 extern ConVar sv_maxunlag;
 extern ConVar sv_turbophysics;
@@ -185,11 +185,11 @@ ConVar	sk_player_leg( "sk_player_leg","1" );
 
 //ConVar	player_usercommand_timeout( "player_usercommand_timeout", "10", 0, "After this many seconds without a usercommand from a player, the client is kicked." );
 #ifdef _DEBUG
-ConVar  sv_player_net_suppress_usercommands( "sv_player_net_suppress_usercommands", "0", FCVAR_CHEAT, "For testing usercommand hacking sideeffects. DO NOT SHIP" );
+ConVar  sv_player_net_suppress_usercommands("sv_player_net_suppress_usercommands", "0", FCVAR_NONE, "For testing usercommand hacking sideeffects. DO NOT SHIP");
 #endif // _DEBUG
-ConVar  sv_player_display_usercommand_errors( "sv_player_display_usercommand_errors", "0", FCVAR_CHEAT, "1 = Display warning when command values are out-of-range. 2 = Spew invalid ranges." );
+ConVar  sv_player_display_usercommand_errors("sv_player_display_usercommand_errors", "0", FCVAR_NONE, "1 = Display warning when command values are out-of-range. 2 = Spew invalid ranges.");
 
-ConVar  player_debug_print_damage( "player_debug_print_damage", "0", FCVAR_CHEAT, "When true, print amount and type of all damage received by player to console." );
+ConVar  player_debug_print_damage("player_debug_print_damage", "0", FCVAR_NONE, "When true, print amount and type of all damage received by player to console.");
 
 
 void CC_GiveCurrentAmmo( void )
@@ -231,7 +231,7 @@ void CC_GiveCurrentAmmo( void )
 		}
 	}
 }
-static ConCommand givecurrentammo("givecurrentammo", CC_GiveCurrentAmmo, "Give a supply of ammo for current weapon..\n", FCVAR_CHEAT );
+static ConCommand givecurrentammo("givecurrentammo", CC_GiveCurrentAmmo, "Give a supply of ammo for current weapon..\n", FCVAR_NONE);
 
 
 // pl
@@ -450,7 +450,9 @@ BEGIN_DATADESC( CBasePlayer )
 	DEFINE_FIELD( m_flSideMove, FIELD_FLOAT ),
 	DEFINE_FIELD( m_vecPreviouslyPredictedOrigin, FIELD_POSITION_VECTOR ), 
 
-	DEFINE_FIELD( m_nNumCrateHudHints, FIELD_INTEGER ),
+	DEFINE_FIELD(m_nNumCrateHudHints, FIELD_INTEGER),
+	DEFINE_GLOBAL_FIELD(m_bSwimInAir, FIELD_BOOLEAN),
+	DEFINE_GLOBAL_FIELD(m_bSuperGrab, FIELD_BOOLEAN),
 
 
 
@@ -1987,7 +1989,8 @@ void CBasePlayer::WaterMove()
 				{
 					m_nDrownDmgRate = DROWNING_DAMAGE_MAX;
 				}
-
+				if (m_bSwimInAir)
+					m_nDrownDmgRate = 1;
 				OnTakeDamage( CTakeDamageInfo( GetContainingEntity(INDEXENT(0)), GetContainingEntity(INDEXENT(0)), m_nDrownDmgRate, DMG_DROWN ) );
 				m_PainFinished = gpGlobals->curtime + 1;
 				
@@ -2780,7 +2783,11 @@ bool CBasePlayer::IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredCa
 	if ( pEntity )
 	{
 		int caps = pEntity->ObjectCaps();
-		if ( caps & (FCAP_IMPULSE_USE|FCAP_CONTINUOUS_USE|FCAP_ONOFF_USE|FCAP_DIRECTIONAL_USE) )
+		if (m_bSuperGrab)
+		{
+			caps |= FCAP_IMPULSE_USE;
+		}
+		if (caps & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE | FCAP_DIRECTIONAL_USE))
 		{
 			if ( (caps & requiredCaps) == requiredCaps )
 			{
@@ -2796,7 +2803,7 @@ bool CBasePlayer::IsUseableEntity( CBaseEntity *pEntity, unsigned int requiredCa
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float sizeLimit )
+bool CBasePlayer::CanPickupObject(CBaseEntity *pObject, float massLimit, float sizeLimit, bool bSuperGrab)
 {
 	// UNDONE: Make this virtual and move to HL2 player
 #ifdef HL2_DLL
@@ -2814,6 +2821,9 @@ bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float 
 	//Must have a physics object
 	if (!count)
 		return false;
+
+	if (bSuperGrab)
+		return true;
 
 	float objectMass = 0;
 	bool checkEnable = false;
@@ -4436,7 +4446,7 @@ void FixPlayerCrouchStuck( CBasePlayer *pPlayer )
 	// Move up as many as 18 pixels if the player is stuck.
 	int i;
 	Vector org = pPlayer->GetAbsOrigin();;
-	for ( i = 0; i < 18; i++ )
+	for ( i = 0; i < 18 * pPlayer->GetModelScale(); i++ )
 	{
 		UTIL_TraceHull( pPlayer->GetAbsOrigin(), pPlayer->GetAbsOrigin(), 
 			VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, MASK_PLAYERSOLID, pPlayer, COLLISION_GROUP_PLAYER_MOVEMENT, &trace );
@@ -4452,7 +4462,7 @@ void FixPlayerCrouchStuck( CBasePlayer *pPlayer )
 
 	pPlayer->SetAbsOrigin( org );
 
-	for ( i = 0; i < 18; i++ )
+	for (i = 0; i < 18 * pPlayer->GetModelScale(); i++)
 	{
 		UTIL_TraceHull( pPlayer->GetAbsOrigin(), pPlayer->GetAbsOrigin(), 
 			VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, MASK_PLAYERSOLID, pPlayer, COLLISION_GROUP_PLAYER_MOVEMENT, &trace );
@@ -5665,7 +5675,7 @@ void CBloodSplat::Think( void )
 //-----------------------------------------------------------------------------
 // Purpose: Create and give the named item to the player. Then return it.
 //-----------------------------------------------------------------------------
-CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
+CBaseEntity	*CBasePlayer::GiveNamedItem(const char *pszName, bool bChaos, int iSubType)
 {
 	// If I already own this type don't create one
 	if ( Weapon_OwnsThisType(pszName, iSubType) )
@@ -5681,8 +5691,8 @@ CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
 		Msg( "NULL Ent in GiveNamedItem!\n" );
 		return NULL;
 	}
-
-	pent->SetLocalOrigin( GetLocalOrigin() );
+	pent->m_bChaosSpawned = bChaos;
+	pent->SetLocalOrigin( GetAbsOrigin() );
 	pent->AddSpawnFlags( SF_NORESPAWN );
 
 	CBaseCombatWeapon *pWeapon = dynamic_cast<CBaseCombatWeapon*>( (CBaseEntity*)pent );
@@ -6017,7 +6027,7 @@ void CC_CH_CreateJalopy( void )
 	CreateJalopy( pPlayer );
 }
 
-static ConCommand ch_createjalopy("ch_createjalopy", CC_CH_CreateJalopy, "Spawn jalopy in front of the player.", FCVAR_CHEAT);
+static ConCommand ch_createjalopy("ch_createjalopy", CC_CH_CreateJalopy, "Spawn jalopy in front of the player.", FCVAR_NONE);
 
 #endif // HL2_EPISODIC
 
@@ -6055,7 +6065,7 @@ void CC_CH_CreateJeep( void )
 	CreateJeep( pPlayer );
 }
 
-static ConCommand ch_createjeep("ch_createjeep", CC_CH_CreateJeep, "Spawn jeep in front of the player.", FCVAR_CHEAT);
+static ConCommand ch_createjeep("ch_createjeep", CC_CH_CreateJeep, "Spawn jeep in front of the player.", FCVAR_NONE);
 
 
 //-----------------------------------------------------------------------------
@@ -6096,7 +6106,7 @@ void CC_CH_CreateAirboat( void )
 
 }
 
-static ConCommand ch_createairboat( "ch_createairboat", CC_CH_CreateAirboat, "Spawn airboat in front of the player.", FCVAR_CHEAT );
+static ConCommand ch_createairboat("ch_createairboat", CC_CH_CreateAirboat, "Spawn airboat in front of the player.", FCVAR_NONE);
 
 
 //=========================================================
@@ -6131,7 +6141,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 
 	case 81:
 
-		GiveNamedItem( "weapon_cubemap" );
+		GiveNamedItem("weapon_cubemap", false);
 		break;
 
 	case 82:
@@ -6163,20 +6173,18 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 #ifdef HL2_EPISODIC
 		GiveAmmo( 5,	"Hopwire" );
 #endif		
-		GiveNamedItem( "weapon_smg1" );
-		GiveNamedItem( "weapon_frag" );
-		GiveNamedItem( "weapon_crowbar" );
-		GiveNamedItem( "weapon_pistol" );
-		GiveNamedItem( "weapon_ar2" );
-		GiveNamedItem( "weapon_shotgun" );
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_bugbait" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "weapon_357" );
-		GiveNamedItem( "weapon_crossbow" );
-#ifdef HL2_EPISODIC
-		// GiveNamedItem( "weapon_magnade" );
-#endif
+		GiveNamedItem("weapon_smg1", false);
+		GiveNamedItem("weapon_frag", false);
+		GiveNamedItem("weapon_crowbar", false);
+		GiveNamedItem("weapon_pistol", false);
+		GiveNamedItem("weapon_ar2", false);
+		GiveNamedItem("weapon_shotgun", false);
+		GiveNamedItem("weapon_physcannon", false);
+		GiveNamedItem("weapon_bugbait", false);
+		GiveNamedItem("weapon_rpg", false);
+		GiveNamedItem("weapon_357", false);
+		GiveNamedItem("weapon_crossbow", false);
+
 		if ( GetHealth() < 100 )
 		{
 			TakeHealth( 25, DMG_GENERIC );
@@ -8005,6 +8013,7 @@ void SendProxy_CropFlagsToPlayerFlagBitsLength( const SendProp *pProp, const voi
 		SendPropEHandle	(SENDINFO(m_hZoomOwner) ),
 		SendPropArray	( SendPropEHandle( SENDINFO_ARRAY( m_hViewModel ) ), m_hViewModel ),
 		SendPropString	(SENDINFO(m_szLastPlaceName) ),
+		SendPropBool(SENDINFO(m_bSwimInAir)),
 
 #if defined USES_ECON_ITEMS
 		SendPropUtlVector( SENDINFO_UTLVECTOR( m_hMyWearables ), MAX_WEARABLES_SENT_FROM_SERVER, SendPropEHandle( NULL, 0 ) ),

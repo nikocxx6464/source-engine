@@ -41,7 +41,7 @@
 inline void TraceHull_SkipPhysics( const Vector &vecAbsStart, const Vector &vecAbsEnd, const Vector &hullMin, 
 					 const Vector &hullMax,	unsigned int mask, const CBaseEntity *ignore, 
 					 int collisionGroup, trace_t *ptr, float minMass );
-
+extern int						g_iChaosSpawnCount;
 ConVar	g_debug_antlionguard( "g_debug_antlionguard", "0" );
 ConVar	sk_antlionguard_dmg_charge( "sk_antlionguard_dmg_charge", "0" );
 ConVar	sk_antlionguard_dmg_shove( "sk_antlionguard_dmg_shove", "0" );
@@ -1063,7 +1063,7 @@ int CNPC_AntlionGuard::SelectCombatSchedule( void )
 bool CNPC_AntlionGuard::ShouldCharge( const Vector &startPos, const Vector &endPos, bool useTime, bool bCheckForCancel )
 {
 	// Don't charge in tight spaces unless forced to
-	if ( hl2_episodic.GetBool() && m_bInCavern && !(m_hChargeTarget.Get() && m_hChargeTarget->IsAlive()) )
+	if ( m_bInCavern && !(m_hChargeTarget.Get() && m_hChargeTarget->IsAlive()) )
 		return false;
 
 	// Must have a target
@@ -1265,7 +1265,7 @@ int CNPC_AntlionGuard::MeleeAttack1Conditions( float flDot, float flDist )
 	if ( IsCurSchedule( SCHED_ANTLIONGUARD_CHARGE ) )
 		return 0;
 
-	if ( hl2_episodic.GetBool() && m_bInCavern )
+	if ( m_bInCavern )
 	{
 		// Predict where they'll be and see if THAT is within range
 		Vector vecPredPos;
@@ -1324,7 +1324,7 @@ float CNPC_AntlionGuard::MaxYawSpeed( void )
 	if ( eActivity == ACT_ANTLIONGUARD_CHARGE_START )
 		return 4.0f;
 
-	if ( hl2_episodic.GetBool() && m_bInCavern )
+	if ( m_bInCavern )
 	{
 		// Allow a better turning rate when moving quickly but not charging the player
 		if ( ( eActivity == ACT_ANTLIONGUARD_CHARGE_RUN ) && IsCurSchedule( SCHED_ANTLIONGUARD_CHARGE ) == false )
@@ -3199,7 +3199,13 @@ void CNPC_AntlionGuard::SummonAntlions( void )
 		CAI_BaseNPC	*pent = (CAI_BaseNPC*)CreateEntityByName( "npc_antlion" );
 		if ( !pent )
 			break;
-
+		if (m_bChaosSpawned)
+		{
+			g_iChaosSpawnCount++;
+			pent->m_iChaosID = g_iChaosSpawnCount;
+		}
+		pent->m_bChaosPersist = m_bChaosPersist;
+		pent->m_bChaosSpawned = m_bChaosSpawned;
 		CNPC_Antlion *pAntlion = assert_cast<CNPC_Antlion*>(pent);
 
 		if ( g_debug_antlionguard.GetInt() == 2 )
@@ -3371,7 +3377,7 @@ Activity CNPC_AntlionGuard::NPC_TranslateActivity( Activity baseAct )
 		return (Activity) ACT_ANTLIONGUARD_CHARGE_RUN;
 
 	// Do extra code if we're trying to close on an enemy in a confined space (unless scripted)
-	if ( hl2_episodic.GetBool() && m_bInCavern && baseAct == ACT_RUN && IsInAScript() == false )
+	if ( m_bInCavern && baseAct == ACT_RUN && IsInAScript() == false )
 		return (Activity) ACT_ANTLIONGUARD_CHARGE_RUN;
 
 	if ( ( baseAct == ACT_RUN ) && ( m_iHealth <= (m_iMaxHealth/4) ) )
@@ -4356,7 +4362,7 @@ bool CNPC_AntlionGuard::CanBecomeRagdoll( void )
 	if ( IsCurSchedule( SCHED_DIE ) )
 		return true;
 
-	return hl2_episodic.GetBool();
+	return true;
 }
 
 //-----------------------------------------------------------------------------

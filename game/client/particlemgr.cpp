@@ -38,11 +38,11 @@ extern IParticleSystemQuery *g_pParticleSystemQuery;
 static int g_nParticlesDrawn;
 // CCycleCount	g_ParticleTimer;
 
-ConVar r_DrawParticles("r_drawparticles", "1", FCVAR_CHEAT, "Enable/disable particle rendering");
-static ConVar particle_simulateoverflow( "particle_simulateoverflow", "0", FCVAR_CHEAT, "Used for stress-testing particle systems. Randomly denies creation of particles." );
-ConVar cl_particleeffect_aabb_buffer( "cl_particleeffect_aabb_buffer", "2", FCVAR_CHEAT, "Add this amount to a particle effect's bbox in the leaf system so if it's growing slowly, it won't have to be reinserted as often." );
-ConVar cl_particle_show_bbox( "cl_particle_show_bbox", "0", FCVAR_CHEAT );
-ConVar cl_particle_show_bbox_cost( "cl_particle_show_bbox_cost", "0", FCVAR_CHEAT, "Show # of particles: green->blue->red. Use a negative number to show ALL particles even cheap ones" );
+ConVar r_DrawParticles("r_drawparticles", "1", FCVAR_NONE, "Enable/disable particle rendering");
+static ConVar particle_simulateoverflow("particle_simulateoverflow", "0", FCVAR_NONE, "Used for stress-testing particle systems. Randomly denies creation of particles.");
+ConVar cl_particleeffect_aabb_buffer("cl_particleeffect_aabb_buffer", "2", FCVAR_NONE, "Add this amount to a particle effect's bbox in the leaf system so if it's growing slowly, it won't have to be reinserted as often.");
+ConVar cl_particle_show_bbox("cl_particle_show_bbox", "0", FCVAR_NONE);
+ConVar cl_particle_show_bbox_cost("cl_particle_show_bbox_cost", "0", FCVAR_NONE, "Show # of particles: green->blue->red. Use a negative number to show ALL particles even cheap ones");
 
 // These reflect the convars so we don't parse the string every particle!
 bool g_cl_particle_show_bbox = false;
@@ -1681,7 +1681,7 @@ bool CParticleMgr::RetireParticleCollections( CParticleSystemDefinition* pDef,
 }
 
 // Next, see if there are new particle systems that need early retirement
-static ConVar cl_particle_retire_cost( "cl_particle_retire_cost", "0", FCVAR_CHEAT );
+static ConVar cl_particle_retire_cost("cl_particle_retire_cost", "0", FCVAR_NONE);
 
 bool CParticleMgr::EarlyRetireParticleSystems( int nCount, CNewParticleEffect **ppEffects )
 {
@@ -1773,7 +1773,7 @@ void CParticleMgr::BuildParticleSimList( CUtlVector< CNewParticleEffect* > &list
 	}
 }
 
-static ConVar r_particle_timescale( "r_particle_timescale", "1.0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+static ConVar r_particle_timescale("r_particle_timescale", "1.0", FCVAR_NONE);
 
 static int CountChildParticleSystems( CParticleCollection *p )
 {

@@ -842,7 +842,7 @@ void CC_Global_Set( const CCommand &args )
 	}
 }
 
-static ConCommand global_set( "global_set", CC_Global_Set, "global_set <globalname> <state>: Sets the state of the given env_global (0 = OFF, 1 = ON, 2 = DEAD).", FCVAR_CHEAT );
+static ConCommand global_set("global_set", CC_Global_Set, "global_set <globalname> <state>: Sets the state of the given env_global (0 = OFF, 1 = ON, 2 = DEAD).", FCVAR_NONE);
 
 
 //-----------------------------------------------------------------------------
@@ -2273,6 +2273,7 @@ protected:
 	bool m_bForceNewLevelUnit;
 	int m_minHitPoints;
 	int m_minHitPointsToCommit;
+	float m_flLastSaveTime = -1;
 };
 
 LINK_ENTITY_TO_CLASS(logic_autosave, CLogicAutosave);
@@ -2281,6 +2282,7 @@ BEGIN_DATADESC( CLogicAutosave )
 	DEFINE_KEYFIELD( m_bForceNewLevelUnit, FIELD_BOOLEAN, "NewLevelUnit" ),
 	DEFINE_KEYFIELD( m_minHitPoints, FIELD_INTEGER, "MinimumHitPoints" ),
 	DEFINE_KEYFIELD( m_minHitPointsToCommit, FIELD_INTEGER, "MinHitPointsToCommit" ),
+	DEFINE_FIELD(m_flLastSaveTime, FIELD_FLOAT),
 	// Inputs
 	DEFINE_INPUTFUNC( FIELD_VOID, "Save", InputSave ),
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "SaveDangerous", InputSaveDangerous ),
@@ -2292,12 +2294,19 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 void CLogicAutosave::InputSave( inputdata_t &inputdata )
 {
-	if ( m_bForceNewLevelUnit )
+	//PIN: force a cooldown on autosaves.
+	//in ep1_c17_02a, there's a door that makes an autosave every time OnOpen fires
+	//if that door gets blocked in a certain way, that output gets spammed
+	//spamming autosaves = lag
+	if (m_flLastSaveTime < gpGlobals->curtime + 1)
 	{
-		engine->ClearSaveDir();
+		if (m_bForceNewLevelUnit)
+		{
+			engine->ClearSaveDir();
+		}
+		engine->ServerCommand("autosave\n");
 	}
-
-	engine->ServerCommand( "autosave\n" );
+	m_flLastSaveTime = gpGlobals->curtime;
 }
 
 //-----------------------------------------------------------------------------

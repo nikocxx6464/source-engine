@@ -24,7 +24,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-
+extern ConVar chaos_no_reload;
 ConVar	ai_debug_follow( "ai_debug_follow", "0" );
 ConVar	ai_follow_use_points( "ai_follow_use_points", "1" );
 ConVar	ai_follow_use_points_when_moving( "ai_follow_use_points_when_moving", "1" );
@@ -1105,7 +1105,7 @@ int CAI_FollowBehavior::SelectSchedule()
 			if ( result != SCHED_NONE )
 				return result;
 				
-			if ( HasCondition ( COND_NO_PRIMARY_AMMO ) && HaveSequenceForActivity( GetOuter()->TranslateActivity( ACT_RUN_AIM ) ) )
+			if (HasCondition(COND_NO_PRIMARY_AMMO) && HaveSequenceForActivity(GetOuter()->TranslateActivity(ACT_RUN_AIM)) && !chaos_no_reload.GetBool())
 				return SCHED_HIDE_AND_RELOAD;
 		}
 

@@ -47,7 +47,7 @@
 #include "tf_gamerules.h"
 #endif
 
-ConVar	cc_achievement_debug( "achievement_debug", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "Turn on achievement debug msgs." );
+ConVar	cc_achievement_debug( "achievement_debug", "0", FCVAR_REPLICATED, "Turn on achievement debug msgs." );
 
 #ifdef CSTRIKE_DLL
 //=============================================================================

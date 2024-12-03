@@ -21,7 +21,7 @@ enum
 	AVELOCITY_SENSOR_NO_LAST_RESULT = -2
 };
 
-ConVar g_debug_angularsensor( "g_debug_angularsensor", "0", FCVAR_CHEAT );
+ConVar g_debug_angularsensor("g_debug_angularsensor", "0", FCVAR_NONE);
 
 class CPointAngularVelocitySensor : public CPointEntity
 {

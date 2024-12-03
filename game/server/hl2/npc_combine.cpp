@@ -61,7 +61,7 @@ int g_fCombineQuestion;				// true if an idle grunt asked a question. Cleared wh
 // This is the index to the name of the shotgun's classname in the string pool
 // so that we can get away with an integer compare rather than a string compare.
 string_t	s_iszShotgunClassname;
-
+extern ConVar chaos_no_reload;
 //-----------------------------------------------------------------------------
 // Interactions
 //-----------------------------------------------------------------------------
@@ -1573,7 +1573,8 @@ int CNPC_Combine::SelectCombatSchedule()
 	// ---------------------
 	if ( ( HasCondition ( COND_NO_PRIMARY_AMMO ) || HasCondition ( COND_LOW_PRIMARY_AMMO ) ) && !HasCondition( COND_CAN_MELEE_ATTACK1) )
 	{
-		return SCHED_HIDE_AND_RELOAD;
+		if (!chaos_no_reload.GetBool())
+			return SCHED_HIDE_AND_RELOAD;
 	}
 
 	// ----------------------
@@ -2185,10 +2186,11 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 			}
 
 			// No running away in the citadel!
-			if ( ShouldChargePlayer() )
+			if (ShouldChargePlayer() && !chaos_no_reload.GetBool())
 				return SCHED_RELOAD;
 
-			return SCHED_COMBINE_HIDE_AND_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_COMBINE_HIDE_AND_RELOAD;
 		}
 		break;
 	case SCHED_RANGE_ATTACK1:
@@ -2197,7 +2199,8 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 			{
 				// Ditch the strategy slot for attacking (which we just reserved!)
 				VacateStrategySlot();
-				return TranslateSchedule( SCHED_HIDE_AND_RELOAD );
+				if (!chaos_no_reload.GetBool())
+					return TranslateSchedule( SCHED_HIDE_AND_RELOAD );
 			}
 
 			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) )

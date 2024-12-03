@@ -21,6 +21,10 @@ abstract_class CBaseHeadcrab : public CAI_BaseNPC
 	DECLARE_CLASS( CBaseHeadcrab, CAI_BaseNPC );
 
 public:
+	bool m_bBurrowed;
+	void SetBurrowed(bool bBurrowed);
+	bool m_bHidden;
+	bool m_bHangingFromCeiling;
 	void Spawn( void );
 	void Precache( void );
 	void RunTask( const Task_t *pTask );
@@ -105,7 +109,6 @@ protected:
 	void ClearBurrowPoint( const Vector &origin );
 	void Burrow( void );
 	void Unburrow( void );
-	void SetBurrowed( bool bBurrowed );
 	void JumpFromCanister();
 
 	// Begins the climb from the canister
@@ -138,8 +141,6 @@ protected:
 	bool	m_bCommittedToJump;		// Whether we have 'locked in' to jump at our enemy.
 	bool	m_bCrawlFromCanister;
 	bool	m_bStartBurrowed;
-	bool	m_bBurrowed;
-	bool	m_bHidden;
 	bool	m_bMidJump;
 	bool	m_bAttackFailed;		// whether we ran into a wall during a jump.
 
@@ -147,7 +148,6 @@ protected:
 	int		m_nContext;			// for FValidateHintType context
 	int		m_nJumpFromCanisterDir;
 
-	bool	m_bHangingFromCeiling;
 	float	m_flIlluminatedTime;
 };
 

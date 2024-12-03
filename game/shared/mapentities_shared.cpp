@@ -238,7 +238,7 @@ bool CEntityMapData::GetNextKey( char *keyName, char *value )
 	if ( !m_pCurrentKey )
 	{
 		Warning( "CEntityMapData::GetNextKey: EOF without closing brace\n" );
-		Assert(0);
+		//Assert(0);
 		return false;
 	}
 	

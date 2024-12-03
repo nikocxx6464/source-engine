@@ -37,7 +37,10 @@ public:
 	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
 
-	CPropJeep( void );
+	CPropJeep(void);
+	bool m_bJeep;
+	bool m_bJalopy;
+	bool m_bAPC;
 
 	// CPropVehicle
 	virtual void	ProcessMovement( CBasePlayer *pPlayer, CMoveData *pMoveData );

@@ -23,16 +23,16 @@
 //-----------------------------------------------------------------------------
 // debugging overlays
 //-----------------------------------------------------------------------------
-static ConVar cl_drawmaterial( "cl_drawmaterial", "", FCVAR_CHEAT, "Draw a particular material over the frame" );
-static ConVar mat_showwatertextures( "mat_showwatertextures", "0", FCVAR_CHEAT );
+static ConVar cl_drawmaterial("cl_drawmaterial", "", FCVAR_NONE, "Draw a particular material over the frame");
+static ConVar mat_showwatertextures("mat_showwatertextures", "0", FCVAR_NONE);
 static ConVar mat_wateroverlaysize( "mat_wateroverlaysize", "256" );
-static ConVar mat_showframebuffertexture( "mat_showframebuffertexture", "0", FCVAR_CHEAT );
+static ConVar mat_showframebuffertexture("mat_showframebuffertexture", "0", FCVAR_NONE);
 static ConVar mat_framebuffercopyoverlaysize( "mat_framebuffercopyoverlaysize", "256" );
-static ConVar mat_showcamerarendertarget( "mat_showcamerarendertarget", "0", FCVAR_CHEAT );
-static ConVar mat_camerarendertargetoverlaysize( "mat_camerarendertargetoverlaysize", "256", FCVAR_CHEAT );
-static ConVar mat_hsv( "mat_hsv", "0", FCVAR_CHEAT );
-static ConVar mat_yuv( "mat_yuv", "0", FCVAR_CHEAT );
-static ConVar cl_overdraw_test( "cl_overdraw_test", "0", FCVAR_CHEAT | FCVAR_NEVER_AS_STRING );
+static ConVar mat_showcamerarendertarget("mat_showcamerarendertarget", "0", FCVAR_NONE);
+static ConVar mat_camerarendertargetoverlaysize("mat_camerarendertargetoverlaysize", "256", FCVAR_NONE);
+static ConVar mat_hsv("mat_hsv", "0", FCVAR_NONE);
+static ConVar mat_yuv("mat_yuv", "0", FCVAR_NONE);
+static ConVar cl_overdraw_test( "cl_overdraw_test", "0", FCVAR_NEVER_AS_STRING );
 static ConVar mat_drawTexture( "mat_drawTexture", "", 0, "Enable debug view texture" );
 static ConVar mat_drawTextureScale( "mat_drawTextureScale", "1.0", 0, "Debug view texture scale" );
 #ifdef _X360
@@ -43,11 +43,11 @@ static ConVar mat_drawColorRamp( "mat_drawColorRamp", "0", 0, "Draw color test p
 // debugging
 //-----------------------------------------------------------------------------
 // (the engine owns this cvar).
-ConVar mat_wireframe( "mat_wireframe", "0", FCVAR_CHEAT );
+ConVar mat_wireframe("mat_wireframe", "0", FCVAR_NONE);
 const ConVar *sv_cheats = NULL;
 ConVar	mat_showlightmappage(  "mat_showlightmappage", "-1" ); // set this to the lightmap page that you want to see on screen, set to -1 to show nothing.
-ConVar cl_drawshadowtexture( "cl_drawshadowtexture", "0", FCVAR_CHEAT );
-ConVar cl_shadowtextureoverlaysize( "cl_shadowtextureoverlaysize", "256", FCVAR_CHEAT );
+ConVar cl_drawshadowtexture("cl_drawshadowtexture", "0", FCVAR_NONE);
+ConVar cl_shadowtextureoverlaysize("cl_shadowtextureoverlaysize", "256", FCVAR_NONE);
 
 static ConVar r_flashlightdrawdepth( "r_flashlightdrawdepth", "0" );
 
@@ -627,7 +627,7 @@ void CDebugViewRender::Draw2DDebuggingInfo( const CViewSetup &view )
 //-----------------------------------------------------------------------------
 // A console command allowing you to draw a material as an overlay
 //-----------------------------------------------------------------------------
-CON_COMMAND_F( r_screenoverlay, "Draw specified material as an overlay", FCVAR_CHEAT|FCVAR_SERVER_CAN_EXECUTE )
+CON_COMMAND_F( r_screenoverlay, "Draw specified material as an overlay", FCVAR_SERVER_CAN_EXECUTE )
 {
 	if( args.ArgC() == 2 )
 	{

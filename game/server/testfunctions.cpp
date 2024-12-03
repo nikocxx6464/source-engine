@@ -82,7 +82,7 @@ void Test_RandomPlayerPosition()
 }
 
 
-ConCommand cc_Test_CreateEntity( "Test_CreateEntity", Test_CreateEntity, 0, FCVAR_CHEAT );
-ConCommand cc_Test_RandomPlayerPosition( "Test_RandomPlayerPosition", Test_RandomPlayerPosition, 0, FCVAR_CHEAT );
+ConCommand cc_Test_CreateEntity("Test_CreateEntity", Test_CreateEntity, 0, FCVAR_NONE);
+ConCommand cc_Test_RandomPlayerPosition("Test_RandomPlayerPosition", Test_RandomPlayerPosition, 0, FCVAR_NONE);
 
 

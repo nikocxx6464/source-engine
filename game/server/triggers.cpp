@@ -41,6 +41,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+bool g_bEndSolidTriggers = false;
+
 #define DEBUG_TRANSITIONS_VERBOSE	2
 ConVar g_debug_transitions( "g_debug_transitions", "0", FCVAR_NONE, "Set to 1 and restart the map to be warned if the map has no trigger_transition volumes. Set to 2 to see a dump of all entities & associated results during a transition." );
 
@@ -50,7 +52,9 @@ CUtlVector< CHandle<CTriggerMultiple> >	g_hWeaponFireTriggers;
 
 extern CServerGameDLL	g_ServerGameDLL;
 extern bool				g_fGameOver;
-ConVar showtriggers( "showtriggers", "0", FCVAR_CHEAT, "Shows trigger brushes" );
+ConVar showtriggers("showtriggers", "0", FCVAR_NONE, "Shows trigger brushes");
+
+ConVar chaos_cant_leave_map("chaos_cant_leave_map", "0");
 
 bool IsTriggerClass( CBaseEntity *pEntity );
 
@@ -91,14 +95,14 @@ void Cmd_ShowtriggersToggle_f( const CCommand &args )
 	}
 }
 
-static ConCommand showtriggers_toggle( "showtriggers_toggle", Cmd_ShowtriggersToggle_f, "Toggle show triggers", FCVAR_CHEAT );
+static ConCommand showtriggers_toggle("showtriggers_toggle", Cmd_ShowtriggersToggle_f, "Toggle show triggers", FCVAR_NONE);
 
 // Global Savedata for base trigger
 BEGIN_DATADESC( CBaseTrigger )
 
 	// Keyfields
 	DEFINE_KEYFIELD( m_iFilterName,	FIELD_STRING,	"filtername" ),
-	DEFINE_FIELD( m_hFilter,	FIELD_EHANDLE ),
+	//DEFINE_FIELD( m_hFilter,	FIELD_EHANDLE ),
 	DEFINE_KEYFIELD( m_bDisabled,		FIELD_BOOLEAN,	"StartDisabled" ),
 	DEFINE_UTLVECTOR( m_hTouchingEntities, FIELD_EHANDLE ),
 
@@ -215,10 +219,10 @@ void CBaseTrigger::Enable( void )
 void CBaseTrigger::Activate( void ) 
 { 
 	// Get a handle to my filter entity if there is one
-	if (m_iFilterName != NULL_STRING)
+	/*if (m_iFilterName != NULL_STRING)
 	{
 		m_hFilter = dynamic_cast<CBaseFilter *>(gEntList.FindEntityByName( NULL, m_iFilterName ));
-	}
+	}*/
 
 	BaseClass::Activate();
 }
@@ -425,7 +429,7 @@ bool CBaseTrigger::PassesTriggerFilters(CBaseEntity *pOther)
 			}
 		}
 
-		CBaseFilter *pFilter = m_hFilter.Get();
+		CBaseFilter *pFilter = dynamic_cast<CBaseFilter*>(gEntList.FindEntityByName(NULL, m_iFilterName));
 		return (!pFilter) ? true : pFilter->PassesFilter( this, pOther );
 	}
 	return false;
@@ -989,7 +993,7 @@ class CTriggerLook : public CTriggerOnce
 {
 	DECLARE_CLASS( CTriggerLook, CTriggerOnce );
 public:
-
+	virtual void LogicExplode();
 	EHANDLE m_hLookTarget;
 	float m_flFieldOfView;
 	float m_flLookTime;			// How long must I look for
@@ -1225,18 +1229,6 @@ int CTriggerLook::DrawDebugTextOverlays(void)
 	}
 	return text_offset;
 }
-
-
-// ##################################################################################
-//	>> TriggerVolume
-// ##################################################################################
-class CTriggerVolume : public CPointEntity	// Derive from point entity so this doesn't move across levels
-{
-public:
-	DECLARE_CLASS( CTriggerVolume, CPointEntity );
-
-	void		Spawn( void );
-};
 
 LINK_ENTITY_TO_CLASS( trigger_transition, CTriggerVolume );
 
@@ -1508,6 +1500,8 @@ bool CChangeLevel::IsEntityInTransition( CBaseEntity *pEntity )
 
 void CChangeLevel::NotifyEntitiesOutOfTransition()
 {
+	variant_t emptyVariant2;
+	UTIL_GetLocalPlayer()->AcceptInput("InsideTransition", this, this, emptyVariant2, 0);
 	CBaseEntity *pEnt = gEntList.FirstEnt();
 	while ( pEnt )
 	{
@@ -1568,8 +1562,6 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 	if ( m_bTouched )
 		return;
 
-	m_bTouched = true;
-
 	CBaseEntity *pPlayer = (pActivator && pActivator->IsPlayer()) ? pActivator : UTIL_GetLocalPlayer();
 
 	int transitionState = InTransitionVolume(pPlayer, m_szLandmarkName);
@@ -1578,6 +1570,8 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 		DevMsg( 2, "Player isn't in the transition volume %s, aborting\n", m_szLandmarkName );
 		return;
 	}
+
+	m_bTouched = true;//PIN: prevents issues with being "softlocked" on canals 1?
 
 	// look for a landmark entity		
 	pLandmark = FindLandmark( m_szLandmarkName );
@@ -1655,6 +1649,8 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 //
 void CChangeLevel::TouchChangeLevel( CBaseEntity *pOther )
 {
+	if (chaos_cant_leave_map.GetBool())
+		return;
 	CBasePlayer *pPlayer = ToBasePlayer(pOther);
 	if ( !pPlayer )
 		return;
@@ -3738,7 +3734,7 @@ public:
 	void	EndTouch( CBaseEntity *pOther );
 	void	WindThink( void );
 	int		DrawDebugTextOverlays( void );
-
+	virtual void LogicExplode();
 	// Input handlers
 	void	InputEnable( inputdata_t &inputdata );
 	void	InputSetSpeed( inputdata_t &inputdata );
@@ -4016,7 +4012,7 @@ class CTriggerImpact : public CTriggerMultiple
 	DECLARE_CLASS( CTriggerImpact, CTriggerMultiple );
 public:
 	DECLARE_DATADESC();
-
+	virtual void LogicExplode();
 	float	m_flMagnitude;
 	float	m_flNoise;
 	float	m_flViewkick;
@@ -4422,65 +4418,6 @@ bool CBaseVPhysicsTrigger::PassesTriggerFilters( CBaseEntity *pOther )
 	return false;
 }
 
-//=====================================================================================================================
-//-----------------------------------------------------------------------------
-// Purpose: VPhysics trigger that changes the motion of vphysics objects that touch it
-//-----------------------------------------------------------------------------
-class CTriggerVPhysicsMotion : public CBaseVPhysicsTrigger, public IMotionEvent
-{
-	DECLARE_CLASS( CTriggerVPhysicsMotion, CBaseVPhysicsTrigger );
-
-public:
-	void Spawn();
-	void Precache();
-	virtual void UpdateOnRemove();
-	bool CreateVPhysics();
-	void OnRestore();
-
-	// UNDONE: Pass trigger event in or change Start/EndTouch.  Add ITriggerVPhysics perhaps?
-	// BUGBUG: If a player touches two of these, his movement will screw up.
-	// BUGBUG: If a player uses crouch/uncrouch it will generate touch events and clear the motioncontroller flag
-	void StartTouch( CBaseEntity *pOther );
-	void EndTouch( CBaseEntity *pOther );
-
-	void InputSetVelocityLimitTime( inputdata_t &inputdata );
-
-	float LinearLimit();
-
-	inline bool HasGravityScale() { return m_gravityScale != 1.0 ? true : false; }
-	inline bool HasAirDensity() { return m_addAirDensity != 0 ? true : false; }
-	inline bool HasLinearLimit() { return LinearLimit() != 0.0f; }
-	inline bool HasLinearScale() { return m_linearScale != 1.0 ? true : false; }
-	inline bool HasAngularLimit() { return m_angularLimit != 0 ? true : false; }
-	inline bool HasAngularScale() { return m_angularScale != 1.0 ? true : false; }
-	inline bool HasLinearForce() { return m_linearForce != 0.0 ? true : false; }
-
-	DECLARE_DATADESC();
-
-	virtual simresult_e	Simulate( IPhysicsMotionController *pController, IPhysicsObject *pObject, float deltaTime, Vector &linear, AngularImpulse &angular );
-
-private:
-	IPhysicsMotionController	*m_pController;
-
-#ifndef _XBOX
-	EntityParticleTrailInfo_t	m_ParticleTrail;
-#endif //!_XBOX
-
-	float						m_gravityScale;
-	float						m_addAirDensity;
-	float						m_linearLimit;
-	float						m_linearLimitDelta;
-	float						m_linearLimitTime;
-	float						m_linearLimitStart;
-	float						m_linearLimitStartTime;
-	float						m_linearScale;
-	float						m_angularLimit;
-	float						m_angularScale;
-	float						m_linearForce;
-	QAngle						m_linearForceAngles;
-};
-
-
 //------------------------------------------------------------------------------
 // Save/load
 //------------------------------------------------------------------------------
@@ -4610,13 +4547,27 @@ void CTriggerVPhysicsMotion::StartTouch( CBaseEntity *pOther )
 		pPlayer->SetPhysicsFlag( PFLAG_VPHYSICS_MOTIONCONTROLLER, true );
 		pPlayer->m_Local.m_bSlowMovement = true;
 	}
-
-	triggerevent_t event;
-	PhysGetTriggerEvent( &event, this );
-	if ( event.pObject )
+	//PIN: had a crash here while a ragdoll was in a trigger that was solid via Solid Triggers while that effect ended
+	//Skip this bit of code if we're solid
+	if (!g_bEndSolidTriggers)
 	{
-		// these all get done again on save/load, so check
-		m_pController->AttachObject( event.pObject, true );
+		triggerevent_t event;
+		if (PhysGetTriggerEvent(&event, this))//avoid using blank event
+		{
+			//Msg("got trigger event.\n");
+			//Msg("pTriggerEntity is a %s named '%s'.\n", event.pTriggerEntity->GetClassname(), STRING(event.pTriggerEntity->GetEntityName()));
+			//Msg("pEntity is a %s named '%s'.\n", event.pEntity->GetClassname(), STRING(event.pEntity->GetEntityName()));
+			//Msg("bStart is %s.\n", event.bStart ? "TRUE" : "FALSE");
+			if (event.pObject && event.pTriggerEntity != NULL && event.pTriggerPhysics != NULL)
+			{
+				// these all get done again on save/load, so check
+				m_pController->AttachObject(event.pObject, true);
+			}
+			if (m_ParticleTrail.m_strMaterialName != NULL_STRING)
+			{
+				CEntityParticleTrail::Create(pOther, m_ParticleTrail, this);
+			}
+		}
 	}
 
 	// Don't show these particles on the XBox
@@ -4904,4 +4855,142 @@ bool IsTriggerClass( CBaseEntity *pEntity )
 		return true;
 	
 	return false;
+}
+void CBaseTrigger::LogicExplode()
+{
+	int nRandom = RandomInt(0, 4);
+	variant_t variant;
+	switch (nRandom)
+	{
+		//skipped enable and disable
+	case 0:
+		AcceptInput("Toggle", this, this, variant, 0);
+	case 1:
+		AcceptInput("TouchTest", this, this, variant, 0);
+	case 2:
+		AcceptInput("StartTouch", this, this, variant, 0);
+	case 3:
+		AcceptInput("EndTouch", this, this, variant, 0);
+	case 4:
+		BaseClass::LogicExplode();
+	}
+}
+void CTriggerHurt::LogicExplode()
+{
+	int nRandom = RandomInt(0, 1);
+	variant_t variant;
+	switch (nRandom)
+	{
+	case 0:
+		variant.SetFloat(RandomFloat(m_flDamage / 2, m_flDamage * 2));
+		AcceptInput("SetDamage", this, this, variant, 0);
+	case 1:
+		BaseClass::LogicExplode();
+	}
+}
+void CTriggerLook::LogicExplode()
+{
+	int nRandom = RandomInt(0, 2);
+	variant_t variant;
+	switch (nRandom)
+	{
+	case 0:
+		variant.SetFloat(RandomFloat(-1, 1));
+		AcceptInput("FieldOfView", this, this, variant, 0);
+	case 1:
+		variant.SetFloat(RandomFloat(m_flLookTime / 2, m_flLookTime * 2));
+		AcceptInput("LookTime", this, this, variant, 0);
+	case 2:
+		BaseClass::LogicExplode();
+	}
+}
+void CTriggerImpact::LogicExplode()
+{
+	int nRandom = RandomInt(0, 2);
+	variant_t variant;
+	switch (nRandom)
+	{
+	case 0:
+		AcceptInput("Impact", this, this, variant, 0);
+	case 1:
+		variant.SetFloat(RandomFloat(m_flMagnitude / 2, m_flMagnitude * 2));
+		AcceptInput("SetMagnitude", this, this, variant, 0);
+	case 2:
+		BaseClass::LogicExplode();
+	}
+}
+void CBaseVPhysicsTrigger::LogicExplode()
+{
+	int nRandom = RandomInt(0, 1);
+	variant_t variant;
+	switch (nRandom)
+	{
+		//skipped enable and disable
+	case 0:
+		AcceptInput("Toggle", this, this, variant, 0);
+	case 1:
+		BaseClass::LogicExplode();
+	}
+}
+void CTriggerVPhysicsMotion::LogicExplode()
+{
+	int nRandom = RandomInt(0, 10);
+	variant_t variant;
+	char szangle[2048];
+	int x, y, z;
+	switch (nRandom)
+	{
+	case 0:
+		variant.SetFloat(RandomFloat(m_gravityScale / 2, m_gravityScale * 2));
+		AcceptInput("SetGravityScale", this, this, variant, 0);
+	case 1:
+		variant.SetFloat(RandomFloat(m_addAirDensity / 2, m_addAirDensity * 2));
+		AcceptInput("SetAdditionalAirDensity", this, this, variant, 0);
+	case 2:
+		variant.SetFloat(RandomFloat(m_linearLimit / 2, m_linearLimit * 2));
+		AcceptInput("SetVelocityLimit", this, this, variant, 0);
+	case 3:
+		variant.SetFloat(RandomFloat(m_linearLimitDelta / 2, m_linearLimitDelta * 2));
+		AcceptInput("SetVelocityLimitDelta", this, this, variant, 0);
+	case 4:
+		variant.SetFloat(RandomFloat(m_linearScale / 2, m_linearScale * 2));
+		AcceptInput("SetVelocityScale", this, this, variant, 0);
+	case 5:
+		variant.SetFloat(RandomFloat(m_angularLimit / 2, m_angularLimit * 2));
+		AcceptInput("SetAngVelocityLimit", this, this, variant, 0);
+	case 6:
+		variant.SetFloat(RandomFloat(m_angularScale / 2, m_angularScale * 2));
+		AcceptInput("SetAngVelocityScale", this, this, variant, 0);
+	case 7:
+		variant.SetFloat(RandomFloat(m_linearForce / 2, m_linearForce * 2));
+		AcceptInput("SetLinearForce", this, this, variant, 0);
+	case 8:
+		x = RandomFloat(-90, 90);
+		y = RandomFloat(-180, 180);
+		z = RandomFloat(-180, 180);
+		Q_snprintf(szangle, sizeof(szangle), "%i %i %i", x, y, z);
+		variant.SetString(MAKE_STRING(szangle));
+		AcceptInput("SetLinearForceAngles", this, this, variant, 0);
+	case 9:
+		x = RandomFloat(m_linearLimit / 2, m_linearLimit * 2);
+		y = RandomFloat(0, 30);
+		Q_snprintf(szangle, sizeof(szangle), "%i %i", x, y);
+		variant.SetString(MAKE_STRING(szangle));
+		AcceptInput("SetVelocityLimitTime", this, this, variant, 0);
+	case 10:
+		BaseClass::LogicExplode();
+	}
+}
+void CTriggerWind::LogicExplode()
+{
+	int nRandom = RandomInt(0, 1);
+	variant_t variant;
+	switch (nRandom)
+	{
+	case 0:
+		variant.SetInt(RandomInt(m_nSpeedBase / 2, m_nSpeedBase * 2));
+		AcceptInput("SetSpeed", this, this, variant, 0);
+	case 1:
+		BaseClass::LogicExplode();
+	}
 }

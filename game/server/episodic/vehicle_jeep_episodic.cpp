@@ -370,6 +370,7 @@ IMPLEMENT_SERVERCLASS_ST(CPropJeepEpisodic, DT_CPropJeepEpisodic)
 	//CNetworkVar( int, m_iNumRadarContacts );
 	SendPropInt( SENDINFO(m_iNumRadarContacts), 8 ),
 
+	SendPropEHandle(SENDINFO(m_hRadarScreen)),
 	//CNetworkArray( Vector, m_vecRadarContactPos, RADAR_MAX_CONTACTS );
 	SendPropArray( SendPropVector( SENDINFO_ARRAY(m_vecRadarContactPos), -1, SPROP_COORD), m_vecRadarContactPos ),
 
@@ -399,7 +400,8 @@ m_flNextAvoidBroadcastTime( 0.0f )
 void CPropJeepEpisodic::UpdateOnRemove( void )
 {
 	BaseClass::UpdateOnRemove();
-
+	if (!m_bJalopy)
+		return;
 	// Kill our wheel dust
 	for ( int i = 0; i < NUM_WHEEL_EFFECTS; i++ )
 	{
@@ -452,7 +454,8 @@ void CPropJeepEpisodic::EnterVehicle( CBaseCombatCharacter *pPassenger )
 void CPropJeepEpisodic::Spawn( void )
 {
 	BaseClass::Spawn();
-
+	if (!m_bJalopy)
+		return;
 	SetBlocksLOS( false );
 
 	CBasePlayer	*pPlayer = UTIL_GetLocalPlayer();
@@ -637,14 +640,15 @@ bool CPropJeepEpisodic::PassengerInTransition( void )
 {
 	// FIXME: Big hack - we need a way to bridge this data better
 	// TODO: Get a list of passengers we can traverse instead
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
+#ifdef HL2_EPISODIC
+	CNPC_Alyx *pAlyx = (CNPC_Alyx *)gEntList.FindEntityByClassname(NULL, "npc_alyx");
 	if ( pAlyx )
 	{
 		if ( pAlyx->GetPassengerState() == PASSENGER_STATE_ENTERING ||
 			 pAlyx->GetPassengerState() == PASSENGER_STATE_EXITING )
 			return true;
 	}
-
+#endif
 	return false;
 }
 
@@ -653,11 +657,12 @@ bool CPropJeepEpisodic::PassengerInTransition( void )
 //-----------------------------------------------------------------------------
 Vector CPropJeepEpisodic::PhysGunLaunchVelocity( const Vector &forward, float flMass )
 {
+	Vector vecPuntDir = BaseClass::PhysGunLaunchVelocity(forward, flMass);
+	if (!m_bJalopy)
+		return vecPuntDir;
 	// Disallow
-	if ( PassengerInTransition() )
+	if (PassengerInTransition())
 		return vec3_origin;
-
-	Vector vecPuntDir = BaseClass::PhysGunLaunchVelocity( forward, flMass );
 	vecPuntDir.z = 150.0f;
 	vecPuntDir *= 600.0f;
 	return vecPuntDir;
@@ -668,6 +673,8 @@ Vector CPropJeepEpisodic::PhysGunLaunchVelocity( const Vector &forward, float fl
 //-----------------------------------------------------------------------------
 AngularImpulse CPropJeepEpisodic::PhysGunLaunchAngularImpulse( void ) 
 { 
+	if (!m_bJalopy)
+		return BaseClass::PhysGunLaunchAngularImpulse();
 	if ( IsOverturned() )
 		return AngularImpulse( 0, 300, 0 );
 
@@ -718,8 +725,15 @@ void CPropJeepEpisodic::CreateCargoTrigger( void )
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
-	// Fall back and get in the vehicle instead, skip giving ammo
-	BaseClass::BaseClass::Use( pActivator, pCaller, useType, value );
+	if (m_bJeep)
+	{
+		BaseClass::Use(pActivator, pCaller, useType, value);
+	}
+	else if (m_bJalopy)
+	{
+		// Fall back and get in the vehicle instead, skip giving ammo
+		BaseClass::BaseClass::Use(pActivator, pCaller, useType, value);
+	}
 }
 
 #define	MIN_WHEEL_DUST_SPEED	5
@@ -938,7 +952,7 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 		}
 
 		//Notify Alyx so she can talk about the radar contact
-		CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
+		CNPC_Alyx *pAlyx = (CNPC_Alyx *)gEntList.FindEntityByClassname(NULL, "npc_alyx");
 
 		if( !bDetectedDog && pAlyx != NULL && pAlyx->GetVehicle() )
 		{
@@ -953,12 +967,13 @@ void CPropJeepEpisodic::UpdateRadar( bool forceUpdate )
 	}
 
 	//Msg("Server detected %d objects\n", m_iNumRadarContacts );
-
+	/*
 	CBasePlayer *pPlayer = AI_GetSinglePlayer();
 	CSingleUserRecipientFilter filter(pPlayer);
 	UserMessageBegin( filter, "UpdateJalopyRadar" );
 	WRITE_BYTE( 0 ); // end marker
 	MessageEnd();	// send message
+	*/
 }
 
 ConVar jalopy_cargo_anim_time( "jalopy_cargo_anim_time", "1.0" );
@@ -1058,14 +1073,16 @@ void CPropJeepEpisodic::CreateAvoidanceZone( void )
 void CPropJeepEpisodic::Think( void )
 {
 	BaseClass::Think();
-
+	if (!m_bJalopy)
+		return;
 	// If our passenger is transitioning, then don't let the player drive off
-	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
-	if ( pAlyx && pAlyx->GetPassengerState() == PASSENGER_STATE_EXITING )
+#ifdef HL2_EPISODIC
+	CNPC_Alyx *pAlyx = (CNPC_Alyx *)gEntList.FindEntityByClassname(NULL, "npc_alyx");
+	if ( pAlyx && pAlyx->GetPassengerState() == PASSENGER_STATE_ENTERING )
 	{
 		m_throttleDisableTime = gpGlobals->curtime + 0.25f;		
 	}
-
+#endif
 	// Update our cargo entering our hold
 	UpdateCargoEntry();
 
@@ -1322,28 +1339,30 @@ void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iBu
 	   and we haven't built any gameplay around it.
 
 	   Furthermore, I don't think I've ever seen a playtester turn it on.
-	
-	if ( ucmd->impulse == 100 )
-	{
-		if (HeadlightIsOn())
-		{
-			HeadlightTurnOff();
-		}
-		else 
-		{
-			HeadlightTurnOn();
-		}
-	}*/
-	
-	if ( ucmd->forwardmove != 0.0f )
-	{
-		//Msg("Push V: %.2f, %.2f, %.2f\n", ucmd->forwardmove, carState->engineRPM, carState->speed );
-		CBasePlayer *pPlayer = ToBasePlayer(GetDriver());
 
-		if ( pPlayer && VPhysicsGetObject() )
+	   if ( ucmd->impulse == 100 )
+	   {
+	   if (HeadlightIsOn())
+	   {
+	   HeadlightTurnOff();
+	   }
+	   else
+	   {
+	   HeadlightTurnOn();
+	   }
+	   }*/
+	if (m_bJalopy)
+	{
+		if (ucmd->forwardmove != 0.0f)
 		{
-			KillBlockingEnemyNPCs( pPlayer, this, VPhysicsGetObject() );
-			SolveBlockingProps( this, VPhysicsGetObject() );
+			//Msg("Push V: %.2f, %.2f, %.2f\n", ucmd->forwardmove, carState->engineRPM, carState->speed );
+			CBasePlayer *pPlayer = ToBasePlayer(GetDriver());
+
+			if (pPlayer && VPhysicsGetObject())
+			{
+				KillBlockingEnemyNPCs(pPlayer, this, VPhysicsGetObject());
+				SolveBlockingProps(this, VPhysicsGetObject());
+			}
 		}
 	}
 	BaseClass::DriveVehicle(flFrameTime, ucmd, iButtonsDown, iButtonsReleased);
@@ -1354,6 +1373,8 @@ void CPropJeepEpisodic::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iBu
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::CreateHazardLights( void )
 {
+	if (!m_bJalopy)
+		return;
 	static const char *s_szAttach[NUM_HAZARD_LIGHTS] =
 	{
 		"rearlight_r",
@@ -1418,7 +1439,9 @@ void CPropJeepEpisodic::DestroyHazardLights( void )
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::ExitVehicle( int nRole )
 {
-	BaseClass::ExitVehicle( nRole );
+	BaseClass::ExitVehicle(nRole);
+	if (!m_bJalopy)
+		return;
 
 	CreateHazardLights();
 }
@@ -1515,6 +1538,8 @@ void CPropJeepEpisodic::DestroyRadarPanel()
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::HazardBlinkThink( void )
 {
+	if (!m_bJalopy)
+		return;
 	if ( m_bBlink )
 	{
 		for ( int i = 0; i < NUM_HAZARD_LIGHTS; i++ )
@@ -1589,6 +1614,8 @@ int	CPropJeepEpisodic::DrawDebugTextOverlays( void )
 //-----------------------------------------------------------------------------
 void CPropJeepEpisodic::InputOutsideTransition( inputdata_t &inputdata )
 {
+	if (!m_bJalopy)
+		return;
 	// Teleport into the new map
 	CBasePlayer *pPlayer = AI_GetSinglePlayer();
 	Vector vecTeleportPos;

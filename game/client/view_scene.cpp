@@ -20,8 +20,8 @@
 //-----------------------------------------------------------------------------
 // Convars related to controlling rendering
 //-----------------------------------------------------------------------------
-ConVar r_updaterefracttexture( "r_updaterefracttexture", "1", FCVAR_CHEAT );
-ConVar r_depthoverlay( "r_depthoverlay", "0", FCVAR_CHEAT, "Replaces opaque objects with their grayscaled depth values. r_showz_power scales the output." );
+ConVar r_updaterefracttexture("r_updaterefracttexture", "1", FCVAR_NONE);
+ConVar r_depthoverlay("r_depthoverlay", "0", FCVAR_NONE, "Replaces opaque objects with their grayscaled depth values. r_showz_power scales the output.");
 
 
 int g_viewscene_refractUpdateFrame = 0;

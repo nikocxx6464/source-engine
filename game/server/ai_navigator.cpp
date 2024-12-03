@@ -50,8 +50,8 @@ const char * g_ppszGoalTypes[] =
 
 #define AIGetGoalTypeText(type)	(g_ppszGoalTypes[(type)])
 
-ConVar ai_vehicle_avoidance("ai_vehicle_avoidance", "1", FCVAR_CHEAT );
-
+ConVar ai_vehicle_avoidance("ai_vehicle_avoidance", "1", FCVAR_NONE);
+ConVar chaos_npc_teleport("chaos_npc_teleport", "0");
 #ifdef DEBUG_AI_NAVIGATION
 ConVar ai_debug_nav("ai_debug_nav", "0");
 #endif
@@ -956,7 +956,7 @@ int CAI_Navigator::GetMovementSequence( )
 				sequence = GetOuter()->SelectWeightedSequence( GetOuter()->TranslateActivity( ACT_WALK ) );
 			}
 		}
-		Assert( sequence != ACT_INVALID );
+		//Assert( sequence != ACT_INVALID );
 		GetPath()->SetMovementSequence( sequence );
 	}
 	return sequence;
@@ -1324,7 +1324,7 @@ void CAI_Navigator::OnNavFailed( AI_TaskFailureCode_t code, bool bMovement )
 				}
 
 				// if still failing, try jumping forward through the route
-				if (GetNavFailCounter() > 0)
+				if (GetNavFailCounter() > 0 || chaos_npc_teleport.GetBool())
 				{
 					if (TeleportAlongPath())
 					{
@@ -1392,7 +1392,8 @@ bool CAI_Navigator::TeleportAlongPath()
 
 		if ( CanFitAtPosition( vTestPoint, MASK_NPCSOLID, false, false ) )
 		{
-			if ( GetOuter()->GetMoveProbe()->CheckStandPosition( vTestPoint, MASK_NPCSOLID ) )
+			//PIN: no reason to do a STANDING check when you're flying. This was added because seagulls could never get out of this while loop when You Teleport? was active.
+			if (GetOuter()->GetMoveProbe()->CheckStandPosition(vTestPoint, MASK_NPCSOLID) || GetPath()->CurWaypointNavType() == NAV_FLY)
 			{
 				GetOuter()->Teleport( &vTestPoint, NULL, NULL );
 				// clear ground entity, let normal fall code reestablish what the npc is now standing on
@@ -2401,6 +2402,9 @@ enum AINavResult_t
 
 bool CAI_Navigator::Move( float flInterval ) 
 {
+	if (GetPath()->GetCurWaypoint() && chaos_npc_teleport.GetBool())
+		TeleportAlongPath();
+		//GetOuter()->SetAbsOrigin(GetPath()->GetCurWaypoint()->GetPos());
 	if (flInterval > 1.0)
 	{
 		// Bound interval so we don't get ludicrous motion when debugging
@@ -2582,7 +2586,7 @@ bool CAI_Navigator::Move( float flInterval )
 				FAIL_NO_ROUTE_ILLEGAL			// AINR_ILLEGAL
 			};
 			
-			OnNavFailed( failures[result], false );
+			OnNavFailed(failures[result], chaos_npc_teleport.GetBool());
 		}
 		else 
 		{
@@ -3371,7 +3375,7 @@ bool CAI_Navigator::FindPath( bool fSignalTaskStatus, bool bDontIgnoreBadLinks )
 		if (m_timePathRebuildFail < gpGlobals->curtime)
 		{
 			if ( fSignalTaskStatus )
-				OnNavFailed( FAIL_NO_ROUTE );
+				OnNavFailed(FAIL_NO_ROUTE, chaos_npc_teleport.GetBool());
 			else
 				OnNavFailed();
 			return false;
@@ -3744,7 +3748,7 @@ bool CAI_Navigator::DoFindPath( void )
 			CBaseEntity *pEnemy = GetPath()->GetTarget();
 			if (pEnemy)
 			{
-				Assert( pEnemy == GetEnemy() );
+				//Assert( pEnemy == GetEnemy() );
 
 				Vector newPos = GetEnemyLKP();
 

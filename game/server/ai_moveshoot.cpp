@@ -21,7 +21,7 @@
 #include "ai_basenpc.h"
 #include "ai_navigator.h"
 #include "ai_memory.h"
-
+extern ConVar chaos_no_reload;
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -253,7 +253,7 @@ void CAI_MoveAndShootOverlay::RunShootWhileMove()
 		}
 		else if ( pOuter->HasCondition( COND_NO_PRIMARY_AMMO, false ) )
 		{
-			if ( pOuter->GetNavigator()->GetPathTimeToGoal() > 1.0 )
+			if (pOuter->GetNavigator()->GetPathTimeToGoal() > 1.0 && !chaos_no_reload.GetBool())
 			{
 				activity = pOuter->TranslateActivity( ACT_GESTURE_RELOAD );
 				if ( activity != ACT_INVALID && GetOuter()->HaveSequenceForActivity( activity ) )

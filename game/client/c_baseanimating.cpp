@@ -3051,7 +3051,7 @@ bool C_BaseAnimating::ShouldDraw()
 	return !IsDynamicModelLoading() && BaseClass::ShouldDraw();
 }
 
-ConVar r_drawothermodels( "r_drawothermodels", "1", FCVAR_CHEAT, "0=Off, 1=Normal, 2=Wireframe" );
+ConVar r_drawothermodels("r_drawothermodels", "1", FCVAR_NONE, "0=Off, 1=Normal, 2=Wireframe");
 
 //-----------------------------------------------------------------------------
 // Purpose: Draws the object
@@ -4914,6 +4914,8 @@ void C_BaseAnimating::Simulate()
 
 bool C_BaseAnimating::TestCollision( const Ray_t &ray, unsigned int fContentsMask, trace_t& tr )
 {
+	if (m_iClassname == NULL_STRING)
+		return false;//PIN: probably caused by our big beer bottle but i can't be sure when there is no classname to reference
 	if ( ray.m_IsRay && IsSolidFlagSet( FSOLID_CUSTOMRAYTEST ))
 	{
 		if (!TestHitboxes( ray, fContentsMask, tr ))

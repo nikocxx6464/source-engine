@@ -15,6 +15,12 @@
 #include "tier0/memdbgon.h"
 
 #define ENV_ZOOM_OVERRIDE (1<<0)
+//class CChaosEffect;
+//extern CUtlVector<CChaosEffect>	g_ActiveEffects;
+//extern CUtlVector<CChaosEffect>	g_ChaosEffects;
+//extern int						g_iChaosSpawnCount;
+//extern CUtlVector<int>			g_iTerminated;
+//extern float						g_flNextEffectRem;
 
 class CEnvZoom : public CPointEntity
 {

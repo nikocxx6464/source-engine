@@ -66,9 +66,10 @@ IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
 	BEGIN_SEND_TABLE( CHalfLife2Proxy, DT_HalfLife2Proxy )
 		SendPropDataTable( "hl2_gamerules_data", 0, &REFERENCE_SEND_TABLE( DT_HL2GameRules ), SendProxy_HL2GameRules )
 	END_SEND_TABLE()
+
 #endif
 
-ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
+ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_REPLICATED );
 
 // Controls the application of the robus radius damage model.
 ConVar	sv_robust_explosions( "sv_robust_explosions","1", FCVAR_REPLICATED );
@@ -206,7 +207,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 	// Damage types that are time-based.
 #ifdef HL2_EPISODIC
 	// This makes me think EP2 should have its own rules, but they are #ifdef all over in here.
-	return ( ( iDmgType & ( DMG_PARALYZE | DMG_NERVEGAS | DMG_POISON | DMG_RADIATION | DMG_DROWNRECOVER | DMG_ACID | DMG_SLOWBURN ) ) != 0 );
+	return ( ( iDmgType & ( DMG_PARALYZE | DMG_NERVEGAS | DMG_POISON | DMG_RADIATION | DMG_DROWNRECOVER | DMG_SLOWBURN ) ) != 0 );
 #else
 	return BaseClass::Damage_IsTimeBased( iDmgType );
 #endif
@@ -216,7 +217,7 @@ bool CHalfLife2::Damage_IsTimeBased( int iDmgType )
 #else
 
 #ifdef HL2_EPISODIC
-ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
+ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_REPLICATED );
 #endif // HL2_EPISODIC
 
 #endif // CLIENT_DLL
@@ -1372,7 +1373,7 @@ ConVar  alyx_darkness_force( "alyx_darkness_force", "0", FCVAR_CHEAT | FCVAR_REP
 			flDamage = BaseClass::GetAmmoDamage( pAttacker, pVictim, nAmmoType );
 		}
 
-		if( pAttacker->IsPlayer() && pVictim->IsNPC() )
+		if (pAttacker->IsPlayer() && pVictim && pVictim->IsNPC())
 		{
 			if( pVictim->MyCombatCharacterPointer() )
 			{
@@ -1567,6 +1568,14 @@ bool CHalfLife2::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 
 	// striders don't collide with other striders
 	if ( collisionGroup0 == HL2COLLISION_GROUP_STRIDER && collisionGroup1 == HL2COLLISION_GROUP_STRIDER )
+		return false;
+
+	// blob elements don't get stuck on each other
+	if (collisionGroup0 == HL2COLLISION_GROUP_BLOB && collisionGroup1 == HL2COLLISION_GROUP_BLOB)
+		return false;
+
+	// blob elements don't get stuck on player
+	if (collisionGroup0 == COLLISION_GROUP_PLAYER && collisionGroup1 == HL2COLLISION_GROUP_BLOB)
 		return false;
 
 	// gunships don't collide with other gunships
@@ -1818,6 +1827,7 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
 		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
 		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
+		def.AddAmmoType("slam", DMG_BURN, TRACER_NONE, 0, 0, 5, 0, 0);
 
 		//=====================================================================
 		// STRIDER MINIGUN DAMAGE - Pull up a chair and I'll tell you a tale.
@@ -1866,9 +1876,9 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
 		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0, 0, "sk_max_ar2_altfire", 0, 0 );
 		def.AddAmmoType("Grenade",			DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
+		def.AddAmmoType("CombineHeavyCannon",	DMG_BULLET,				TRACER_LINE,			40,	40, NULL, 10 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 10 kg weight at 750 ft/s
 #ifdef HL2_EPISODIC
 		def.AddAmmoType("Hopwire",			DMG_BLAST,					TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_hopwire",		0, 0);
-		def.AddAmmoType("CombineHeavyCannon",	DMG_BULLET,				TRACER_LINE,			40,	40, NULL, 10 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 10 kg weight at 750 ft/s
 		def.AddAmmoType("ammo_proto1",			DMG_BULLET,				TRACER_LINE,			0, 0, 10, 0, 0 );
 #endif // HL2_EPISODIC
 	}

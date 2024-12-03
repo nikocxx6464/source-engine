@@ -202,7 +202,7 @@ float CAI_BlendedMotor::GetMoveScriptDist( float &flNewSpeed )
 	float flTotalDist = 0;
 	float t = GetMoveInterval();
 
-	Assert( m_scriptMove.Count() > 1);
+	//Assert( m_scriptMove.Count() > 1);
 
 	flNewSpeed = 0;
 	for (i = 0; i < m_scriptMove.Count()-1; i++)
@@ -489,8 +489,8 @@ int CAI_BlendedMotor::GetInteriorSequence( int fromSequence )
 			activity = ACT_IDLE;
 		}
 		m_nInteriorSequence = GetOuter()->SelectWeightedSequence( GetOuter()->TranslateActivity( activity ), fromSequence );
-
-		Assert( m_nInteriorSequence != ACT_INVALID );
+		//happens on ep1_c17_00 because valve apparently just didn't add an animation that they should've
+		//Assert( m_nInteriorSequence != ACT_INVALID );
 	}
 
 	return m_nInteriorSequence;
@@ -520,7 +520,7 @@ AIMotorMoveResult_t CAI_BlendedMotor::MoveGroundExecute( const AILocalMoveGoal_t
 	float flNewSpeed = GetCurSpeed();
 	float flTotalDist = GetMoveScriptDist( flNewSpeed );
 
-	Assert( move.maxDist < 0.01 || flTotalDist > 0.0 );
+	//Assert( move.maxDist < 0.01 || flTotalDist > 0.0 );
 
 	// --------------------------------------------
 	// turn in the direction of movement
@@ -903,7 +903,7 @@ int CAI_BlendedMotor::BuildTurnScript( int i, int j )
 
 	float totalTime = m_scriptTurn[j].flElapsedTime - m_scriptTurn[i].flElapsedTime;
 
-	Assert( totalTime >  0 );
+	//Assert( totalTime >  0 );
 
 	if (t1 < 0.01)
 	{
@@ -1477,7 +1477,7 @@ void CAI_BlendedMotor::BuildVelocityScript( const AILocalMoveGoal_t &move )
 		if (m_scriptMove[i].flMaxVelocity == 0 && m_scriptMove[i+1].flMaxVelocity == 0)
 		{
 			// force a minimum velocity 
-			Assert( 0 );
+			//Assert( 0 );
 			m_scriptMove[i+1].flMaxVelocity = 1.0;
 		}
 

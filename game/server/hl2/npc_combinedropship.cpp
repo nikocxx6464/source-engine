@@ -31,6 +31,8 @@
 #include "EntityFlame.h"
 #include "entityblocker.h"
 #include "eventqueue.h"
+#include "ai_trackpather.h"
+#include "trains.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -75,6 +77,7 @@
 #define DROPSHIP_GUN_SPEED			10		// Rotation speed
 
 #define DROPSHIP_CRATE_ROCKET_HITS	4
+extern ConVar chaos_npc_teleport;
 
 enum DROP_STATES 
 {
@@ -95,7 +98,7 @@ enum CRATE_TYPES
 ConVar	g_debug_dropship( "g_debug_dropship", "0" );
 ConVar  sk_dropship_container_health( "sk_dropship_container_health", "750" );
 ConVar	sk_npc_dmg_dropship( "sk_npc_dmg_dropship","5", FCVAR_NONE, "Dropship container cannon damage." );
-
+extern int						g_iChaosSpawnCount;
 //=====================================
 // Animation Events
 //=====================================
@@ -500,7 +503,8 @@ void CCombineDropshipContainer::CreateCorpse()
 	CPASFilter filter( GetAbsOrigin() );
 	CollisionProp()->RandomPointInBounds( vecNormalizedMins, vecNormalizedMaxs, &vecAbsPoint);
 	te->Explosion( filter, 0.0f, &vecAbsPoint, g_sModelIndexFireball, 
-		random->RandomInt( 4, 10 ), random->RandomInt( 8, 15 ), TE_EXPLFLAG_NOPARTICLES, 100, 0 );
+		random->RandomInt(4, 10), random->RandomInt(8, 15), TE_EXPLFLAG_NOPARTICLES, 100, 0,
+		GetRenderColor());
 
 	// Break into chunks
 	Vector angVelocity;
@@ -877,6 +881,13 @@ void CNPC_CombineDropship::Spawn( void )
 		m_hContainer = (CBaseAnimating*)CreateEntityByName( "prop_dropship_container" );
 		if ( m_hContainer )
 		{
+			if (m_bChaosSpawned)
+			{
+				g_iChaosSpawnCount++;
+				m_hContainer->m_iChaosID = g_iChaosSpawnCount;
+			}
+			m_hContainer->m_bChaosPersist = m_bChaosPersist;
+			m_hContainer->m_bChaosSpawned = m_bChaosSpawned;
 			m_hContainer->SetName( AllocPooledString("dropship_container") );
 			m_hContainer->SetAbsOrigin( GetAbsOrigin() );
 			m_hContainer->SetAbsAngles( GetAbsAngles() );
@@ -908,7 +919,14 @@ void CNPC_CombineDropship::Spawn( void )
 		break;
 
 	case CRATE_STRIDER:
-		m_hContainer = (CBaseAnimating*)CreateEntityByName( "npc_strider" );
+		m_hContainer = (CBaseAnimating*)CreateEntityByName("npc_strider");
+		if (m_bChaosSpawned)
+		{
+			g_iChaosSpawnCount++;
+			m_hContainer->m_iChaosID = g_iChaosSpawnCount;
+		}
+		m_hContainer->m_bChaosPersist = m_bChaosPersist;
+		m_hContainer->m_bChaosSpawned = m_bChaosSpawned;
 		m_hContainer->SetAbsOrigin( GetAbsOrigin() - Vector( 0, 0 , 100 ) );
 		m_hContainer->SetAbsAngles( GetAbsAngles() );
 		m_hContainer->SetParent(this, 0);
@@ -957,6 +975,13 @@ void CNPC_CombineDropship::Spawn( void )
 		m_hContainer = (CBaseAnimating*)CreateEntityByName( "prop_dynamic_override" );
 		if ( m_hContainer )
 		{
+			if (m_bChaosSpawned)
+			{
+				g_iChaosSpawnCount++;
+				m_hContainer->m_iChaosID = g_iChaosSpawnCount;
+			}
+			m_hContainer->m_bChaosPersist = m_bChaosPersist;
+			m_hContainer->m_bChaosSpawned = m_bChaosSpawned;
 			m_hContainer->SetModel( "models/buggy.mdl" );
 			m_hContainer->SetName( AllocPooledString("dropship_jeep") );
 
@@ -2377,7 +2402,7 @@ void CNPC_CombineDropship::SpawnTroop( void )
 	}
 
 	// Are we fully unloaded? If so, take off. Otherwise, tell the next troop to exit.
-	if ( m_iCurrentTroopExiting >= m_soldiersToDrop || m_sNPCTemplateData[m_iCurrentTroopExiting] == NULL_STRING )
+	if ((m_iCurrentTroopExiting >= m_soldiersToDrop || m_sNPCTemplateData[m_iCurrentTroopExiting] == NULL_STRING) && !m_bChaosSpawned)
 	{
 		// We're done, take off.
 		m_flTimeTakeOff = gpGlobals->curtime + 0.5;
@@ -2432,7 +2457,29 @@ void CNPC_CombineDropship::SpawnTroop( void )
 
 	// Spawn the templated NPC
 	CBaseEntity *pEntity = NULL;
-	MapEntity_ParseEntity( pEntity, STRING(m_sNPCTemplateData[m_iCurrentTroopExiting]), NULL );
+	if (m_bChaosSpawned)
+	{
+		//make them on the fly, since using the template system requires the given entity to be in the BSP, apparently
+		pEntity = CreateEntityByName("npc_combine_s");
+		pEntity->KeyValue("NumGrenades", "100");
+		int nRandom = random->RandomInt(0, 2);//model/elite status
+		if (nRandom == 0) pEntity->KeyValue("model", "models/combine_soldier.mdl");
+		if (nRandom == 1) pEntity->KeyValue("model", "models/combine_super_soldier.mdl");
+		if (nRandom == 2) pEntity->KeyValue("model", "models/combine_soldier_prisonguard.mdl");
+		nRandom = random->RandomInt(0, 2);//weapon
+		if (nRandom == 0) pEntity->KeyValue("additionalequipment", "weapon_ar2");
+		if (nRandom == 1) pEntity->KeyValue("additionalequipment", "weapon_shotgun");
+		if (nRandom == 2) pEntity->KeyValue("additionalequipment", "weapon_smg1");
+		g_iChaosSpawnCount++;
+		char szName[2048];
+		Q_snprintf(szName, sizeof(szName), "chaos_dropship_soldier%i", g_iChaosSpawnCount);
+		pEntity->KeyValue("targetname", szName);
+		pEntity->CBaseEntity::KeyValue("chaosid", g_iChaosSpawnCount);
+	}
+	else
+	{
+		MapEntity_ParseEntity(pEntity, STRING(m_sNPCTemplateData[m_iCurrentTroopExiting]), NULL);
+	}
 
 	// Increment troop count
 	m_iCurrentTroopExiting++;
@@ -2443,6 +2490,13 @@ void CNPC_CombineDropship::SpawnTroop( void )
 		return;
 	}
 	CAI_BaseNPC	*pNPC = pEntity->MyNPCPointer();
+	if (m_bChaosSpawned)
+	{
+		g_iChaosSpawnCount++;
+		pNPC->m_iChaosID = g_iChaosSpawnCount;
+	}
+	pNPC->m_bChaosPersist = m_bChaosPersist;
+	pNPC->m_bChaosSpawned = m_bChaosSpawned;
 	Assert( pNPC );
 
 	// Spawn an entity blocker.
@@ -2688,6 +2742,14 @@ void CNPC_CombineDropship::Hunt( void )
 	else if ( GetLandingState() == LANDING_NO )
 	{
 		UpdateTrackNavigation();
+	}
+
+	Vector targetPos;
+	if (chaos_npc_teleport.GetBool() && GetLandingState() != LANDING_DESCEND && GetLandingState() != LANDING_TOUCHDOWN && GetLandingState() != LANDING_UNLOADING)// && GetTrackPatherTarget(&targetPos))
+	{
+		//CPathTrack *pDest = BestPointOnPath(m_pCurrentPathTarget, targetPos, m_flAvoidDistance, true, m_bChooseFarthestPoint);
+		//if (pDest)
+		Teleport(&GetDesiredPosition(), NULL, NULL);
 	}
 
 	// don't face player ever, only face nav points

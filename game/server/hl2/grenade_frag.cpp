@@ -156,7 +156,7 @@ void CGrenadeFrag::CreateEffects( void )
 {
 	// Start up the eye glow
 	if( !m_pMainGlow )
-		m_pMainGlow = CSprite::SpriteCreate( "sprites/redglow1.vmt", GetLocalOrigin(), false );
+		m_pMainGlow = CSprite::SpriteCreate( "sprites/nadeglow01.vmt", GetLocalOrigin(), false );
 
 	int nAttachment = LookupAttachment( "fuse" );
 
@@ -164,7 +164,16 @@ void CGrenadeFrag::CreateEffects( void )
 	{
 		m_pMainGlow->FollowEntity( this );
 		m_pMainGlow->SetAttachment( this, nAttachment );
-		m_pMainGlow->SetTransparency( kRenderGlow, 255, 255, 255, 200, kRenderFxNoDissipation );
+		//m_pMainGlow->SetTransparency(kRenderGlow, 255, 255, 255, 200, kRenderFxNoDissipation);
+		//blue if we're friendly
+		if (GetThrower() && GetThrower()->IsNPC() && GetThrower()->MyCombatCharacterPointer()->IRelationType(UTIL_GetLocalPlayer()) == D_LI)
+		{
+			m_pMainGlow->SetTransparency(kRenderGlow, 0, 255, 255, 200, kRenderFxNoDissipation);
+		}
+		else
+		{
+			m_pMainGlow->SetTransparency(kRenderGlow, 255, 0, 0, 200, kRenderFxNoDissipation);
+		}
 		m_pMainGlow->SetScale( 0.2f );
 		m_pMainGlow->SetGlowProxySize( 4.0f );
 	}
@@ -176,8 +185,16 @@ void CGrenadeFrag::CreateEffects( void )
 	if ( m_pGlowTrail != NULL )
 	{
 		m_pGlowTrail->FollowEntity( this );
-		m_pGlowTrail->SetAttachment( this, nAttachment );
-		m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 0, 0, 255, kRenderFxNone );
+		m_pGlowTrail->SetAttachment(this, nAttachment);
+		//blue if we're friendly
+		if (GetThrower() && GetThrower()->IsNPC() && GetThrower()->MyCombatCharacterPointer()->IRelationType(UTIL_GetLocalPlayer()) == D_LI)
+		{
+			m_pGlowTrail->SetTransparency(kRenderTransAdd, 0, 255, 255, 255, kRenderFxNone);
+		}
+		else
+		{
+			m_pGlowTrail->SetTransparency(kRenderTransAdd, 255, 0, 0, 255, kRenderFxNone);
+		}
 		m_pGlowTrail->SetStartWidth( 8.0f );
 		m_pGlowTrail->SetEndWidth( 1.0f );
 		m_pGlowTrail->SetLifeTime( 0.5f );
@@ -326,6 +343,12 @@ void CGrenadeFrag::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 
 void CGrenadeFrag::DelayThink() 
 {
+	//if Pretty Colors changed the nade's color, update the sprite and trail
+	if (GetRenderColor().r != 255)
+	{
+		m_pMainGlow->SetTransparency(kRenderGlow, GetRenderColor().r, GetRenderColor().g, GetRenderColor().b, 200, kRenderFxNoDissipation);
+		m_pGlowTrail->SetTransparency(kRenderTransAdd, GetRenderColor().r, GetRenderColor().g, GetRenderColor().b, 255, kRenderFxNone);
+	}
 	if( gpGlobals->curtime > m_flDetonateTime )
 	{
 		Detonate();

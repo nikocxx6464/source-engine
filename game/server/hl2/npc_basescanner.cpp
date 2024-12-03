@@ -17,7 +17,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar	g_debug_basescanner( "g_debug_basescanner", "0", FCVAR_CHEAT );
+ConVar	g_debug_basescanner("g_debug_basescanner", "0", FCVAR_NONE);
+extern ConVar chaos_steal_health;
 
 BEGIN_DATADESC( CNPC_BaseScanner )
 	DEFINE_EMBEDDED( m_KilledInfo ),
@@ -57,7 +58,8 @@ BEGIN_DATADESC( CNPC_BaseScanner )
 	DEFINE_THINKFUNC( DiveBombSoundThink ),
 END_DATADESC()
 
-ConVar	sk_scanner_dmg_dive( "sk_scanner_dmg_dive","0");
+ConVar	sk_scanner_dmg_dive("sk_scanner_dmg_dive", "0");
+extern ConVar chaos_explode_on_death;
 
 //-----------------------------------------------------------------------------
 // Think contexts
@@ -401,12 +403,20 @@ int CNPC_BaseScanner::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 //------------------------------------------------------------------------------
 int CNPC_BaseScanner::OnTakeDamage_Dying( const CTakeDamageInfo &info )
 {
+	int nPrevHealth = GetHealth();
 	// do the damage
 	m_iHealth -= info.GetDamage();
+	if (chaos_steal_health.GetBool())
+	{
+		if (m_iHealth <= 0)
+			m_iHealth = 0;
+		if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+	}
 
 	if ( m_iHealth < -40 )
 	{
-		Gib();
+		if (!chaos_explode_on_death.GetBool())
+			Gib();
 		return 1;
 	}
 

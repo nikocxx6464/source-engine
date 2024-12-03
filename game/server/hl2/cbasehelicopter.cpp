@@ -40,7 +40,7 @@ virtual void NullThink( void );
 #define HELICOPTER_ROTORWASH_THINK_INTERVAL 0.01
 #define	BASECHOPPER_DEBUG_WASH		1
 
-ConVar g_debug_basehelicopter( "g_debug_basehelicopter", "0", FCVAR_CHEAT );
+ConVar g_debug_basehelicopter("g_debug_basehelicopter", "0", FCVAR_NONE);
 
 //---------------------------------------------------------
 //---------------------------------------------------------

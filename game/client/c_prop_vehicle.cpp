@@ -53,7 +53,7 @@ BEGIN_DATADESC( C_PropVehicleDriveable )
 	DEFINE_EMBEDDED( m_ViewSmoothingData ),
 END_DATADESC()
 
-ConVar r_VehicleViewClamp( "r_VehicleViewClamp", "1", FCVAR_CHEAT );
+ConVar r_VehicleViewClamp("r_VehicleViewClamp", "1", FCVAR_NONE);
 
 #define ROLL_CURVE_ZERO		20		// roll less than this is clamped to zero
 #define ROLL_CURVE_LINEAR	90		// roll greater than this is copied out

@@ -458,6 +458,8 @@ typedef struct hudtextparms_s
 	float		holdTime;
 	float		fxTime;
 	int			channel;
+	int			drawtype = 0;
+	int			timertime = -1;
 } hudtextparms_t;
 
 

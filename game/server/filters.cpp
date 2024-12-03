@@ -268,25 +268,6 @@ BEGIN_DATADESC( CFilterName )
 
 END_DATADESC()
 
-
-
-// ###################################################################
-//	> FilterClass
-// ###################################################################
-class CFilterClass : public CBaseFilter
-{
-	DECLARE_CLASS( CFilterClass, CBaseFilter );
-	DECLARE_DATADESC();
-
-public:
-	string_t m_iFilterClass;
-
-	bool PassesFilterImpl( CBaseEntity *pCaller, CBaseEntity *pEntity )
-	{
-		return pEntity->ClassMatches( STRING(m_iFilterClass) );
-	}
-};
-
 LINK_ENTITY_TO_CLASS( filter_activator_class, CFilterClass );
 
 BEGIN_DATADESC( CFilterClass )

@@ -52,6 +52,7 @@
 #include "tier0/memdbgon.h"
 
 extern ConVar sk_npc_head;
+extern int						g_iChaosSpawnCount;
 
 #define ZOMBIE_BULLET_DAMAGE_SCALE 0.5f
 
@@ -2046,6 +2047,8 @@ void CNPC_BaseZombie::GatherConditions( void )
 //---------------------------------------------------------
 void CNPC_BaseZombie::PrescheduleThink( void )
 {
+	//PIN: force EF_NODRAW off. we've found some zombies in ep1_c17_01 that have the flag on for no apparent reason
+	RemoveEffects(EF_NODRAW);
 	BaseClass::PrescheduleThink();
 	
 #if 0
@@ -2433,7 +2436,14 @@ void CNPC_BaseZombie::ReleaseHeadcrab( const Vector &vecOrigin, const Vector &ve
 	}
 	else
 	{
-		pCrab = (CAI_BaseNPC*)CreateEntityByName( GetHeadcrabClassname() );
+		pCrab = (CAI_BaseNPC*)CreateEntityByName(GetHeadcrabClassname());
+		if (m_bChaosSpawned)
+		{
+			g_iChaosSpawnCount++;
+			pCrab->m_iChaosID = g_iChaosSpawnCount;
+		}
+		pCrab->m_bChaosPersist = m_bChaosPersist;
+		pCrab->m_bChaosSpawned = m_bChaosSpawned;
 
 		if ( !pCrab )
 		{

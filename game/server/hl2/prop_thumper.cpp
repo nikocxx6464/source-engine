@@ -26,7 +26,7 @@
 #define THUMPER_MODEL_NAME "models/props_combine/CombineThumper002.mdl"
 
 
-ConVar thumper_show_radius("thumper_show_radius","0",FCVAR_CHEAT,"If true, advisor will use her custom impact damage table.");
+ConVar thumper_show_radius("thumper_show_radius", "0", FCVAR_NONE, "If true, advisor will use her custom impact damage table.");
 
 
 class CPropThumper : public CBaseAnimating

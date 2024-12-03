@@ -87,6 +87,7 @@
 #include "ihudlcd.h"
 #include "toolframework_client.h"
 #include "hltvcamera.h"
+#include "toolframework/ienginetool.h"
 #if defined( REPLAY_ENABLED )
 #include "replay/replaycamera.h"
 #include "replay/replay_ragdoll.h"
@@ -177,6 +178,7 @@ extern vgui::IInputInternal *g_InputInternal;
 extern IClientMode *GetClientModeNormal();
 
 // IF YOU ADD AN INTERFACE, EXTERN IT IN THE HEADER FILE.
+IEngineTool* enginetools = NULL;
 IVEngineClient	*engine = NULL;
 IVModelRender *modelrender = NULL;
 IVEfx *effects = NULL;
@@ -877,6 +879,8 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	ClientSteamContext().Activate();
 #endif
 
+	if ((enginetools = (IEngineTool*)appSystemFactory(VENGINETOOL_INTERFACE_VERSION, nullptr)) == NULL)
+		return false;
 	// We aren't happy unless we get all of our interfaces.
 	// please don't collapse this into one monolithic boolean expression (impossible to debug)
 	if ( (engine = (IVEngineClient *)appSystemFactory( VENGINE_CLIENT_INTERFACE_VERSION, NULL )) == NULL )
@@ -1127,6 +1131,33 @@ bool CHLClient::ReplayPostInit()
 #endif
 }
 
+const char *GetModDirectory()
+{
+	static char modDir[MAX_PATH];
+	if (Q_strlen(modDir) == 0)
+	{
+		const char *gamedir = CommandLine()->ParmValue("-game", CommandLine()->ParmValue("-defaultgamedir", "hl2"));
+		Q_strncpy(modDir, gamedir, sizeof(modDir));
+		if (strchr(modDir, '/') || strchr(modDir, '\\'))
+		{
+			Q_StripLastDir(modDir, sizeof(modDir));
+			int dirlen = Q_strlen(modDir);
+			Q_strncpy(modDir, gamedir + dirlen, sizeof(modDir) - dirlen);
+		}
+	}
+
+	return modDir;
+}
+CON_COMMAND(whereis, "print file location")
+{
+	if (args.ArgC() > 1)
+	{
+		Msg("trying to find %s\n", args[1]);
+		char szScratchFileName[MAX_PATH];
+		g_pFullFileSystem->RelativePathToFullPath(args[1], "GAME", szScratchFileName, sizeof(szScratchFileName));
+		Msg("is it %s\n", szScratchFileName);
+	}
+}
 //-----------------------------------------------------------------------------
 // Purpose: Called after client & server DLL are loaded and all systems initialized
 //-----------------------------------------------------------------------------
@@ -1141,6 +1172,21 @@ void CHLClient::PostInit()
 
 	g_ClientVirtualReality.StartupComplete();
 
+	const char *pGameDir = GetModDirectory();
+	Msg("pGameDir %s\n", pGameDir);
+	/*if (!Q_strcmp(pGameDir, "hl2chaos"))
+	{
+		char szPath[MAX_PATH*2];
+		int ccFolder = steamapicontext->SteamApps()->GetAppInstallDir(220, szPath, sizeof(szPath));
+		Msg("szPath %s\n", szPath);
+		if (ccFolder > 0)
+		{
+			char szFullPath[MAX_PATH * 2];
+			Q_snprintf(szFullPath, sizeof(szFullPath), "%s\\%s", szPath, "hl2");
+			Msg("szFullPath %s\n", szFullPath);
+			g_pFullFileSystem->AddSearchPath(szFullPath, "GAME");
+		}
+	}*/
 #ifdef HL1MP_CLIENT_DLL
 	if ( s_cl_load_hl1_content.GetBool() && steamapicontext && steamapicontext->SteamApps() )
 	{

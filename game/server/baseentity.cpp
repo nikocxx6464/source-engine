@@ -62,6 +62,8 @@
 #include "env_debughistory.h"
 #include "tier1/utlstring.h"
 #include "utlhashtable.h"
+#include "ai_network.h"
+#include "ai_node.h"
 
 #if defined( TF_DLL )
 #include "tf_gamerules.h"
@@ -69,7 +71,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-
+extern ConVar unstuck_debug;
 extern bool g_bTestMoveTypeStepSimulation;
 extern ConVar sv_vehicle_autoaim_scale;
 
@@ -95,7 +97,8 @@ int g_nInsideDispatchUpdateTransmitState = 0;
 bool CBaseEntity::s_bAbsQueriesValid = true;
 
 
-ConVar sv_netvisdist( "sv_netvisdist", "10000", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "Test networking visibility distance" );
+ConVar sv_netvisdist("sv_netvisdist", "10000", FCVAR_NONE, "Test networking visibility distance");
+ConVar chaos_steal_health("chaos_steal_health", "0", FCVAR_NONE);
 
 // This table encodes edict data.
 void SendProxy_AnimTime( const SendProp *pProp, const void *pStruct, const void *pVarData, DVariant *pOut, int iElement, int objectID )
@@ -617,6 +620,13 @@ void CBaseEntity::SetClassname( const char *className )
 
 void CBaseEntity::SetModelIndex( int index )
 {
+	//encountered a crash near here with the env_physexplosion for the black hole effect. as i understand, there's no reason to set a model on a non-transmitted entity
+	//however this is likely a sign of a deeper problem that i can't see without engine code
+	if (edict() == NULL)
+	{
+		m_nModelIndex = -1;
+		return;
+	}
 	if ( IsDynamicModelIndex( index ) && !(GetBaseAnimating() && m_bDynamicModelAllowed) )
 	{
 		AssertMsg( false, "dynamic model support not enabled on server entity" );
@@ -1313,7 +1323,7 @@ void CBaseEntity::Activate( void )
 
 	if ( g_bCheckForChainedActivate && g_bReceivedChainedActivate )
 	{
-		Assert( !"Multiple calls to base class Activate()\n" );
+		//Assert( !"Multiple calls to base class Activate()\n" );
 	}
 	g_bReceivedChainedActivate = true;
 #endif
@@ -1547,7 +1557,7 @@ int CBaseEntity::VPhysicsTakeDamage( const CTakeDamageInfo &info )
 	if ( bNoPhysicsForceDamage || info.GetDamageType() == DMG_GENERIC )
 		return 1;
 
-	Assert(VPhysicsGetObject() != NULL);
+	//Assert(VPhysicsGetObject() != NULL);
 	if ( VPhysicsGetObject() )
 	{
 		Vector force = info.GetDamageForce();
@@ -1560,7 +1570,7 @@ int CBaseEntity::VPhysicsTakeDamage( const CTakeDamageInfo &info )
 		// takedamageinfo.cpp. If you think the damage shouldn't cause force (unlikely!) then you can set the 
 		// damage type to DMG_GENERIC, or | DMG_CRUSH if you need to preserve the damage type for purposes of HUD display.
 #if !defined( TF_DLL )
-		Assert( force != vec3_origin && offset != vec3_origin );
+		//Assert( force != vec3_origin && offset != vec3_origin );
 #else
 		// this was spamming the console for Payload maps in TF (trigger_hurt entity on the front of the cart)
 		if ( !TFGameRules() || TFGameRules()->GetGameType() != TF_GAMETYPE_ESCORT )
@@ -1953,6 +1963,9 @@ BEGIN_DATADESC_NO_BASE( CBaseEntity )
 	DEFINE_ARRAY( m_nModelIndexOverrides, FIELD_INTEGER, MAX_VISION_MODES ),
 #endif
 
+	DEFINE_FIELD(m_bChaosSpawned, FIELD_BOOLEAN),
+	DEFINE_FIELD(m_bChaosPersist, FIELD_BOOLEAN),
+	DEFINE_KEYFIELD(m_iChaosID, FIELD_INTEGER, "chaosid"),
 END_DATADESC()
 
 // For code error checking
@@ -2585,7 +2598,7 @@ void CBaseEntity::PhysicsRelinkChildren( float dt )
 		{
 			// the only case where this is valid is if this entity is an attached ragdoll.
 			// So assert here to catch the non-ragdoll case.
-			Assert( 0 );
+			//Assert( 0 );
 		}
 
 		if ( child->FirstMoveChild() )
@@ -2735,6 +2748,8 @@ int CBaseEntity::VPhysicsGetObjectList( IPhysicsObject **pList, int listMax )
 //-----------------------------------------------------------------------------
 bool CBaseEntity::VPhysicsIsFlesh( void )
 {
+	if (IsBaseCombatWeapon())
+		return false;//always allowed to pick up bugbait
 	IPhysicsObject *pList[VPHYSICS_MAX_OBJECT_LIST_COUNT];
 	int count = VPhysicsGetObjectList( pList, ARRAYSIZE(pList) );
 	for ( int i = 0; i < count; i++ )
@@ -2914,7 +2929,7 @@ void CC_AI_LOS_Debug( IConVar *var, const char *pOldString, float flOldValue )
 		}
 	}
 }
-ConVar ai_debug_los("ai_debug_los", "0", FCVAR_CHEAT, "NPC Line-Of-Sight debug mode. If 1, solid entities that block NPC LOC will be highlighted with white bounding boxes. If 2, it'll show non-solid entities that would do it if they were solid.", CC_AI_LOS_Debug );
+ConVar ai_debug_los("ai_debug_los", "0", FCVAR_NONE, "NPC Line-Of-Sight debug mode. If 1, solid entities that block NPC LOC will be highlighted with white bounding boxes. If 2, it'll show non-solid entities that would do it if they were solid.", CC_AI_LOS_Debug);
 
 
 Class_T CBaseEntity::Classify ( void )
@@ -3856,7 +3871,7 @@ void CBaseEntity::OnEntityEvent( EntityEvent_t event, void *pEventData )
 }
 
 
-ConVar ent_messages_draw( "ent_messages_draw", "0", FCVAR_CHEAT, "Visualizes all entity input/output activity." );
+ConVar ent_messages_draw("ent_messages_draw", "0", FCVAR_NONE, "Visualizes all entity input/output activity.");
 
 
 //-----------------------------------------------------------------------------
@@ -4985,21 +5000,21 @@ void CC_Ent_Name( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_NAME_BIT);
 }
-static ConCommand ent_name("ent_name", CC_Ent_Name, 0, FCVAR_CHEAT);
+static ConCommand ent_name("ent_name", CC_Ent_Name, 0, FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_Text( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_TEXT_BIT);
 }
-static ConCommand ent_text("ent_text", CC_Ent_Text, "Displays text debugging information about the given entity(ies) on top of the entity (See Overlay Text)\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_text("ent_text", CC_Ent_Text, "Displays text debugging information about the given entity(ies) on top of the entity (See Overlay Text)\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_BBox( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_BBOX_BIT);
 }
-static ConCommand ent_bbox("ent_bbox", CC_Ent_BBox, "Displays the movement bounding box for the given entity(ies) in orange.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_bbox("ent_bbox", CC_Ent_BBox, "Displays the movement bounding box for the given entity(ies) in orange.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5007,7 +5022,7 @@ void CC_Ent_AbsBox( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_ABSBOX_BIT);
 }
-static ConCommand ent_absbox("ent_absbox", CC_Ent_AbsBox, "Displays the total bounding box for the given entity(s) in green.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_absbox("ent_absbox", CC_Ent_AbsBox, "Displays the total bounding box for the given entity(s) in green.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5015,21 +5030,21 @@ void CC_Ent_RBox( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_RBOX_BIT);
 }
-static ConCommand ent_rbox("ent_rbox", CC_Ent_RBox, "Displays the total bounding box for the given entity(s) in green.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_rbox("ent_rbox", CC_Ent_RBox, "Displays the total bounding box for the given entity(s) in green.  Some entites will also display entity specific overlays.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_AttachmentPoints( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_ATTACHMENTS_BIT);
 }
-static ConCommand ent_attachments("ent_attachments", CC_Ent_AttachmentPoints, "Displays the attachment points on an entity.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_attachments("ent_attachments", CC_Ent_AttachmentPoints, "Displays the attachment points on an entity.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_ViewOffset( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_VIEWOFFSET);
 }
-static ConCommand ent_viewoffset("ent_viewoffset", CC_Ent_ViewOffset, "Displays the eye position for the given entity(ies) in red.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_viewoffset("ent_viewoffset", CC_Ent_ViewOffset, "Displays the eye position for the given entity(ies) in red.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_Remove( const CCommand& args )
@@ -5072,7 +5087,7 @@ void CC_Ent_Remove( const CCommand& args )
 		UTIL_Remove( pEntity );
 	}
 }
-static ConCommand ent_remove("ent_remove", CC_Ent_Remove, "Removes the given entity(s)\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_remove("ent_remove", CC_Ent_Remove, "Removes the given entity(s)\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_RemoveAll( const CCommand& args )
@@ -5108,7 +5123,7 @@ void CC_Ent_RemoveAll( const CCommand& args )
 		}
 	}
 }
-static ConCommand ent_remove_all("ent_remove_all", CC_Ent_RemoveAll, "Removes all entities of the specified type\n\tArguments:   	{entity_name} / {class_name} ", FCVAR_CHEAT);
+static ConCommand ent_remove_all("ent_remove_all", CC_Ent_RemoveAll, "Removes all entities of the specified type\n\tArguments:   	{entity_name} / {class_name} ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Ent_SetName( const CCommand& args )
@@ -5154,7 +5169,7 @@ void CC_Ent_SetName( const CCommand& args )
 		}
 	}
 }
-static ConCommand ent_setname("ent_setname", CC_Ent_SetName, "Sets the targetname of the given entity(s)\n\tArguments:   	{new entity name} {entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_setname("ent_setname", CC_Ent_SetName, "Sets the targetname of the given entity(s)\n\tArguments:   	{new entity name} {entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Find_Ent( const CCommand& args )
@@ -5202,7 +5217,7 @@ void CC_Find_Ent( const CCommand& args )
 
 	Msg("Found %d matches.\n", iCount);
 }
-static ConCommand find_ent("find_ent", CC_Find_Ent, "Find and list all entities with classnames or targetnames that contain the specified substring.\nFormat: find_ent <substring>\n", FCVAR_CHEAT);
+static ConCommand find_ent("find_ent", CC_Find_Ent, "Find and list all entities with classnames or targetnames that contain the specified substring.\nFormat: find_ent <substring>\n", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_Find_Ent_Index( const CCommand& args )
@@ -5224,7 +5239,7 @@ void CC_Find_Ent_Index( const CCommand& args )
 		Msg("Found no entity at %d.\n", iIndex);
 	}
 }
-static ConCommand find_ent_index("find_ent_index", CC_Find_Ent_Index, "Display data for entity matching specified index.\nFormat: find_ent_index <index>\n", FCVAR_CHEAT);
+static ConCommand find_ent_index("find_ent_index", CC_Find_Ent_Index, "Display data for entity matching specified index.\nFormat: find_ent_index <index>\n", FCVAR_NONE);
 
 // Purpose : 
 //------------------------------------------------------------------------------
@@ -5302,7 +5317,7 @@ void CC_Ent_Dump( const CCommand& args )
 		}
 	}
 }
-static ConCommand ent_dump("ent_dump", CC_Ent_Dump, "Usage:\n   ent_dump <entity name>\n", FCVAR_CHEAT);
+static ConCommand ent_dump("ent_dump", CC_Ent_Dump, "Usage:\n   ent_dump <entity name>\n", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5314,7 +5329,7 @@ void CC_Ent_FireTarget( const CCommand& args )
 {
 	ConsoleFireTargets(UTIL_GetCommandClient(),args[1]);
 }
-static ConCommand firetarget("firetarget", CC_Ent_FireTarget, 0, FCVAR_CHEAT);
+static ConCommand firetarget("firetarget", CC_Ent_FireTarget, 0, FCVAR_NONE);
 
 class CEntFireAutoCompletionFunctor : public ICommandCallback, public ICommandCompletionCallback
 {
@@ -5545,7 +5560,7 @@ private:
 };
 
 static CEntFireAutoCompletionFunctor g_EntFireAutoComplete;
-static ConCommand ent_fire("ent_fire", &g_EntFireAutoComplete, "Usage:\n   ent_fire <target> [action] [value] [delay]\n", FCVAR_CHEAT, &g_EntFireAutoComplete );
+static ConCommand ent_fire("ent_fire", &g_EntFireAutoComplete, "Usage:\n   ent_fire <target> [action] [value] [delay]\n", FCVAR_NONE, &g_EntFireAutoComplete);
 
 void CC_Ent_CancelPendingEntFires( const CCommand& args )
 {
@@ -5617,7 +5632,7 @@ void CC_Ent_Info( const CCommand& args )
 		}
 	}
 }
-static ConCommand ent_info("ent_info", CC_Ent_Info, "Usage:\n   ent_info <class name>\n", FCVAR_CHEAT);
+static ConCommand ent_info("ent_info", CC_Ent_Info, "Usage:\n   ent_info <class name>\n", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5629,7 +5644,7 @@ void CC_Ent_Messages( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_MESSAGE_BIT);
 }
-static ConCommand ent_messages("ent_messages", CC_Ent_Messages ,"Toggles input/output message display for the selected entity(ies).  The name of the entity will be displayed as well as any messages that it sends or receives.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at", FCVAR_CHEAT);
+static ConCommand ent_messages("ent_messages", CC_Ent_Messages, "Toggles input/output message display for the selected entity(ies).  The name of the entity will be displayed as well as any messages that it sends or receives.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5650,7 +5665,7 @@ void CC_Ent_Pause( void )
 		CBaseEntity::Debug_Pause(true);
 	}
 }
-static ConCommand ent_pause("ent_pause", CC_Ent_Pause, "Toggles pausing of input/output message processing for entities.  When turned on processing of all message will stop.  Any messages displayed with 'ent_messages' will stop fading and be displayed indefinitely. To step through the messages one by one use 'ent_step'.", FCVAR_CHEAT);
+static ConCommand ent_pause("ent_pause", CC_Ent_Pause, "Toggles pausing of input/output message processing for entities.  When turned on processing of all message will stop.  Any messages displayed with 'ent_messages' will stop fading and be displayed indefinitely. To step through the messages one by one use 'ent_step'.", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -5666,7 +5681,7 @@ void CC_Ent_Picker( void )
 	// Remember the player that's making this request
 	CBaseEntity::m_nDebugPlayer = UTIL_GetCommandClientIndex();
 }
-static ConCommand picker("picker", CC_Ent_Picker, "Toggles 'picker' mode.  When picker is on, the bounding box, pivot and debugging text is displayed for whatever entity the player is looking at.\n\tArguments:	full - enables all debug information", FCVAR_CHEAT);
+static ConCommand picker("picker", CC_Ent_Picker, "Toggles 'picker' mode.  When picker is on, the bounding box, pivot and debugging text is displayed for whatever entity the player is looking at.\n\tArguments:	full - enables all debug information", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Purpose : 
@@ -5677,7 +5692,7 @@ void CC_Ent_Pivot( const CCommand& args )
 {
 	SetDebugBits(UTIL_GetCommandClient(),args[1],OVERLAY_PIVOT_BIT);
 }
-static ConCommand ent_pivot("ent_pivot", CC_Ent_Pivot, "Displays the pivot for the given entity(ies).\n\t(y=up=green, z=forward=blue, x=left=red). \n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_pivot("ent_pivot", CC_Ent_Pivot, "Displays the pivot for the given entity(ies).\n\t(y=up=green, z=forward=blue, x=left=red). \n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Purpose : 
@@ -5693,7 +5708,7 @@ void CC_Ent_Step( const CCommand& args )
 	}
 	CBaseEntity::Debug_SetSteps(nSteps);
 }
-static ConCommand ent_step("ent_step", CC_Ent_Step, "When 'ent_pause' is set this will step through one waiting input / output message at a time.", FCVAR_CHEAT);
+static ConCommand ent_step("ent_step", CC_Ent_Step, "When 'ent_pause' is set this will step through one waiting input / output message at a time.", FCVAR_NONE);
 
 void CBaseEntity::SetCheckUntouch( bool check )
 {
@@ -6043,7 +6058,7 @@ void CBaseEntity::SetLocalOrigin( const Vector& origin )
 		{
 			Warning( "Bad SetLocalOrigin(%f,%f,%f) on %s\n", origin.x, origin.y, origin.z, GetDebugName() );
 		}
-		Assert( false );
+		//Assert( false );
 		return;
 	}
 
@@ -6133,7 +6148,7 @@ void CBaseEntity::SetLocalAngularVelocity( const QAngle &vecAngVelocity )
 		{
 			Warning( "Bad SetLocalAngularVelocity(%f,%f,%f) on %s\n", vecAngVelocity.x, vecAngVelocity.y, vecAngVelocity.z, GetDebugName() );
 		}
-		Assert( false );
+		//Assert( false );
 		return;
 	}
 
@@ -6728,7 +6743,7 @@ void CC_Ent_Show_Response_Criteria( const CCommand& args )
 		pEntity->DumpResponseCriteria();
 	}
 }
-static ConCommand ent_show_response_criteria("ent_show_response_criteria", CC_Ent_Show_Response_Criteria, "Print, to the console, an entity's current criteria set used to select responses.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+static ConCommand ent_show_response_criteria("ent_show_response_criteria", CC_Ent_Show_Response_Criteria, "Print, to the console, an entity's current criteria set used to select responses.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Purpose: Show an entity's autoaim radius
@@ -6737,7 +6752,7 @@ void CC_Ent_Autoaim( const CCommand& args )
 {
 	SetDebugBits( UTIL_GetCommandClient(),args[1], OVERLAY_AUTOAIM_BIT );
 }
-static ConCommand ent_autoaim("ent_autoaim", CC_Ent_Autoaim, "Displays the entity's autoaim radius.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at", FCVAR_CHEAT );
+static ConCommand ent_autoaim("ent_autoaim", CC_Ent_Autoaim, "Displays the entity's autoaim radius.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at", FCVAR_NONE);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -7370,7 +7385,7 @@ void CC_Ent_Create( const CCommand& args )
 	}
 	CBaseEntity::SetAllowPrecache( allowPrecache );
 }
-static ConCommand ent_create("ent_create", CC_Ent_Create, "Creates an entity of the given type where the player is looking.  Additional parameters can be passed in in the form: ent_create <entity name> <param 1 name> <param 1> <param 2 name> <param 2>...<param N name> <param N>", FCVAR_GAMEDLL | FCVAR_CHEAT);
+static ConCommand ent_create("ent_create", CC_Ent_Create, "Creates an entity of the given type where the player is looking.  Additional parameters can be passed in in the form: ent_create <entity name> <param 1 name> <param 1> <param 2 name> <param 2>...<param N name> <param N>", FCVAR_GAMEDLL);
 
 //------------------------------------------------------------------------------
 // Purpose: Teleport a specified entity to where the player is looking
@@ -7446,7 +7461,7 @@ void CC_Ent_Teleport( const CCommand& args )
 	}
 }
 
-static ConCommand ent_teleport("ent_teleport", CC_Ent_Teleport, "Teleport the specified entity to where the player is looking.\n\tFormat: ent_teleport <entity name>", FCVAR_CHEAT);
+static ConCommand ent_teleport("ent_teleport", CC_Ent_Teleport, "Teleport the specified entity to where the player is looking.\n\tFormat: ent_teleport <entity name>", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Purpose: Orient a specified entity to match the player's angles
@@ -7477,4 +7492,174 @@ void CC_Ent_Orient( const CCommand& args )
 	}
 }
 
-static ConCommand ent_orient("ent_orient", CC_Ent_Orient, "Orient the specified entity to match the player's angles. By default, only orients target entity's YAW. Use the 'allangles' option to orient on all axis.\n\tFormat: ent_orient <entity name> <optional: allangles>", FCVAR_CHEAT);
+static ConCommand ent_orient("ent_orient", CC_Ent_Orient, "Orient the specified entity to match the player's angles. By default, only orients target entity's YAW. Use the 'allangles' option to orient on all axis.\n\tFormat: ent_orient <entity name> <optional: allangles>", FCVAR_NONE);
+bool CBaseEntity::PutAtNearestNode(float flMaxDist, bool bNoDebug)
+{
+	CAI_Node *pPlayerNode = g_pBigAINet->GetNode(g_pBigAINet->NearestNodeToPoint(GetAbsOrigin(), false), false);
+	CAI_Node *pNode;
+	float flClosest = FLT_MAX;
+	bool full = false;
+	CNodeList *result = new CNodeList;
+	result->SetLessFunc(CNodeList::IsLowerPriority);//this impacts sorting, MUST be kept
+	bool bStayInZone = true;
+	while (true)
+	{
+		for (int node = 0; node < g_pBigAINet->NumNodes(); node++)
+		{
+			pNode = g_pBigAINet->GetNode(node);
+			if (bStayInZone && pPlayerNode && pPlayerNode->GetZone() != pNode->GetZone())
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Rejected node %i because not in zone %i\n", pNode->GetId(), pPlayerNode->GetZone());
+				continue;
+			}
+			if (pNode->GetType() != NODE_GROUND)
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Rejected node %i because not ground node\n", pNode->GetId());
+				continue;
+			}
+			float flDist = (GetAbsOrigin() - pNode->GetPosition(HULL_HUMAN)).Length();
+			if (unstuck_debug.GetBool() && !bNoDebug) Msg("Node %i dist (%0.1f) < (%0.1f)\n", pNode->GetId(), flDist, flClosest);
+			if (flDist < flClosest)
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Node %i new closest\n", pNode->GetId());
+				flClosest = flDist;
+			}
+			if (!full || (flDist < result->ElementAtHead().dist))
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Node %i added to list\n", pNode->GetId());
+				if (full)
+				{
+					result->RemoveAtHead();
+				}
+				result->Insert(AI_NearNode_t(node, flDist));
+				full = (result->Count() == 100);
+			}
+		}
+		for (; result->Count(); result->RemoveAtHead())
+		{
+			pNode = g_pBigAINet->GetNode(result->ElementAtHead().nodeIndex);
+			if (unstuck_debug.GetBool() && !bNoDebug) Msg("Trying node %i, dist %0.1f\n", pNode->GetId(), (GetAbsOrigin() - pNode->GetPosition(HULL_HUMAN)).Length());
+			/*
+			trace_t	trace;
+			Vector vecTestPos = pNode->GetPosition(HULL_HUMAN);
+			//add extra height if model is scaled up, or else we can fail a lot on bumpy ground
+			if (GetBaseAnimating() && GetBaseAnimating()->GetModelScale() > 1)
+				vecTestPos += Vector(0, 0, 40);
+			UTIL_TraceEntity(this, vecTestPos, vecTestPos, IsPlayer() ? MASK_PLAYERSOLID : MASK_NPCSOLID, &trace);
+			if (!trace.startsolid)
+			{
+				SetAbsOrigin(vecTestPos);
+				return;
+			}
+			*/
+			SetAbsOrigin(pNode->GetPosition(HULL_HUMAN));
+			if (GetUnstuck(flMaxDist, UF_NO_NODE_TELEPORT | UF_NO_DEBUG))
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Can fit at node %i\n", pNode->GetId());
+				return true;
+			}
+			else
+			{
+				if (unstuck_debug.GetBool() && !bNoDebug) Msg("Can't fit at node %i\n", pNode->GetId());
+			}
+		}
+		if (bStayInZone)
+		{
+			//try again without worrying about zone
+			if (unstuck_debug.GetBool() && !bNoDebug) Msg("bStayInZone false\n");
+			bStayInZone = false;
+		}
+		else
+		{
+			if (unstuck_debug.GetBool() && !bNoDebug) Msg("Couldn't find node to put entity at!\n");
+			return false;
+		}
+	}
+}
+void CBaseEntity::LogicExplode()
+{
+	int nRandom = random->RandomInt(0, 17);
+	variant_t variant;
+	int r, g, b;
+	switch (nRandom)
+	{
+	case 0:
+		AcceptInput("Kill", this, this, variant, 0);
+	//skipped killhierarchy
+	case 1:
+		AcceptInput("Use", this, this, variant, 0);
+	case 2:
+		variant.SetInt(RandomInt(0, 255));
+		AcceptInput("Alpha", this, this, variant, 0);
+	case 3:
+		variant.SetBool(RandomInt(0, 1) == 0);
+		AcceptInput("AlternativeSorting", this, this, variant, 0);
+	case 4:
+		char szcolor[2048];
+		r = RandomInt(0, 255);
+		g = RandomInt(0, 255);
+		b = RandomInt(0, 255);
+		Q_snprintf(szcolor, sizeof(szcolor), "%i %i %i", r, g, b);
+		Msg("%s\n", szcolor);
+		variant.SetString(MAKE_STRING(szcolor));
+		AcceptInput("Color", this, this, variant, 0);
+	case 5:
+		if (gEntList.NextEnt(this))
+		{
+			SetParent(gEntList.NextEnt(this));
+		}
+	case 6:
+	case 7:
+		if (GetParent())
+		{
+			CStudioHdr *hdr = GetParent()->GetBaseAnimating()->GetModelPtr();
+			if (!hdr)
+				return;
+			// First move them all matching attachments into a list
+			CUtlVector<int> matchingAttachments;
+			// Extract the bone index from the name
+			for (int i = 0; i < hdr->GetNumAttachments(); i++)
+			{
+				matchingAttachments.AddToTail(i);
+			}
+			// Then randomly return one of the attachments
+			// NOTE: Currently, the network uses 0 to mean "no attachment" 
+			// thus the client must add one to the index of the attachment
+			// UNDONE: Make the server do this too to be consistent.
+			if (matchingAttachments.Size() > 0)
+				SetParent(m_pParent, matchingAttachments[RandomInt(0, matchingAttachments.Size() - 1)] + 1);
+			if (nRandom == 6)
+			{
+				SetLocalOrigin(vec3_origin);
+				SetLocalAngles(vec3_angle);
+			}
+		}
+	case 8:
+		AcceptInput("ClearParent", this, this, variant, 0);
+	case 9:
+		variant.SetString(gEntList.RandomNamedEntityByClassname("fil*")->GetEntityName());
+		AcceptInput("SetDamageFilter", this, this, variant, 0);
+	case 10:
+		AcceptInput("EnableDamageForces", this, this, variant, 0);
+	case 11:
+		AcceptInput("DisableDamageForces", this, this, variant, 0);
+	//skipped dispatcheffect
+	//skipped dispatchresponse
+	//skipped AddContext
+	//skipped RemoveContext
+	//skipped ClearContext
+	case 12:
+		AcceptInput("DisableShadow", this, this, variant, 0);
+	case 13:
+		AcceptInput("EnableShadow", this, this, variant, 0);
+	//skipped addoutput
+	case 14:
+		AcceptInput("FireUser1", this, this, variant, 0);
+	case 15:
+		AcceptInput("FireUser2", this, this, variant, 0);
+	case 16:
+		AcceptInput("FireUser3", this, this, variant, 0);
+	case 17:
+		AcceptInput("FireUser4", this, this, variant, 0);
+	}
+}

@@ -53,7 +53,7 @@ void QueryCacheKey_t::ComputeHashIndex( void )
 }
 
 
-ConVar	sv_disable_querycache("sv_disable_querycache", "0", FCVAR_CHEAT, "debug - disable trace query cache" );
+ConVar	sv_disable_querycache("sv_disable_querycache", "0", FCVAR_NONE, "debug - disable trace query cache");
 
 static QueryCacheEntry_t *FindOrAllocateCacheEntry( QueryCacheKey_t const &entry )
 {
@@ -324,7 +324,7 @@ bool IsLineOfSightBetweenTwoEntitiesClear( CBaseEntity *pSrcEntity,
 
 
 #if defined( CLIENT_DLL )
-CON_COMMAND_F( cl_querycache_stats, "Display status of the query cache (client only)", FCVAR_CHEAT )
+CON_COMMAND_F( cl_querycache_stats, "Display status of the query cache (client only)", FCVAR_NONE )
 #else
 CON_COMMAND( sv_querycache_stats, "Display status of the query cache (client only)" )
 #endif

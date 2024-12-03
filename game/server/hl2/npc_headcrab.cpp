@@ -65,7 +65,7 @@ const int HEADCRAB_MAX_JUMP_DIST = 256;
 
 #define HEADCRAB_BURN_SOUND_FREQUENCY 10
 
-ConVar g_debug_headcrab( "g_debug_headcrab", "0", FCVAR_CHEAT );
+ConVar g_debug_headcrab("g_debug_headcrab", "0", FCVAR_NONE);
 
 //------------------------------------
 // Spawnflags

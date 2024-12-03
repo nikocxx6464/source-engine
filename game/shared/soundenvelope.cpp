@@ -457,7 +457,7 @@ float CSoundPatch::GetVolume( void )
 //-----------------------------------------------------------------------------
 inline int CSoundPatch::EntIndex() const
 {
-	Assert( !m_hEnt.IsValid() || m_hEnt.Get() );
+	//Assert( !m_hEnt.IsValid() || m_hEnt.Get() );
 	return m_hEnt.Get() ? m_hEnt->entindex() : -1;
 }
 
@@ -778,6 +778,8 @@ private:
 // UNDONE: Add start command?
 void CSoundControllerImp::ProcessCommand( SoundCommand_t *pCmd )
 {
+	if (!pCmd->m_pPatch)//this happened for an unknown reason in hl2 chaos, likely related to our terrible method of storing entities
+		return;
 	switch( pCmd->m_command )
 	{
 	case SOUNDCTRL_CHANGE_VOLUME:

@@ -47,7 +47,10 @@ END_DATADESC()
 BEGIN_PREDICTION_DATA( CBaseHLCombatWeapon )
 END_PREDICTION_DATA()
 
-ConVar sk_auto_reload_time( "sk_auto_reload_time", "3", FCVAR_REPLICATED );
+ConVar sk_auto_reload_time("sk_auto_reload_time", "3", FCVAR_REPLICATED);
+#if !defined( CLIENT_DLL )
+extern ConVar chaos_no_reload;
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -65,7 +68,11 @@ void CBaseHLCombatWeapon::ItemHolsterFrame( void )
 		return;
 
 	// If it's been longer than three seconds, reload
-	if ( ( gpGlobals->curtime - m_flHolsterTime ) > sk_auto_reload_time.GetFloat() )
+	if (
+#if !defined( CLIENT_DLL )
+		!chaos_no_reload.GetBool() &&
+#endif
+		(gpGlobals->curtime - m_flHolsterTime) > sk_auto_reload_time.GetFloat())
 	{
 		// Just load the clip with no animations
 		FinishReload();

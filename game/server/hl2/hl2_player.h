@@ -14,6 +14,7 @@
 #include "hl2_playerlocaldata.h"
 #include "simtimer.h"
 #include "soundenvelope.h"
+//#include "chaos.h"
 
 class CAI_Squad;
 class CPropCombineBall;
@@ -32,6 +33,8 @@ enum HL2PlayerPhysFlag_e
 
 class IPhysicsPlayerController;
 class CLogicPlayerProxy;
+
+class CChaosEffect;
 
 struct commandgoal_t
 {
@@ -78,8 +81,33 @@ public:
 class CHL2_Player : public CBasePlayer
 {
 public:
-	DECLARE_CLASS( CHL2_Player, CBasePlayer );
-
+	DECLARE_CLASS(CHL2_Player, CBasePlayer);
+	void ResetVotes(int iWeightSum);
+	int PickEffect(int iWeightSum, bool bTest = false, int iControl = 0);
+	void StartGivenEffect(int nID);
+	void StopGivenEffect(int nID);
+	void MaintainEvils();
+	void PopulateEffects();
+	void StartGame();//called after loads of all kinds
+	template<class T = CChaosEffect> void CreateEffect(int nEffect, string_t strHudName, int nContext, float flDurationMult, int iWeight);
+	bool EffectOrGroupAlreadyActive(int iEffect);
+	//we actually do want to remember what effects are present at the moment of a save so that we may eliminate them upon reloading if needed
+	int m_iActiveEffects[64];
+	//HACK: the chaos HUD does not appear on its own after loading a save. it must be done at some time after the screen has begun updating(?),
+	//and Activate() is too early, but PreThink() is fine, so we will have to remember to restart the HUD.
+	//I'd rather find a function that respresents precisely when it becomes ok to call the HUD functions.
+	bool m_bRestartHUD;
+	virtual void			Event_PreSaveGameLoaded(char const *pSaveName, bool bInGame);
+	virtual void		InputInsideTransition(inputdata_t &inputdata);
+	void		DoChaosHUDBar();
+	void		DoChaosHUDText();
+	void		ForceUnstuck();
+	Vector		RotatedOffset(Vector vecOffset, bool bNoVertical);
+	void		ReplaceEffects();
+	void		RemoveDeadEnts();
+	void		SpawnStoredEnts();
+	int			FindWeightSum();
+	void		ClearEffectContextCache();
 	CHL2_Player();
 	~CHL2_Player( void );
 	
@@ -179,9 +207,14 @@ public:
 	void CheckSuitZoom( void );
 
 	// Walking
-	void StartWalking( void );
-	void StopWalking( void );
-	bool IsWalking( void ) { return m_fIsWalking; }
+	void StartWalking(void);
+	void StopWalking(void);
+	bool IsWalking(void) { return m_fIsWalking; }
+
+	// Ducking
+	void StartDucking(void);
+	void StopDucking(void);
+	bool IsDucking(void) { return m_fIsDucking; }
 
 	// Aiming heuristics accessors
 	virtual float		GetIdleTime( void ) const { return ( m_flIdleTime - m_flMoveTime ); }
@@ -310,8 +343,9 @@ private:
 	bool				m_bIsAutoSprinting;		// A proxy for holding down the sprint key.
 	float				m_fAutoSprintMinTime;	// Minimum time to maintain autosprint regardless of player speed. 
 
-	CNetworkVar( bool, m_fIsSprinting );
-	CNetworkVarForDerived( bool, m_fIsWalking );
+	CNetworkVar(bool, m_fIsSprinting);
+	CNetworkVarForDerived(bool, m_fIsWalking);
+	CNetworkVarForDerived(bool, m_fIsDucking);
 
 protected:	// Jeep: Portal_Player needs access to this variable to overload PlayerUse for picking up objects through portals
 	bool				m_bPlayUseDenySound;		// Signaled by PlayerUse, but can be unset by HL2 ladder code...

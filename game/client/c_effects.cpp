@@ -26,14 +26,14 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar	cl_winddir			( "cl_winddir", "0", FCVAR_CHEAT, "Weather effects wind direction angle" );
-ConVar	cl_windspeed		( "cl_windspeed", "0", FCVAR_CHEAT, "Weather effects wind speed scalar" );
+ConVar	cl_winddir("cl_winddir", "0", FCVAR_NONE, "Weather effects wind direction angle");
+ConVar	cl_windspeed("cl_windspeed", "0", FCVAR_NONE, "Weather effects wind speed scalar");
 
 Vector g_vSplashColor( 0.5, 0.5, 0.5 );
 float g_flSplashScale = 0.15;
 float g_flSplashLifetime = 0.5f;
 float g_flSplashAlpha = 0.3f;
-ConVar r_RainSplashPercentage( "r_RainSplashPercentage", "20", FCVAR_CHEAT ); // N% chance of a rain particle making a splash.
+ConVar r_RainSplashPercentage("r_RainSplashPercentage", "20", FCVAR_NONE); // N% chance of a rain particle making a splash.
 
 
 float GUST_INTERVAL_MIN = 1;
@@ -45,13 +45,13 @@ float GUST_LIFETIME_MAX = 3;
 float MIN_SCREENSPACE_RAIN_WIDTH = 1;
 
 #ifndef _XBOX
-ConVar r_RainHack( "r_RainHack", "0", FCVAR_CHEAT );
-ConVar r_RainRadius( "r_RainRadius", "1500", FCVAR_CHEAT );
-ConVar r_RainSideVel( "r_RainSideVel", "130", FCVAR_CHEAT, "How much sideways velocity rain gets." );
+ConVar r_RainHack("r_RainHack", "0", FCVAR_NONE);
+ConVar r_RainRadius("r_RainRadius", "1500", FCVAR_NONE);
+ConVar r_RainSideVel("r_RainSideVel", "130", FCVAR_NONE, "How much sideways velocity rain gets.");
 
-ConVar r_RainSimulate( "r_RainSimulate", "1", FCVAR_CHEAT, "Enable/disable rain simulation." );
-ConVar r_DrawRain( "r_DrawRain", "1", FCVAR_CHEAT, "Enable/disable rain rendering." );
-ConVar r_RainProfile( "r_RainProfile", "0", FCVAR_CHEAT, "Enable/disable rain profiling." );
+ConVar r_RainSimulate("r_RainSimulate", "1", FCVAR_NONE, "Enable/disable rain simulation.");
+ConVar r_DrawRain("r_DrawRain", "1", FCVAR_NONE, "Enable/disable rain rendering.");
+ConVar r_RainProfile("r_RainProfile", "0", FCVAR_NONE, "Enable/disable rain profiling.");
 
 
 //Precahce the effects
@@ -207,27 +207,27 @@ IMPLEMENT_CLIENTCLASS_DT(CClient_Precipitation, DT_Precipitation, CPrecipitation
 	RecvPropInt( RECVINFO( m_nPrecipType ) )
 END_RECV_TABLE()
 
-static ConVar r_SnowEnable( "r_SnowEnable", "1", FCVAR_CHEAT, "Snow Enable" );
-static ConVar r_SnowParticles( "r_SnowParticles", "500", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowInsideRadius( "r_SnowInsideRadius", "256", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowOutsideRadius( "r_SnowOutsideRadius", "1024", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowSpeedScale( "r_SnowSpeedScale", "1", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowPosScale( "r_SnowPosScale", "1", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowFallSpeed( "r_SnowFallSpeed", "1.5", FCVAR_CHEAT, "Snow fall speed scale." );
-static ConVar r_SnowWindScale( "r_SnowWindScale", "0.0035", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowDebugBox( "r_SnowDebugBox", "0", FCVAR_CHEAT, "Snow Debug Boxes." );
-static ConVar r_SnowZoomOffset( "r_SnowZoomOffset", "384.0f", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowZoomRadius( "r_SnowZoomRadius", "512.0f", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowStartAlpha( "r_SnowStartAlpha", "25", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowEndAlpha( "r_SnowEndAlpha", "255", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowColorRed( "r_SnowColorRed", "150", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowColorGreen( "r_SnowColorGreen", "175", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowColorBlue( "r_SnowColorBlue", "200", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowStartSize( "r_SnowStartSize", "1", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowEndSize( "r_SnowEndSize", "0", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowRayLength( "r_SnowRayLength", "8192.0f", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowRayRadius( "r_SnowRayRadius", "256", FCVAR_CHEAT, "Snow." );
-static ConVar r_SnowRayEnable( "r_SnowRayEnable", "1", FCVAR_CHEAT, "Snow." );
+static ConVar r_SnowEnable("r_SnowEnable", "1", FCVAR_NONE, "Snow Enable");
+static ConVar r_SnowParticles("r_SnowParticles", "500", FCVAR_NONE, "Snow.");
+static ConVar r_SnowInsideRadius("r_SnowInsideRadius", "256", FCVAR_NONE, "Snow.");
+static ConVar r_SnowOutsideRadius("r_SnowOutsideRadius", "1024", FCVAR_NONE, "Snow.");
+static ConVar r_SnowSpeedScale("r_SnowSpeedScale", "1", FCVAR_NONE, "Snow.");
+static ConVar r_SnowPosScale("r_SnowPosScale", "1", FCVAR_NONE, "Snow.");
+static ConVar r_SnowFallSpeed("r_SnowFallSpeed", "1.5", FCVAR_NONE, "Snow fall speed scale.");
+static ConVar r_SnowWindScale("r_SnowWindScale", "0.0035", FCVAR_NONE, "Snow.");
+static ConVar r_SnowDebugBox("r_SnowDebugBox", "0", FCVAR_NONE, "Snow Debug Boxes.");
+static ConVar r_SnowZoomOffset("r_SnowZoomOffset", "384.0f", FCVAR_NONE, "Snow.");
+static ConVar r_SnowZoomRadius("r_SnowZoomRadius", "512.0f", FCVAR_NONE, "Snow.");
+static ConVar r_SnowStartAlpha("r_SnowStartAlpha", "25", FCVAR_NONE, "Snow.");
+static ConVar r_SnowEndAlpha("r_SnowEndAlpha", "255", FCVAR_NONE, "Snow.");
+static ConVar r_SnowColorRed("r_SnowColorRed", "150", FCVAR_NONE, "Snow.");
+static ConVar r_SnowColorGreen("r_SnowColorGreen", "175", FCVAR_NONE, "Snow.");
+static ConVar r_SnowColorBlue("r_SnowColorBlue", "200", FCVAR_NONE, "Snow.");
+static ConVar r_SnowStartSize("r_SnowStartSize", "1", FCVAR_NONE, "Snow.");
+static ConVar r_SnowEndSize("r_SnowEndSize", "0", FCVAR_NONE, "Snow.");
+static ConVar r_SnowRayLength("r_SnowRayLength", "8192.0f", FCVAR_NONE, "Snow.");
+static ConVar r_SnowRayRadius("r_SnowRayRadius", "256", FCVAR_NONE, "Snow.");
+static ConVar r_SnowRayEnable("r_SnowRayEnable", "1", FCVAR_NONE, "Snow.");
 
 void DrawPrecipitation()
 {
@@ -252,12 +252,12 @@ static bool IsInAir( const Vector& position )
 // Globals
 //-----------------------------------------------------------------------------
 
-ConVar CClient_Precipitation::s_raindensity( "r_raindensity","0.001", FCVAR_CHEAT);
-ConVar CClient_Precipitation::s_rainwidth( "r_rainwidth", "0.5", FCVAR_CHEAT );
-ConVar CClient_Precipitation::s_rainlength( "r_rainlength", "0.1f", FCVAR_CHEAT );
-ConVar CClient_Precipitation::s_rainspeed( "r_rainspeed", "600.0f", FCVAR_CHEAT );
-ConVar r_rainalpha( "r_rainalpha", "0.4", FCVAR_CHEAT );
-ConVar r_rainalphapow( "r_rainalphapow", "0.8", FCVAR_CHEAT );
+ConVar CClient_Precipitation::s_raindensity("r_raindensity", "0.001", FCVAR_NONE);
+ConVar CClient_Precipitation::s_rainwidth("r_rainwidth", "0.5", FCVAR_NONE);
+ConVar CClient_Precipitation::s_rainlength("r_rainlength", "0.1f", FCVAR_NONE);
+ConVar CClient_Precipitation::s_rainspeed("r_rainspeed", "600.0f", FCVAR_NONE);
+ConVar r_rainalpha("r_rainalpha", "0.4", FCVAR_NONE);
+ConVar r_rainalphapow("r_rainalphapow", "0.8", FCVAR_NONE);
 
 
 Vector CClient_Precipitation::s_WindVector;		// Stores the wind speed vector

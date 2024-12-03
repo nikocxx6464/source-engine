@@ -504,9 +504,9 @@ void StopParticleEffects( CBaseEntity *pEntity )
 
 	extern CBaseEntity *GetNextCommandEntity( CBasePlayer *pPlayer, const char *name, CBaseEntity *ent );
 
-	ConVar particle_test_file( "particle_test_file", "", FCVAR_CHEAT, "Name of the particle system to dynamically spawn" );
-	ConVar particle_test_attach_mode( "particle_test_attach_mode", "follow_attachment", FCVAR_CHEAT, "Possible Values: 'start_at_attachment', 'follow_attachment', 'start_at_origin', 'follow_origin'" );
-	ConVar particle_test_attach_attachment( "particle_test_attach_attachment", "0", FCVAR_CHEAT, "Attachment index for attachment mode" );
+	ConVar particle_test_file("particle_test_file", "", FCVAR_NONE, "Name of the particle system to dynamically spawn");
+	ConVar particle_test_attach_mode( "particle_test_attach_mode", "follow_attachment", FCVAR_NONE, "Possible Values: 'start_at_attachment', 'follow_attachment', 'start_at_origin', 'follow_origin'" );
+	ConVar particle_test_attach_attachment( "particle_test_attach_attachment", "0", FCVAR_NONE, "Attachment index for attachment mode" );
 
 	void Particle_Test_Start( CBasePlayer* pPlayer, const char *name, bool bStart )
 	{
@@ -545,7 +545,7 @@ void StopParticleEffects( CBaseEntity *pEntity )
 	{
 		Particle_Test_Start( UTIL_GetCommandClient(), args[1], true );
 	}
-	static ConCommand particle_test_start("particle_test_start", CC_Particle_Test_Start, "Dispatches the test particle system with the parameters specified in particle_test_file,\n particle_test_attach_mode and particle_test_attach_param on the entity the player is looking at.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+	static ConCommand particle_test_start("particle_test_start", CC_Particle_Test_Start, "Dispatches the test particle system with the parameters specified in particle_test_file,\n particle_test_attach_mode and particle_test_attach_param on the entity the player is looking at.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 
 	void Particle_Test_Stop( CBasePlayer* pPlayer, const char *name, bool bStart )
@@ -565,6 +565,6 @@ void StopParticleEffects( CBaseEntity *pEntity )
 	{
 		Particle_Test_Stop( UTIL_GetCommandClient(), args[1], false );
 	}
-	static ConCommand particle_test_stop("particle_test_stop", CC_Particle_Test_Stop, "Stops all particle systems on the selected entities.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_CHEAT);
+	static ConCommand particle_test_stop("particle_test_stop", CC_Particle_Test_Stop, "Stops all particle systems on the selected entities.\n\tArguments:   	{entity_name} / {class_name} / no argument picks what player is looking at ", FCVAR_NONE);
 
 #endif	//CLIENT_DLL

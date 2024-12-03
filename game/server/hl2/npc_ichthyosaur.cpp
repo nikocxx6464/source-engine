@@ -1264,6 +1264,8 @@ void CNPC_Ichthyosaur::EnsnareVictim( CBaseEntity *pVictim )
 //-----------------------------------------------------------------------------
 void CNPC_Ichthyosaur::ReleaseVictim( void )
 {
+	if (!m_pVictim)
+		return;
 	CBaseCombatCharacter *pBCC = (CBaseCombatCharacter *) m_pVictim;
 
 	pBCC->DispatchInteraction( g_interactionBarnacleVictimReleased, NULL, this );

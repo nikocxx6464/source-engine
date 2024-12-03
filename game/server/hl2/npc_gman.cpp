@@ -16,6 +16,7 @@
 #include "ai_hull.h"
 #include "ai_behavior_follow.h"
 #include "ai_playerally.h"
+#include "npc_playercompanion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -27,10 +28,10 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CNPC_GMan : public CAI_PlayerAlly
+class CNPC_GMan : public CNPC_PlayerCompanion
 {
 public:
-	DECLARE_CLASS( CNPC_GMan, CAI_PlayerAlly );
+	DECLARE_CLASS(CNPC_GMan, CNPC_PlayerCompanion);
 	DECLARE_DATADESC();
 
 	void	Spawn( void );
@@ -43,7 +44,7 @@ public:
 	int		SelectSchedule( void );
 
 private:
-	CAI_FollowBehavior	m_FollowBehavior;
+	//CAI_FollowBehavior	m_FollowBehavior;
 };
 
 LINK_ENTITY_TO_CLASS( npc_gman, CNPC_GMan );
@@ -93,6 +94,8 @@ int CNPC_GMan::GetSoundInterests ( void )
 //-----------------------------------------------------------------------------
 void CNPC_GMan::Spawn()
 {
+	if (!m_bChaosSpawned)
+		AddSpawnFlags(SF_NPC_NO_PLAYER_PUSHAWAY);
 	Precache();
 
 	BaseClass::Spawn();
@@ -100,19 +103,19 @@ void CNPC_GMan::Spawn()
 	SetModel( "models/gman.mdl" );
 
 	SetHullType(HULL_HUMAN);
-	SetHullSizeNormal();
-
+	SetHullSizeNormal(true);//in ep2, his bounding box is really weird and was causing issues. he couldn't move at the inn and floated in the outland 3 cutscene
+	
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
 	SetBloodColor( BLOOD_COLOR_RED );
-	m_iHealth			= 8;
+	m_iHealth			= 80;
 	m_flFieldOfView		= 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	m_NPCState			= NPC_STATE_NONE;
 	SetImpactEnergyScale( 0.0f ); // no physics damage on the gman
 	
-	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_OPEN_DOORS | bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD );
-	CapabilitiesAdd( bits_CAP_FRIENDLY_DMG_IMMUNE );
+	CapabilitiesAdd(bits_CAP_MOVE_GROUND | bits_CAP_OPEN_DOORS | bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD | bits_CAP_USE_WEAPONS | bits_CAP_WEAPON_RANGE_ATTACK1);
+	CapabilitiesAdd(bits_CAP_FRIENDLY_DMG_IMMUNE | bits_CAP_SQUAD);
 	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL );
 
 	NPCInit();
@@ -133,7 +136,7 @@ void CNPC_GMan::Precache()
 //-----------------------------------------------------------------------------
 Disposition_t CNPC_GMan::IRelationType(CBaseEntity *pTarget)
 {
-	return D_NU;
+	return m_bChaosSpawned ? BaseClass::IRelationType(pTarget) : D_NU;
 }
 
 
@@ -142,7 +145,7 @@ Disposition_t CNPC_GMan::IRelationType(CBaseEntity *pTarget)
 //=========================================================
 bool CNPC_GMan::CreateBehaviors()
 {
-	AddBehavior( &m_FollowBehavior );
+	//AddBehavior( &m_FollowBehavior );
 	
 	return BaseClass::CreateBehaviors();
 }

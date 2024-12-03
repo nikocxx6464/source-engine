@@ -48,10 +48,10 @@ static const char *pCannonFollowerBoneNames[] =
 
 #define CANNON_PROJECTILE_MODEL "models/props_combine/headcrabcannister01a.mdl"
 
-ConVar g_cannon_reloadtime( "g_cannon_reloadtime", "3", FCVAR_CHEAT | FCVAR_GAMEDLL );
-ConVar g_cannon_max_traveltime( "g_cannon_max_traveltime", "1.5", FCVAR_CHEAT | FCVAR_GAMEDLL );
-ConVar g_cannon_debug( "g_cannon_debug", "0", FCVAR_CHEAT | FCVAR_GAMEDLL );
-ConVar g_cannon_damageandradius( "g_cannon_damageandradius", "512", FCVAR_CHEAT | FCVAR_GAMEDLL );
+ConVar g_cannon_reloadtime( "g_cannon_reloadtime", "3", FCVAR_GAMEDLL );
+ConVar g_cannon_max_traveltime( "g_cannon_max_traveltime", "1.5", FCVAR_GAMEDLL );
+ConVar g_cannon_debug( "g_cannon_debug", "0", FCVAR_GAMEDLL );
+ConVar g_cannon_damageandradius( "g_cannon_damageandradius", "512", FCVAR_GAMEDLL );
 
 // Turning stats
 enum

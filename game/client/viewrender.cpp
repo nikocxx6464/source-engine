@@ -85,11 +85,11 @@ static void testfreezeframe_f( void )
 {
 	view->FreezeFrame( 3.0 );
 }
-static ConCommand test_freezeframe( "test_freezeframe", testfreezeframe_f, "Test the freeze frame code.", FCVAR_CHEAT );
+static ConCommand test_freezeframe("test_freezeframe", testfreezeframe_f, "Test the freeze frame code.", FCVAR_NONE);
 
 //-----------------------------------------------------------------------------
 
-static ConVar r_visocclusion( "r_visocclusion", "0", FCVAR_CHEAT );
+static ConVar r_visocclusion("r_visocclusion", "0", FCVAR_NONE);
 extern ConVar r_flashlightdepthtexture;
 extern ConVar vcollide_wireframe;
 extern ConVar mat_motion_blur_enabled;
@@ -101,22 +101,22 @@ extern bool g_bDumpRenderTargets;
 //-----------------------------------------------------------------------------
 // Convars related to controlling rendering
 //-----------------------------------------------------------------------------
-static ConVar cl_maxrenderable_dist("cl_maxrenderable_dist", "3000", FCVAR_CHEAT, "Max distance from the camera at which things will be rendered" );
+static ConVar cl_maxrenderable_dist("cl_maxrenderable_dist", "3000", FCVAR_NONE, "Max distance from the camera at which things will be rendered");
 
 ConVar r_entityclips( "r_entityclips", "1" ); //FIXME: Nvidia drivers before 81.94 on cards that support user clip planes will have problems with this, require driver update? Detect and disable?
 
 // Matches the version in the engine
-static ConVar r_drawopaqueworld( "r_drawopaqueworld", "1", FCVAR_CHEAT );
-static ConVar r_drawtranslucentworld( "r_drawtranslucentworld", "1", FCVAR_CHEAT );
+static ConVar r_drawopaqueworld("r_drawopaqueworld", "1", FCVAR_NONE);
+static ConVar r_drawtranslucentworld("r_drawtranslucentworld", "1", FCVAR_NONE);
 static ConVar r_3dsky( "r_3dsky","1", 0, "Enable the rendering of 3d sky boxes" );
-static ConVar r_skybox( "r_skybox","1", FCVAR_CHEAT, "Enable the rendering of sky boxes" );
+static ConVar r_skybox("r_skybox", "1", FCVAR_NONE, "Enable the rendering of sky boxes");
 #ifdef TF_CLIENT_DLL
 ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_ARCHIVE );
 #else
-ConVar r_drawviewmodel( "r_drawviewmodel","1", FCVAR_CHEAT );
+ConVar r_drawviewmodel("r_drawviewmodel", "1", FCVAR_NONE);
 #endif
-static ConVar r_drawtranslucentrenderables( "r_drawtranslucentrenderables", "1", FCVAR_CHEAT );
-static ConVar r_drawopaquerenderables( "r_drawopaquerenderables", "1", FCVAR_CHEAT );
+static ConVar r_drawtranslucentrenderables("r_drawtranslucentrenderables", "1", FCVAR_NONE);
+static ConVar r_drawopaquerenderables("r_drawopaquerenderables", "1", FCVAR_NONE);
 static ConVar r_threaded_renderables( "r_threaded_renderables", "0" );
 
 // FIXME: This is not static because we needed to turn it off for TF2 playtests
@@ -127,24 +127,24 @@ ConVar r_worldlistcache( "r_worldlistcache", "1" );
 //-----------------------------------------------------------------------------
 // Convars related to fog color
 //-----------------------------------------------------------------------------
-static ConVar fog_override( "fog_override", "0", FCVAR_CHEAT );
+static ConVar fog_override("fog_override", "0", FCVAR_NONE);
 // set any of these to use the maps fog
-static ConVar fog_start( "fog_start", "-1", FCVAR_CHEAT );
-static ConVar fog_end( "fog_end", "-1", FCVAR_CHEAT );
-static ConVar fog_color( "fog_color", "-1 -1 -1", FCVAR_CHEAT );
-static ConVar fog_enable( "fog_enable", "1", FCVAR_CHEAT );
-static ConVar fog_startskybox( "fog_startskybox", "-1", FCVAR_CHEAT );
-static ConVar fog_endskybox( "fog_endskybox", "-1", FCVAR_CHEAT );
-static ConVar fog_maxdensityskybox( "fog_maxdensityskybox", "-1", FCVAR_CHEAT );
-static ConVar fog_colorskybox( "fog_colorskybox", "-1 -1 -1", FCVAR_CHEAT );
-static ConVar fog_enableskybox( "fog_enableskybox", "1", FCVAR_CHEAT );
-static ConVar fog_maxdensity( "fog_maxdensity", "-1", FCVAR_CHEAT );
+static ConVar fog_start("fog_start", "-1", FCVAR_NONE);
+static ConVar fog_end("fog_end", "-1", FCVAR_NONE);
+static ConVar fog_color("fog_color", "-1 -1 -1", FCVAR_NONE);
+static ConVar fog_enable("fog_enable", "1", FCVAR_NONE);
+static ConVar fog_startskybox("fog_startskybox", "-1", FCVAR_NONE);
+static ConVar fog_endskybox("fog_endskybox", "-1", FCVAR_NONE);
+static ConVar fog_maxdensityskybox("fog_maxdensityskybox", "-1", FCVAR_NONE);
+static ConVar fog_colorskybox("fog_colorskybox", "-1 -1 -1", FCVAR_NONE);
+static ConVar fog_enableskybox("fog_enableskybox", "1", FCVAR_NONE);
+static ConVar fog_maxdensity("fog_maxdensity", "-1", FCVAR_NONE);
 
 
 //-----------------------------------------------------------------------------
 // Water-related convars
 //-----------------------------------------------------------------------------
-static ConVar r_debugcheapwater( "r_debugcheapwater", "0", FCVAR_CHEAT );
+static ConVar r_debugcheapwater("r_debugcheapwater", "0", FCVAR_NONE);
 #ifndef _X360
 static ConVar r_waterforceexpensive( "r_waterforceexpensive", "0", FCVAR_ARCHIVE );
 #endif
@@ -152,7 +152,7 @@ static ConVar r_waterforcereflectentities( "r_waterforcereflectentities", "0" );
 static ConVar r_WaterDrawRefraction( "r_WaterDrawRefraction", "1", 0, "Enable water refraction" );
 static ConVar r_WaterDrawReflection( "r_WaterDrawReflection", "1", 0, "Enable water reflection" );
 static ConVar r_ForceWaterLeaf( "r_ForceWaterLeaf", "1", 0, "Enable for optimization to water - considers view in leaf under water for purposes of culling" );
-static ConVar mat_drawwater( "mat_drawwater", "1", FCVAR_CHEAT );
+static ConVar mat_drawwater("mat_drawwater", "1", FCVAR_NONE);
 static ConVar mat_clipz( "mat_clipz", "1" );
 
 
@@ -162,7 +162,7 @@ static ConVar mat_clipz( "mat_clipz", "1" );
 static ConVar r_screenfademinsize( "r_screenfademinsize", "0" );
 static ConVar r_screenfademaxsize( "r_screenfademaxsize", "0" );
 static ConVar cl_drawmonitors( "cl_drawmonitors", "1" );
-static ConVar r_eyewaterepsilon( "r_eyewaterepsilon", "10.0f", FCVAR_CHEAT );
+static ConVar r_eyewaterepsilon("r_eyewaterepsilon", "10.0f", FCVAR_NONE);
 
 #ifdef TF_CLIENT_DLL
 static ConVar pyro_dof( "pyro_dof", "1", FCVAR_ARCHIVE );
@@ -2699,6 +2699,28 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 	QAngle vecOldAngles = CurrentViewAngles();
 
 	int iCurrentViewID = g_CurrentViewID;
+	int iRecursionLevel = g_pPortalRender->GetViewRecursionLevel();
+	Assert( iRecursionLevel > 0 );
+
+	//get references to reflection textures
+	CTextureReference pPrimaryWaterReflectionTexture;
+	pPrimaryWaterReflectionTexture.Init( GetWaterReflectionTexture() );
+	CTextureReference pReplacementWaterReflectionTexture;
+	pReplacementWaterReflectionTexture.Init( portalrendertargets->GetWaterReflectionTextureForStencilDepth( iRecursionLevel ) );
+
+	//get references to refraction textures
+	CTextureReference pPrimaryWaterRefractionTexture;
+	pPrimaryWaterRefractionTexture.Init( GetWaterRefractionTexture() );
+	CTextureReference pReplacementWaterRefractionTexture;
+	pReplacementWaterRefractionTexture.Init( portalrendertargets->GetWaterRefractionTextureForStencilDepth( iRecursionLevel ) );
+
+
+	//swap texture contents for the primary render targets with those we set aside for this recursion level
+	if( pReplacementWaterReflectionTexture != NULL )
+		pPrimaryWaterReflectionTexture->SwapContents( pReplacementWaterReflectionTexture );
+
+	if( pReplacementWaterRefractionTexture != NULL )
+		pPrimaryWaterRefractionTexture->SwapContents( pReplacementWaterRefractionTexture );
 
 	bool bDrew3dSkybox = false;
 	SkyboxVisibility_t nSkyboxVisible = SKYBOX_NOT_VISIBLE;
@@ -2790,6 +2812,14 @@ void CViewRender::ViewDrawScene_PortalStencil( const CViewSetup &viewIn, ViewCus
 	// Return to the previous view
 	SetupCurrentView( vecOldOrigin, vecOldAngles, (view_id_t)iCurrentViewID );
 	g_CurrentViewID = iCurrentViewID; //just in case the cast to view_id_t screwed up the id #
+
+
+	//swap back the water render targets
+	if( pReplacementWaterReflectionTexture != NULL )
+		pPrimaryWaterReflectionTexture->SwapContents( pReplacementWaterReflectionTexture );
+
+	if( pReplacementWaterRefractionTexture != NULL )
+		pPrimaryWaterRefractionTexture->SwapContents( pReplacementWaterRefractionTexture );
 }
 
 void CViewRender::Draw3dSkyboxworld_Portal( const CViewSetup &view, int &nClearFlags, bool &bDrew3dSkybox, SkyboxVisibility_t &nSkyboxVisible, ITexture *pRenderTarget ) 
@@ -3817,8 +3847,8 @@ ConVar r_drawopaquestaticpropslast( "r_drawopaquestaticpropslast", "0", 0, "Whet
 
 #if DEBUG_BUCKETS
 ConVar r_drawopaque_old( "r_drawopaque_old", "0", 0, "Whether old unbucketed technique is used" );
-ConVar r_drawopaquesbucket( "r_drawopaquesbucket", "0", FCVAR_CHEAT, "Draw only specific bucket: positive - props, negative - ents" );
-ConVar r_drawopaquesbucket_stats( "r_drawopaquesbucket_stats", "0", FCVAR_CHEAT, "Draw distribution of props/ents in the buckets" );
+ConVar r_drawopaquesbucket( "r_drawopaquesbucket", "0", FCVAR_NONE, "Draw only specific bucket: positive - props, negative - ents" );
+ConVar r_drawopaquesbucket_stats( "r_drawopaquesbucket_stats", "0", FCVAR_NONE, "Draw distribution of props/ents in the buckets" );
 #endif
 
 

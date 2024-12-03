@@ -1229,7 +1229,7 @@ void CC_BloodSpray( const CCommand &args )
 	}
 }
 
-static ConCommand bloodspray( "bloodspray", CC_BloodSpray, "blood", FCVAR_CHEAT );
+static ConCommand bloodspray("bloodspray", CC_BloodSpray, "blood", FCVAR_NONE);
 
 
 //-----------------------------------------------------------------------------

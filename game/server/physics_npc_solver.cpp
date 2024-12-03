@@ -448,7 +448,15 @@ void CPhysicsEntitySolver::UpdateOnRemove()
 	CBaseEntity *pPhysics = m_hPhysicsBlocker.Get();
 	if ( pEntity && pPhysics )
 	{
-		PhysEnableEntityCollisions( pEntity, pPhysics );
+		//PIN: Cannot block yourself? this may be the cause of an infinite loop issue on ep2_outland_01
+		if (pEntity == pPhysics)
+		{
+			Msg("Entity blocking itself? %s named %s\n", pEntity->GetClassname(), STRING(pEntity->GetEntityName()));
+		}
+		else
+		{
+			PhysEnableEntityCollisions(pEntity, pPhysics);
+		}
 	}
 	if ( pPhysics )
 	{

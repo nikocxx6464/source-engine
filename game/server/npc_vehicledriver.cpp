@@ -33,7 +33,7 @@
 //------------------------------------
 // 
 //------------------------------------
-ConVar g_debug_vehicledriver( "g_debug_vehicledriver", "0", FCVAR_CHEAT );
+ConVar g_debug_vehicledriver("g_debug_vehicledriver", "0", FCVAR_NONE);
 
 BEGIN_DATADESC( CNPC_VehicleDriver )
 	DEFINE_KEYFIELD( m_iszVehicleName, FIELD_STRING, "vehicle" ),
@@ -129,7 +129,8 @@ void CNPC_VehicleDriver::Spawn( void )
 	m_flDistanceAlongSpline = 0.2;
 	m_pCurrentWaypoint = m_pNextWaypoint = NULL;
 
-	GetNavigator()->SetPathcornerPathfinding( false );
+	if (!m_bChaosSpawned)
+		GetNavigator()->SetPathcornerPathfinding( false );
 
 	NPCInit();
 

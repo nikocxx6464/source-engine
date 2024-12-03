@@ -508,7 +508,7 @@ public:
 
 	bool				ShouldSavePhysics()	{ return false; }
 	virtual unsigned int	PhysicsSolidMaskForEntity( void ) const;
-
+	bool m_bEvil;
 	virtual bool KeyValue( const char *szKeyName, const char *szValue );
 
 	//---------------------------------

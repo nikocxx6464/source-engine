@@ -78,12 +78,12 @@ static ConVar rope_smooth_minalpha( "rope_smooth_minalpha", "0.2", 0, "Alpha for
 static ConVar rope_smooth_maxalphawidth( "rope_smooth_maxalphawidth", "1.75" );
 static ConVar rope_smooth_maxalpha( "rope_smooth_maxalpha", "0.5", 0, "Alpha for rope antialiasing effect" );
 
-static ConVar mat_fullbright( "mat_fullbright", "0", FCVAR_CHEAT ); // get it from the engine
-static ConVar r_drawropes( "r_drawropes", "1", FCVAR_CHEAT );
+static ConVar mat_fullbright("mat_fullbright", "0", FCVAR_NONE); // get it from the engine
+static ConVar r_drawropes("r_drawropes", "1", FCVAR_NONE);
 static ConVar r_queued_ropes( "r_queued_ropes", "1" );
 static ConVar r_ropetranslucent( "r_ropetranslucent", "1");
-static ConVar r_rope_holiday_light_scale( "r_rope_holiday_light_scale", "0.055", FCVAR_DEVELOPMENTONLY );
-static ConVar r_ropes_holiday_lights_allowed( "r_ropes_holiday_lights_allowed", "1", FCVAR_DEVELOPMENTONLY );
+static ConVar r_rope_holiday_light_scale( "r_rope_holiday_light_scale", "0.055");
+static ConVar r_ropes_holiday_lights_allowed( "r_ropes_holiday_lights_allowed", "1");
 
 static ConVar rope_wind_dist( "rope_wind_dist", "1000", 0, "Don't use CPU applying small wind gusts to ropes when they're past this distance." );
 static ConVar rope_averagelight( "rope_averagelight", "1", 0, "Makes ropes use average of cubemap lighting instead of max intensity." );

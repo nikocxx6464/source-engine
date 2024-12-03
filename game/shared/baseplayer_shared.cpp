@@ -91,6 +91,7 @@
 ConVar mp_usehwmmodels( "mp_usehwmmodels", "0", NULL, "Enable the use of the hw morph models. (-1 = never, 1 = always, 0 = based upon GPU)" ); // -1 = never, 0 = if hasfastvertextextures, 1 = always
 #endif
 
+ConVar player_use_dist("player_use_dist", "80", FCVAR_REPLICATED, "player grab distance");
 bool UseHWMorphModels()
 {
 // #ifdef CLIENT_DLL 
@@ -1047,7 +1048,7 @@ void CBasePlayer::SelectItem( const char *pstr, int iSubType )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-ConVar sv_debug_player_use( "sv_debug_player_use", "0", FCVAR_REPLICATED, "Visualizes +use logic. Green cross=trace success, Red cross=trace too far, Green box=radius success" );
+ConVar sv_debug_player_use("sv_debug_player_use", "0", FCVAR_REPLICATED, "Visualizes +use logic. Green cross=trace success, Red cross=trace too far, Green box=radius success");
 float IntervalDistance( float x, float x0, float x1 )
 {
 	// swap so x0 < x1
@@ -1130,7 +1131,7 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 			float centerZ = CollisionProp()->WorldSpaceCenter().z;
 			delta.z = IntervalDistance( tr.endpos.z, centerZ + CollisionProp()->OBBMins().z, centerZ + CollisionProp()->OBBMaxs().z );
 			float dist = delta.Length();
-			if ( dist < PLAYER_USE_RADIUS )
+			if (dist < player_use_dist.GetFloat())
 			{
 #ifndef CLIENT_DLL
 
@@ -1180,7 +1181,7 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 		}
 	}
 
-	for ( CEntitySphereQuery sphere( searchCenter, PLAYER_USE_RADIUS ); ( pObject = sphere.GetCurrentEntity() ) != NULL; sphere.NextEntity() )
+	for (CEntitySphereQuery sphere(searchCenter, player_use_dist.GetFloat()); (pObject = sphere.GetCurrentEntity()) != NULL; sphere.NextEntity())
 	{
 		if ( !pObject )
 			continue;
@@ -1228,7 +1229,7 @@ CBaseEntity *CBasePlayer::FindUseEntity()
 		// Haven't found anything near the player to use, nor any NPC's at distance.
 		// Check to see if the player is trying to select an NPC through a rail, fence, or other 'see-though' volume.
 		trace_t trAllies;
-		UTIL_TraceLine( searchCenter, searchCenter + forward * PLAYER_USE_RADIUS, MASK_OPAQUE_AND_NPCS, this, COLLISION_GROUP_NONE, &trAllies );
+		UTIL_TraceLine(searchCenter, searchCenter + forward * player_use_dist.GetFloat(), MASK_OPAQUE_AND_NPCS, this, COLLISION_GROUP_NONE, &trAllies);
 
 		if ( trAllies.m_pEnt && IsUseableEntity( trAllies.m_pEnt, 0 ) && trAllies.m_pEnt->MyNPCPointer() && trAllies.m_pEnt->MyNPCPointer()->IsPlayerAlly( this ) )
 		{
@@ -1398,7 +1399,7 @@ void CBasePlayer::PlayerUse ( void )
 #endif
 }
 
-ConVar	sv_suppress_viewpunch( "sv_suppress_viewpunch", "0", FCVAR_REPLICATED | FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+ConVar	sv_suppress_viewpunch( "sv_suppress_viewpunch", "0", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1876,8 +1877,8 @@ int CBasePlayer::GetDefaultFOV( void ) const
 #endif
 
 	int iFOV = ( m_iDefaultFOV == 0 ) ? g_pGameRules->DefaultFOV() : m_iDefaultFOV;
-	if ( iFOV > MAX_FOV )
-		iFOV = MAX_FOV;
+	//if ( iFOV > MAX_FOV )
+	//	iFOV = MAX_FOV;
 
 	return iFOV;
 }
@@ -1982,21 +1983,23 @@ bool CBasePlayer::SetFOV( CBaseEntity *pRequester, int FOV, float zoomRate, int 
 //-----------------------------------------------------------------------------
 void CBasePlayer::UpdateUnderwaterState( void )
 {
-	if ( GetWaterLevel() == WL_Eyes )
+	if ( GetWaterLevel() == WL_Eyes || m_bSwimInAir)
 	{
-		if ( IsPlayerUnderwater() == false )
+		if (IsPlayerUnderwater() == false || m_bSwimInAir)
 		{
-			SetPlayerUnderwater( true );
+			SetWaterLevel(WL_Eyes);
+			SetPlayerUnderwater(true);
+			AddFlag(FL_INWATER);
 		}
 		return;
 	}
 
-	if ( IsPlayerUnderwater() )
+	if (IsPlayerUnderwater() && !m_bSwimInAir)
 	{
 		SetPlayerUnderwater( false );
 	}
 
-	if ( GetWaterLevel() == 0 )
+	if (GetWaterLevel() == 0 && !m_bSwimInAir)
 	{
 		if ( GetFlags() & FL_INWATER )
 		{
@@ -2009,7 +2012,7 @@ void CBasePlayer::UpdateUnderwaterState( void )
 			RemoveFlag( FL_INWATER );
 		}
 	}
-	else if ( !(GetFlags() & FL_INWATER) )
+	else if (!(GetFlags() & FL_INWATER) && !m_bSwimInAir)
 	{
 #ifndef CLIENT_DLL
 		// player enter water sound

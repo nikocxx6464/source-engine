@@ -839,7 +839,7 @@ inline void TransmitShakeEvent( CBasePlayer *pPlayer, float localAmplitude, floa
 //									for all players within the radius
 //			bAirShake - if this is false, then it will only shake players standing on the ground.
 //-----------------------------------------------------------------------------
-const float MAX_SHAKE_AMPLITUDE = 16.0f;
+const float MAX_SHAKE_AMPLITUDE = 100.0f;
 void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, float duration, float radius, ShakeCommand_t eCommand, bool bAirShake )
 {
 	int			i;
@@ -1062,7 +1062,9 @@ void UTIL_HudMessage( CBasePlayer *pToPlayer, const hudtextparms_t &textparms, c
 		WRITE_FLOAT( textparms.fadeinTime );
 		WRITE_FLOAT( textparms.fadeoutTime );
 		WRITE_FLOAT( textparms.holdTime );
-		WRITE_FLOAT( textparms.fxTime );
+		WRITE_FLOAT(textparms.fxTime);
+		WRITE_BYTE(textparms.drawtype);
+		WRITE_BYTE(textparms.timertime);
 		WRITE_STRING( pMessage );
 	MessageEnd();
 }
@@ -3066,7 +3068,7 @@ void CC_KDTreeTest( const CCommand &args )
 	vtune( false );
 }
 
-static ConCommand kdtree_test( "kdtree_test", CC_KDTreeTest, "Tests spatial partition for entities queries.", FCVAR_CHEAT );
+static ConCommand kdtree_test("kdtree_test", CC_KDTreeTest, "Tests spatial partition for entities queries.", FCVAR_NONE);
 
 void CC_VoxelTreeView( void )
 {
@@ -3074,7 +3076,7 @@ void CC_VoxelTreeView( void )
 	partition->RenderAllObjectsInTree( 10.0f );
 }
 
-static ConCommand voxeltree_view( "voxeltree_view", CC_VoxelTreeView, "View entities in the voxel-tree.", FCVAR_CHEAT );
+static ConCommand voxeltree_view("voxeltree_view", CC_VoxelTreeView, "View entities in the voxel-tree.", FCVAR_NONE);
 
 void CC_VoxelTreePlayerView( void )
 {
@@ -3085,7 +3087,7 @@ void CC_VoxelTreePlayerView( void )
 	partition->RenderObjectsInPlayerLeafs( vecStart - VEC_HULL_MIN_SCALED( pPlayer ), vecStart + VEC_HULL_MAX_SCALED( pPlayer ), 3.0f  );
 }
 
-static ConCommand voxeltree_playerview( "voxeltree_playerview", CC_VoxelTreePlayerView, "View entities in the voxel-tree at the player position.", FCVAR_CHEAT );
+static ConCommand voxeltree_playerview("voxeltree_playerview", CC_VoxelTreePlayerView, "View entities in the voxel-tree at the player position.", FCVAR_NONE);
 
 void CC_VoxelTreeBox( const CCommand &args )
 {
@@ -3136,7 +3138,7 @@ void CC_VoxelTreeBox( const CCommand &args )
 	partition->RenderObjectsInBox( vecMin, vecMax, flTime );
 }
 
-static ConCommand voxeltree_box( "voxeltree_box", CC_VoxelTreeBox, "View entities in the voxel-tree inside box <Vector(min), Vector(max)>.", FCVAR_CHEAT );
+static ConCommand voxeltree_box("voxeltree_box", CC_VoxelTreeBox, "View entities in the voxel-tree inside box <Vector(min), Vector(max)>.", FCVAR_NONE);
 
 void CC_VoxelTreeSphere( const CCommand &args )
 {
@@ -3190,7 +3192,7 @@ void CC_VoxelTreeSphere( const CCommand &args )
 	partition->RenderObjectsInSphere( vecCenter, flRadius, flTime );
 }
 
-static ConCommand voxeltree_sphere( "voxeltree_sphere", CC_VoxelTreeSphere, "View entities in the voxel-tree inside sphere <Vector(center), float(radius)>.", FCVAR_CHEAT );
+static ConCommand voxeltree_sphere("voxeltree_sphere", CC_VoxelTreeSphere, "View entities in the voxel-tree inside sphere <Vector(center), float(radius)>.", FCVAR_NONE);
 
 
 
@@ -3297,7 +3299,7 @@ void CC_CollisionTest( const CCommand &args )
 	}
 #endif
 }
-static ConCommand collision_test("collision_test", CC_CollisionTest, "Tests collision system", FCVAR_CHEAT );
+static ConCommand collision_test("collision_test", CC_CollisionTest, "Tests collision system", FCVAR_NONE);
 
 
 

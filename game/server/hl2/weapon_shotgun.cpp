@@ -18,12 +18,16 @@
 #include "soundent.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#include "props.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 extern ConVar sk_auto_reload_time;
 extern ConVar sk_plr_num_shotgun_pellets;
+extern ConVar chaos_no_reload;
+
+ConVar chaos_barrel_shotgun("chaos_barrel_shotgun", "0");
 
 class CWeaponShotgun : public CBaseHLCombatWeapon
 {
@@ -40,7 +44,7 @@ private:
 
 public:
 	void	Precache( void );
-
+	void FireBarrel(Vector vecOffset, Vector vecAiming);
 	int CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 
 	virtual const Vector& GetBulletSpread( void )
@@ -155,6 +159,13 @@ IMPLEMENT_ACTTABLE(CWeaponShotgun);
 
 void CWeaponShotgun::Precache( void )
 {
+	PrecacheModel("models/props_c17/oildrum001_explosive.mdl");
+	PrecacheModel("models/props_c17/oildrumchunk01a.mdl");
+	PrecacheModel("models/props_c17/oildrumchunk01b.mdl");
+	PrecacheModel("models/props_c17/oildrumchunk01c.mdl");
+	PrecacheModel("models/props_c17/oildrumchunk01d.mdl");
+	PrecacheModel("models/props_c17/oildrumchunk01e.mdl");
+
 	CBaseCombatWeapon::Precache();
 }
 
@@ -183,7 +194,15 @@ void CWeaponShotgun::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool
 		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
 	}
 
-	pOperator->FireBullets( 8, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
+	if (chaos_barrel_shotgun.GetBool())
+	{
+		FireBarrel(Vector(64, 16, 48), vecShootDir);
+		FireBarrel(Vector(64, -16, 48), vecShootDir);
+	}
+	else
+	{
+		pOperator->FireBullets(8, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -274,6 +293,8 @@ float CWeaponShotgun::GetFireRate()
 //-----------------------------------------------------------------------------
 bool CWeaponShotgun::StartReload( void )
 {
+	if (chaos_no_reload.GetBool())
+		return false;
 	CBaseCombatCharacter *pOwner  = GetOwner();
 	
 	if ( pOwner == NULL )
@@ -320,6 +341,8 @@ bool CWeaponShotgun::StartReload( void )
 bool CWeaponShotgun::Reload( void )
 {
 	// Check that StartReload was called first
+	if (chaos_no_reload.GetBool())
+		return false;
 	if (!m_bInReload)
 	{
 		Warning("ERROR: Shotgun Reload called incorrectly!\n");
@@ -435,6 +458,27 @@ void CWeaponShotgun::DryFire( void )
 	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
 }
 
+void CWeaponShotgun::FireBarrel(Vector vecOffset, Vector vecAiming)
+{
+	QAngle angEye = GetOwner()->GetAbsAngles();
+	vecOffset.z *= GetOwner()->GetModelScale();
+	//Vector vecLeft = Vector(64, 16, 0);
+	vecOffset.z -= abs(angEye.x);
+	Vector vecBarrelPos;
+	Vector vecVelocity = (vecAiming * 1200) + GetOwner()->GetAbsVelocity();
+	VectorRotate(vecOffset, angEye, vecBarrelPos);
+	vecBarrelPos = vecBarrelPos + GetOwner()->GetAbsOrigin();
+	//vecBarrelPos.z += vecAiming.z;
+	CPhysicsProp *pBarrel = (CPhysicsProp *)CreateEntityByName("prop_physics");
+	pBarrel->SetModel("models/props_c17/oildrum001_explosive.mdl");
+	pBarrel->SetInteraction(PROPINTER_PHYSGUN_FIRST_BREAK);
+	pBarrel->m_bFirstCollisionAfterLaunch = true;
+	pBarrel->m_bChaosSpawned;
+	DispatchSpawn(pBarrel);
+	pBarrel->Activate();
+	pBarrel->Teleport(&vecBarrelPos, &angEye, &vecVelocity);
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //
@@ -470,7 +514,15 @@ void CWeaponShotgun::PrimaryAttack( void )
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
 	
 	// Fire the bullets, and force the first shot to be perfectly accuracy
-	pPlayer->FireBullets( sk_plr_num_shotgun_pellets.GetInt(), vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
+	if (chaos_barrel_shotgun.GetBool())
+	{
+		FireBarrel(Vector(64, 16, 48), vecAiming);
+		FireBarrel(Vector(64, -16, 48), vecAiming);
+	}
+	else
+	{
+		pPlayer->FireBullets(sk_plr_num_shotgun_pellets.GetInt(), vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true);
+	}
 	
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -2, -1 ), random->RandomFloat( -2, 2 ), 0 ) );
 
@@ -526,7 +578,16 @@ void CWeaponShotgun::SecondaryAttack( void )
 	Vector vecAiming = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
 
 	// Fire the bullets
-	pPlayer->FireBullets( 12, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, false, false );
+	if (chaos_barrel_shotgun.GetBool())
+	{
+		FireBarrel(Vector(64, 16, 48), vecAiming);
+		FireBarrel(Vector(64, -16, 48), vecAiming);
+		FireBarrel(Vector(92, 0, 48), vecAiming);
+	}
+	else
+	{
+		pPlayer->FireBullets(12, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, false, false);
+	}
 	pPlayer->ViewPunch( QAngle(random->RandomFloat( -5, 5 ),0,0) );
 
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );

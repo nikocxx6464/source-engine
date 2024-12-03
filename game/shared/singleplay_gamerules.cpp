@@ -120,7 +120,7 @@ bool CSingleplayRules::Damage_ShowOnHUD( int iDmgType )
 bool CSingleplayRules::Damage_NoPhysicsForce( int iDmgType )
 {
 	// Damage types that don't have to supply a physics force & position.
-	int iTimeBasedDamage = Damage_GetTimeBased();
+	int iTimeBasedDamage = Damage_GetTimeBased() & ~DMG_POISON;
 	return ( ( iDmgType & ( DMG_FALL | DMG_BURN | DMG_PLASMA | DMG_DROWN | iTimeBasedDamage | DMG_CRUSH | DMG_PHYSGUN | DMG_PREVENT_PHYSICS_FORCE ) ) != 0 );
 }
 
@@ -287,7 +287,10 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 		// subtract off the speed at which a player is allowed to fall without being hurt,
 		// so damage will be based on speed beyond that, not the entire fall
 		pPlayer->m_Local.m_flFallVelocity -= PLAYER_MAX_SAFE_FALL_SPEED;
-		return pPlayer->m_Local.m_flFallVelocity * DAMAGE_FOR_FALL_SPEED;
+		float flDamage = pPlayer->m_Local.m_flFallVelocity * DAMAGE_FOR_FALL_SPEED;
+		if (pPlayer->MaxSpeed() == 4000)
+			flDamage /= 15;
+		return flDamage;
 	}
 
 	//=========================================================

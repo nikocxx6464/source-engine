@@ -267,4 +267,4 @@ void CC_CreateFlashlight( const CCommand &args )
 	pFlashlight->Teleport( &origin, &angles, NULL );
 
 }
-static ConCommand create_flashlight("create_flashlight", CC_CreateFlashlight, 0, FCVAR_CHEAT);
+static ConCommand create_flashlight("create_flashlight", CC_CreateFlashlight, 0, FCVAR_NONE);

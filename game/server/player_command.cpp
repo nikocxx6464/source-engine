@@ -172,6 +172,7 @@ void CPlayerMove::SetupMove( CBasePlayer *player, CUserCmd *ucmd, IMoveHelper *p
 		move->m_flForwardMove		= ucmd->forwardmove;
 		move->m_flSideMove			= ucmd->sidemove;
 		move->m_flUpMove				= ucmd->upmove;
+		//move->m_flCrouchFraction = ucmd->crouchfraction;
 	}
 
 	// Prepare remaining fields

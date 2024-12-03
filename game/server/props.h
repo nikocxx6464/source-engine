@@ -377,7 +377,8 @@ public:
 	void	HandleAnyCollisionInteractions( int index, gamevcollisionevent_t *pEvent );
 
 	string_t GetPhysOverrideScript( void ) { return m_iszOverrideScript; }
-	float	GetMassScale( void ) { return m_massScale; }
+	float	GetMassScale(void) { return m_massScale; }
+	bool		m_bFirstCollisionAfterLaunch;
 
 private:
 	// Compute impulse to apply to the enabled entity.
@@ -401,7 +402,6 @@ private:
 	float		m_flForceToEnableMotion;
 
 	bool		m_bThrownByPlayer;
-	bool		m_bFirstCollisionAfterLaunch;
 
 protected:
 	CNetworkVar( bool, m_bAwake );

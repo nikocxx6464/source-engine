@@ -33,12 +33,12 @@
 #define BRAKE_MAX_VALUE				1.0f
 #define BRAKE_BACK_FORWARD_SCALAR	2.0f
 
-ConVar r_vehicleBrakeRate( "r_vehicleBrakeRate", "1.5", FCVAR_CHEAT );
-
 ConVar xbox_throttlebias("xbox_throttlebias", "100", FCVAR_ARCHIVE );
 ConVar xbox_throttlespoof("xbox_throttlespoof", "200", FCVAR_ARCHIVE );
 ConVar xbox_autothrottle("xbox_autothrottle", "1", FCVAR_ARCHIVE );
-ConVar xbox_steering_deadzone( "xbox_steering_deadzone", "0.0" );
+ConVar xbox_steering_deadzone("xbox_steering_deadzone", "0.0");
+ConVar r_handbrake_allowed("r_handbrake_allowed", "1");
+ConVar r_vehicleBrakeRate("r_vehicleBrakeRate", "1.5", FCVAR_NONE);
 
 // remaps an angular variable to a 3 band function:
 // 0 <= t < start :		f(t) = 0
@@ -1341,7 +1341,7 @@ void CFourWheelVehiclePhysics::UpdateDriverControls( CUserCmd *cmd, float flFram
 	}
 
 	// Using has brakepedal for handbrake as well.
-	if ( ( nButtons & IN_JUMP ) && m_controls.bHasBrakePedal )
+	if ((nButtons & IN_JUMP) && m_controls.bHasBrakePedal && r_handbrake_allowed.GetBool())
 	{
 		m_controls.handbrake = true;	
 

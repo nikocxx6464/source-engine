@@ -35,6 +35,7 @@
 #include "datacache/imdlcache.h"
 #include "basemultiplayerplayer.h"
 #include "voice_gamemgr.h"
+#include "iservervehicle.h"
 
 #ifdef TF_DLL
 #include "tf_player.h"
@@ -337,7 +338,7 @@ void ClientPrecache( void )
 	ClientGamePrecache();
 }
 
-CON_COMMAND_F( cast_ray, "Tests collision detection", FCVAR_CHEAT )
+CON_COMMAND_F(cast_ray, "Tests collision detection", FCVAR_NONE)
 {
 	CBasePlayer *pPlayer = UTIL_GetCommandClient();
 	
@@ -359,7 +360,7 @@ CON_COMMAND_F( cast_ray, "Tests collision detection", FCVAR_CHEAT )
 	}
 }
 
-CON_COMMAND_F( cast_hull, "Tests hull collision detection", FCVAR_CHEAT )
+CON_COMMAND_F(cast_hull, "Tests hull collision detection", FCVAR_NONE)
 {
 	CBasePlayer *pPlayer = UTIL_GetCommandClient();
 	
@@ -597,7 +598,7 @@ void CC_DrawLine( const CCommand &args )
 
 	UTIL_AddDebugLine(startPos,endPos,true,true);
 }
-static ConCommand drawline("drawline", CC_DrawLine, "Draws line between two 3D Points.\n\tGreen if no collision\n\tRed is collides with something\n\tArguments: x1 y1 z1 x2 y2 z2", FCVAR_CHEAT);
+static ConCommand drawline("drawline", CC_DrawLine, "Draws line between two 3D Points.\n\tGreen if no collision\n\tRed is collides with something\n\tArguments: x1 y1 z1 x2 y2 z2", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Purpose : Draw a cross at a points.  
@@ -632,7 +633,7 @@ void CC_DrawCross( const CCommand &args )
 	end.x	+= (maxs.x - mins.x);
 	UTIL_AddDebugLine(start,end,true,true);
 }
-static ConCommand drawcross("drawcross", CC_DrawCross, "Draws a cross at the given location\n\tArguments: x y z", FCVAR_CHEAT);
+static ConCommand drawcross("drawcross", CC_DrawCross, "Draws a cross at the given location\n\tArguments: x y z", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -710,14 +711,14 @@ void killvector_helper( const CCommand &args, bool bExplode )
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-CON_COMMAND_F( killvector, "Kills a player applying force. Usage: killvector <player> <x value> <y value> <z value>", FCVAR_CHEAT )
+CON_COMMAND_F(killvector, "Kills a player applying force. Usage: killvector <player> <x value> <y value> <z value>", FCVAR_NONE)
 {
 	killvector_helper( args, false );
 }
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-CON_COMMAND_F( explodevector, "Kills a player applying an explosive force. Usage: explodevector <player> <x value> <y value> <z value>", FCVAR_CHEAT )
+CON_COMMAND_F(explodevector, "Kills a player applying an explosive force. Usage: explodevector <player> <x value> <y value> <z value>", FCVAR_NONE)
 {
 	killvector_helper( args, false );
 }
@@ -725,7 +726,7 @@ CON_COMMAND_F( explodevector, "Kills a player applying an explosive force. Usage
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-CON_COMMAND_F( buddha, "Toggle.  Player takes damage but won't die. (Shows red cross when health is zero)", FCVAR_CHEAT )
+CON_COMMAND_F(buddha, "Toggle.  Player takes damage but won't die. (Shows red cross when health is zero)", FCVAR_NONE)
 {
 	CBasePlayer *pPlayer = ToBasePlayer( UTIL_GetCommandClient() ); 
 	if ( pPlayer )
@@ -824,7 +825,7 @@ CON_COMMAND( give, "Give item to player.\n\tArguments: <item_name>" )
 		}
 
 		string_t iszItem = AllocPooledString( item_to_give );	// Make a copy of the classname
-		pPlayer->GiveNamedItem( STRING(iszItem) );
+		pPlayer->GiveNamedItem( STRING(iszItem), false );
 	}
 }
 
@@ -865,7 +866,7 @@ void CC_Player_SetModel( const CCommand &args )
 		UTIL_SetSize(pPlayer, VEC_HULL_MIN, VEC_HULL_MAX);
 	}
 }
-static ConCommand setmodel("setmodel", CC_Player_SetModel, "Changes's player's model", FCVAR_CHEAT );
+static ConCommand setmodel("setmodel", CC_Player_SetModel, "Changes's player's model", FCVAR_NONE);
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -943,7 +944,7 @@ void CC_Player_TestDispatchEffect( const CCommand &args )
 	DispatchEffect( (char *)args[1], data );
 }
 
-static ConCommand test_dispatcheffect("test_dispatcheffect", CC_Player_TestDispatchEffect, "Test a clientside dispatch effect.\n\tUsage: test_dispatcheffect <effect name> <distance away> <flags> <magnitude> <scale>\n\tDefaults are: <distance 1024> <flags 0> <magnitude 0> <scale 0>\n", FCVAR_CHEAT);
+static ConCommand test_dispatcheffect("test_dispatcheffect", CC_Player_TestDispatchEffect, "Test a clientside dispatch effect.\n\tUsage: test_dispatcheffect <effect name> <distance away> <flags> <magnitude> <scale>\n\tDefaults are: <distance 1024> <flags 0> <magnitude 0> <scale 0>\n", FCVAR_NONE);
 
 #ifdef HL2_DLL
 //-----------------------------------------------------------------------------
@@ -1008,7 +1009,7 @@ void CC_Player_BugBaitSwap( void )
 		}
 	}
 }
-static ConCommand bugswap("bug_swap", CC_Player_BugBaitSwap, "Automatically swaps the current weapon for the bug bait and back again.", FCVAR_CHEAT );
+static ConCommand bugswap("bug_swap", CC_Player_BugBaitSwap, "Automatically swaps the current weapon for the bug bait and back again.", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -1123,7 +1124,7 @@ void CC_Player_NoClip( void )
 	}
 }
 
-static ConCommand noclip("noclip", CC_Player_NoClip, "Toggle. Player becomes non-solid and flies.", FCVAR_CHEAT);
+static ConCommand noclip("noclip", CC_Player_NoClip, "Toggle. Player becomes non-solid and flies.", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
@@ -1156,13 +1157,13 @@ void CC_God_f (void)
 		ClientPrint( pPlayer, HUD_PRINTCONSOLE, "godmode ON\n");
 }
 
-static ConCommand god("god", CC_God_f, "Toggle. Player becomes invulnerable.", FCVAR_CHEAT );
+static ConCommand god("god", CC_God_f, "Toggle. Player becomes invulnerable.", FCVAR_NONE);
 
 
 //------------------------------------------------------------------------------
 // Sets client to godmode
 //------------------------------------------------------------------------------
-CON_COMMAND_F( setpos, "Move player to specified origin (must have sv_cheats).", FCVAR_CHEAT )
+CON_COMMAND_F(setpos, "Move player to specified origin (must have sv_cheats).", FCVAR_NONE)
 {
 	if ( !sv_cheats->GetBool() )
 		return;
@@ -1221,7 +1222,7 @@ void CC_setang_f (const CCommand &args)
 	pPlayer->SnapEyeAngles( newang );
 }
 
-static ConCommand setang("setang", CC_setang_f, "Snap player eyes to specified pitch yaw <roll:optional> (must have sv_cheats).", FCVAR_CHEAT );
+static ConCommand setang("setang", CC_setang_f, "Snap player eyes to specified pitch yaw <roll:optional> (must have sv_cheats).", FCVAR_NONE);
 
 static float GetHexFloat( const char *pStr )
 {
@@ -1237,7 +1238,7 @@ static float GetHexFloat( const char *pStr )
 //------------------------------------------------------------------------------
 // Move position
 //------------------------------------------------------------------------------
-CON_COMMAND_F( setpos_exact, "Move player to an exact specified origin (must have sv_cheats).", FCVAR_CHEAT )
+CON_COMMAND_F(setpos_exact, "Move player to an exact specified origin (must have sv_cheats).", FCVAR_NONE)
 {
 	if ( !sv_cheats->GetBool() )
 		return;
@@ -1258,20 +1259,22 @@ CON_COMMAND_F( setpos_exact, "Move player to an exact specified origin (must hav
 	newpos.x = GetHexFloat( args[1] );
 	newpos.y = GetHexFloat( args[2] );
 	newpos.z = args.ArgC() == 4 ? GetHexFloat( args[3] ) : oldorigin.z;
-
-	pPlayer->Teleport( &newpos, NULL, NULL );
+	if (pPlayer->GetVehicle() && pPlayer->GetVehicle()->GetVehicleEnt())
+	{
+		pPlayer->GetVehicle()->GetVehicleEnt()->Teleport(&newpos, NULL, NULL);
+	}
+	else
+	{
+		pPlayer->Teleport(&newpos, NULL, NULL);
+	}
 
 	if ( !TestEntityPosition( pPlayer ) )
 	{
-		if ( pPlayer->GetMoveType() != MOVETYPE_NOCLIP )
-		{
-			EnableNoClip( pPlayer );
-			return;
-		}
+		pPlayer->GetUnstuck(500);
 	}
 }
 
-CON_COMMAND_F( setang_exact, "Snap player eyes and orientation to specified pitch yaw <roll:optional> (must have sv_cheats).", FCVAR_CHEAT )
+CON_COMMAND_F(setang_exact, "Snap player eyes and orientation to specified pitch yaw <roll:optional> (must have sv_cheats).", FCVAR_NONE)
 {
 	if ( !sv_cheats->GetBool() )
 		return;
@@ -1324,7 +1327,7 @@ void CC_Notarget_f (void)
 		ClientPrint( pPlayer, HUD_PRINTCONSOLE, "notarget ON\n");
 }
 
-ConCommand notarget("notarget", CC_Notarget_f, "Toggle. Player becomes hidden to NPCs.", FCVAR_CHEAT);
+ConCommand notarget("notarget", CC_Notarget_f, "Toggle. Player becomes hidden to NPCs.", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 // Damage the client the specified amount
@@ -1347,7 +1350,7 @@ void CC_HurtMe_f(const CCommand &args)
 	pPlayer->TakeDamage( CTakeDamageInfo( pPlayer, pPlayer, iDamage, DMG_PREVENT_PHYSICS_FORCE ) );
 }
 
-static ConCommand hurtme("hurtme", CC_HurtMe_f, "Hurts the player.\n\tArguments: <health to lose>", FCVAR_CHEAT);
+static ConCommand hurtme("hurtme", CC_HurtMe_f, "Hurts the player.\n\tArguments: <health to lose>", FCVAR_NONE);
 
 static bool IsInGroundList( CBaseEntity *ent, CBaseEntity *ground )
 {

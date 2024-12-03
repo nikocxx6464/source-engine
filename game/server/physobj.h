@@ -106,6 +106,11 @@ protected:
 // CPhysExplosion -- physically simulated explosion
 //
 // ---------------------------------------------------------------------
+#define SF_PHYSEXPLOSION_NODAMAGE			0x0001
+#define SF_PHYSEXPLOSION_PUSH_PLAYER		0x0002
+#define SF_PHYSEXPLOSION_RADIAL				0x0004
+#define	SF_PHYSEXPLOSION_TEST_LOS			0x0008
+#define SF_PHYSEXPLOSION_DISORIENT_PLAYER	0x0010
 class CPhysExplosion : public CPointEntity
 {
 public:
@@ -122,7 +127,6 @@ public:
 	void InputExplode( inputdata_t &inputdata );
 
 	DECLARE_DATADESC();
-private:
 	
 	float		GetRadius( void );
 
@@ -130,6 +134,8 @@ private:
 	float		m_radius;
 	string_t	m_targetEntityName;
 	float		m_flInnerRadius;
+	bool		m_bConstant;
+	bool		m_bInvert;
 	
 	COutputEvent	m_OnPushedPlayer;	
 };

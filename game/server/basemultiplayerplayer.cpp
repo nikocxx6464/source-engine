@@ -270,7 +270,7 @@ void CBaseMultiplayerPlayer::AwardAchievement( int iAchievement, int iCount )
 			Msg( "%s\n", szBuf );
 		}
 	}
-	ConCommand dump_achievement_counters( "dump_achievement_counters", DumpAchievementCounters, "Spew the per-life achievement counters for multiplayer players", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+	ConCommand dump_achievement_counters("dump_achievement_counters", DumpAchievementCounters, "Spew the per-life achievement counters for multiplayer players", FCVAR_NONE);
 
 #endif // _DEBUG
 
@@ -290,7 +290,7 @@ void CBaseMultiplayerPlayer::ResetPerLifeCounters( void )
 }
 
 
-ConVar tf_escort_score_rate( "tf_escort_score_rate", "1", FCVAR_CHEAT, "Score for escorting the train, in points per second" );
+ConVar tf_escort_score_rate("tf_escort_score_rate", "1", FCVAR_NONE, "Score for escorting the train, in points per second");
 
 #define ESCORT_SCORE_CONTEXT		"AreaScoreContext"
 #define ESCORT_SCORE_INTERVAL		0.1

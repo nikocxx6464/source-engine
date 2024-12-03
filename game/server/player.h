@@ -245,6 +245,8 @@ protected:
 public:
 	DECLARE_DATADESC();
 	DECLARE_SERVERCLASS();
+	CNetworkVar(bool, m_bSwimInAir);
+	bool m_bSuperGrab;
 	
 	CBasePlayer();
 	~CBasePlayer();
@@ -255,6 +257,8 @@ public:
 
 	virtual void			SetModel( const char *szModelName );
 	void					SetBodyPitch( float flPitch );
+
+	//virtual void			Event_PreSaveGameLoaded(char const *pSaveName, bool bInGame);
 
 	virtual void			UpdateOnRemove( void );
 
@@ -517,7 +521,7 @@ public:
 	virtual void 			SelectItem( const char *pstr, int iSubType = 0 );
 	void					ItemPreFrame( void );
 	virtual void			ItemPostFrame( void );
-	virtual CBaseEntity		*GiveNamedItem( const char *szName, int iSubType = 0 );
+	virtual CBaseEntity		*GiveNamedItem( const char *szName, bool bChaos, int iSubType = 0 );
 	void					EnableControl(bool fControl);
 	virtual void			CheckTrainUpdate( void );
 	void					AbortReload( void );
@@ -546,7 +550,7 @@ public:
 
 	// physics interactions
 	// mass/size limit set to zero for none
-	static bool				CanPickupObject( CBaseEntity *pObject, float massLimit, float sizeLimit );
+	static bool				CanPickupObject( CBaseEntity *pObject, float massLimit, float sizeLimit, bool bSuperGrab );
 	virtual void			PickupObject( CBaseEntity *pObject, bool bLimitMassAndSize = true ) {}
 	virtual void			ForceDropOfCarriedPhysObjects( CBaseEntity *pOnlyIfHoldindThis = NULL ) {}
 	virtual float			GetHeldObjectMass( IPhysicsObject *pHeldObject );
@@ -891,6 +895,9 @@ public:
 	CEconWearable			*GetWearable( int i ) { return m_hMyWearables[i]; }
 	int						GetNumWearables( void ) { return m_hMyWearables.Count(); }
 #endif
+	// from edict_t
+	// CBasePlayer doesn't send this but CCSPlayer does.
+	CNetworkVarForDerived(int, m_ArmorValue);
 
 private:
 
@@ -1038,9 +1045,6 @@ private:
 	// Multiplayer handling
 	PlayerConnectedState	m_iConnected;
 
-	// from edict_t
-	// CBasePlayer doesn't send this but CCSPlayer does.
-	CNetworkVarForDerived( int, m_ArmorValue );
 	float					m_AirFinished;
 	float					m_PainFinished;
 
@@ -1169,13 +1173,13 @@ protected:
 	int				m_surfaceProps;
 	surfacedata_t*	m_pSurfaceData;
 	float			m_surfaceFriction;
-	char			m_chTextureType;
-	char			m_chPreviousTextureType;	// Separate from m_chTextureType. This is cleared if the player's not on the ground.
 
 	bool			m_bSinglePlayerGameEnding;
 
 public:
 
+	char			m_chTextureType;
+	char			m_chPreviousTextureType;	// Separate from m_chTextureType. This is cleared if the player's not on the ground.
 	float  GetLaggedMovementValue( void ){ return m_flLaggedMovementValue;	}
 	void   SetLaggedMovementValue( float flValue ) { m_flLaggedMovementValue = flValue;	}
 

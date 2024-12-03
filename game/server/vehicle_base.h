@@ -81,6 +81,7 @@ class CPropVehicle : public CBaseProp, public CDefaultPlayerPickupVPhysics
 public:
 	CPropVehicle();
 	virtual ~CPropVehicle();
+	Vector m_vecLastBump;
 
 	void SetVehicleType( unsigned int nVehicleType )			{ m_nVehicleType = nVehicleType; }
 	unsigned int GetVehicleType( void )							{ return m_nVehicleType; }
@@ -289,6 +290,9 @@ public:
 	bool IsEnterAnimOn( void ) { return m_bEnterAnimOn; }
 	bool IsExitAnimOn( void ) { return m_bExitAnimOn; }
 	const Vector &GetEyeExitEndpoint( void ) { return m_vecEyeExitEndpoint; }
+
+	bool IsLocked() { return m_bLocked; }
+	void SetLocked(bool bBool){ m_bLocked = bBool; }
 
 protected:
 	// Entering / Exiting

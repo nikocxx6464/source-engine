@@ -73,4 +73,4 @@ void CC_Test_Entity_Blocker( void )
 		NDebugOverlay::Box( tr.endpos, VEC_HULL_MIN_SCALED( pPlayer ), VEC_HULL_MAX_SCALED( pPlayer ), 0, 255, 0, 64, 1000.0 );
 	}
 }
-static ConCommand test_entity_blocker("test_entity_blocker", CC_Test_Entity_Blocker, "Test command that drops an entity blocker out in front of the player.", FCVAR_CHEAT );
+static ConCommand test_entity_blocker("test_entity_blocker", CC_Test_Entity_Blocker, "Test command that drops an entity blocker out in front of the player.", FCVAR_NONE);

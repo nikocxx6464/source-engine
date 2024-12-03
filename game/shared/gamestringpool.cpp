@@ -26,7 +26,7 @@ class CGameStringPool : public CBaseGameSystem
 #endif
 {
 	virtual char const *Name() { return "CGameStringPool"; }
-	virtual void LevelShutdownPostEntity() { FreeAll(); }
+	//virtual void LevelShutdownPostEntity() { FreeAll(); }//THE PAIN
 
 	void FreeAll()
 	{

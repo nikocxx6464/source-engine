@@ -36,9 +36,10 @@
 #include "ai_interactions.h"
 #include "weapon_flaregun.h"
 #include "env_debughistory.h"
+#include "movevars_shared.h"
 
 extern Vector PointOnLineNearestPoint(const Vector& vStartPos, const Vector& vEndPos, const Vector& vPoint);
-
+extern ConVar chaos_no_reload;
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -331,8 +332,8 @@ void CNPC_Alyx::Spawn()
 		SetupAlyxWithoutParent();
 		CreateEmpTool( );
 	}
-
-	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
+	if (!m_bEvil)
+		AddEFlags(EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION);
 
 	m_iHealth			= 80;
 	m_bloodColor		= DONT_BLEED;
@@ -1857,7 +1858,7 @@ int CNPC_Alyx::TranslateSchedule( int scheduleType )
 
 	case SCHED_HIDE_AND_RELOAD:
 		{
-			if ( HL2GameRules()->IsAlyxInDarknessMode() )
+			if (HL2GameRules()->IsAlyxInDarknessMode() && !chaos_no_reload.GetBool())
 				return SCHED_RELOAD;
 
 			// If I don't have a ranged attacker as an enemy, don't try to hide
@@ -1873,11 +1874,12 @@ int CNPC_Alyx::TranslateSchedule( int scheduleType )
 					continue;
 
 				// Look for enemies with ranged capabilities
-				if ( pEnemy->CapabilitiesGet() & ( bits_CAP_WEAPON_RANGE_ATTACK1 | bits_CAP_WEAPON_RANGE_ATTACK2 | bits_CAP_INNATE_RANGE_ATTACK1 | bits_CAP_INNATE_RANGE_ATTACK2 ) )
+				if (pEnemy->CapabilitiesGet() & (bits_CAP_WEAPON_RANGE_ATTACK1 | bits_CAP_WEAPON_RANGE_ATTACK2 | bits_CAP_INNATE_RANGE_ATTACK1 | bits_CAP_INNATE_RANGE_ATTACK2) && !chaos_no_reload.GetBool())
 					return SCHED_HIDE_AND_RELOAD;
 			}
 
-			return SCHED_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_RELOAD;
 		}
 		break;
 
@@ -2111,7 +2113,7 @@ void CNPC_Alyx::StartTask( const Task_t *pTask )
 
 	case TASK_ALYX_FALL_TO_GROUND:
 		// If we wait this long without landing, we'll fall to our death
-		SetWait(2);
+		SetWait(200);
 		break;
 
 	default:
@@ -2175,7 +2177,8 @@ void CNPC_Alyx::RunTask( const Task_t *pTask )
 		{
 			TaskComplete();
 		}
-		else if( IsWaitFinished() )
+		//CAN'T FALL TO YOUR DEATH WHEN GRAVITY IS NON POSITIVE IDIOT
+		else if (IsWaitFinished() && sv_gravity.GetFloat() > 0)
 		{
 			// Call back to the base class & see if it can find a ground for us
 			// If it can't, we'll fall to our death
@@ -2399,12 +2402,13 @@ void CNPC_Alyx::DrawPistol()
 void CNPC_Alyx::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector *pvecTarget, const Vector *pVelocity )
 {
 	BaseClass::Weapon_Drop( pWeapon, pvecTarget, pVelocity );
-
+	//let evil alyx drop gun, cause chaos is funy
+	/*
 	if( pWeapon && pWeapon->ClassMatches( CLASSNAME_ALYXGUN ) )
 	{
 		pWeapon->SUB_Remove();
 	}
-
+	*/
 	m_WeaponType = WT_NONE;
 }
 
@@ -2753,6 +2757,8 @@ bool CNPC_Alyx::BlindedByFlare( void )
 //-----------------------------------------------------------------------------
 bool CNPC_Alyx::CanReload( void )
 {
+	if (chaos_no_reload.GetBool())
+		return false;
 	if ( m_bIsFlashlightBlind )
 		return false;
 

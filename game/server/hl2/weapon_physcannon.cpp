@@ -42,6 +42,7 @@
 #include "gamestats.h"
 // NVNT haptic utils
 #include "haptics/haptic_utils.h"
+#include "episodic/vehicle_jeep_episodic.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -462,7 +463,7 @@ class CGrabController : public IMotionEvent
 	DECLARE_SIMPLE_DATADESC();
 
 public:
-
+	bool m_bSuperGrab;
 	CGrabController( void );
 	~CGrabController( void );
 	void AttachEntity( CBasePlayer *pPlayer, CBaseEntity *pEntity, IPhysicsObject *pPhys, bool bIsMegaPhysCannon, const Vector &vGrabPosition, bool bUseGrabPosition );
@@ -668,7 +669,7 @@ void CGrabController::ComputeMaxSpeed( CBaseEntity *pEntity, IPhysicsObject *pPh
 
 	// Compute total mass...
 	float flMass = PhysGetEntityMass( pEntity );
-	float flMaxMass = physcannon_maxmass.GetFloat();
+	float flMaxMass = m_bSuperGrab ? 100000 : physcannon_maxmass.GetFloat();
 	if ( flMass <= flMaxMass )
 		return;
 
@@ -678,7 +679,7 @@ void CGrabController::ComputeMaxSpeed( CBaseEntity *pEntity, IPhysicsObject *pPh
 	float invMass = pPhysics->GetInvMass();
 	float invInertia = pPhysics->GetInvInertia().Length();
 
-	float invMaxMass = 1.0f / MAX_MASS;
+	float invMaxMass = 1.0f / (m_bSuperGrab ? 100000 : MAX_MASS);
 	float ratio = invMaxMass / invMass;
 	invMass = invMaxMass;
 	invInertia *= ratio;
@@ -985,6 +986,7 @@ public:
 
 	bool IsHoldingEntity( CBaseEntity *pEnt );
 	CGrabController &GetGrabController() { return m_grabController; }
+	bool m_bSuperGrab;
 
 private:
 	CGrabController		m_grabController;
@@ -1042,11 +1044,13 @@ void CPlayerPickupController::Init( CBasePlayer *pPlayer, CBaseEntity *pObject )
 	m_grabController.SetIgnorePitch( true );
 	m_grabController.SetAngleAlignment( DOT_30DEGREE );
 	m_pPlayer = pPlayer;
+	m_bSuperGrab = pPlayer->m_bSuperGrab;
 	IPhysicsObject *pPhysics = pObject->VPhysicsGetObject();
 	
 	Pickup_OnPhysGunPickup( pObject, m_pPlayer, PICKED_UP_BY_PLAYER );
 	
 	m_grabController.AttachEntity( pPlayer, pObject, pPhysics, false, vec3_origin, false );
+	m_grabController.m_bSuperGrab = m_bSuperGrab;
 	// NVNT apply a downward force to simulate the mass of the held object.
 #if defined( WIN32 ) && !defined( _X360 )
 	HapticSetConstantForce(m_pPlayer,clamp(m_grabController.GetLoadWeight()*0.1,1,6)*Vector(0,-1,0));
@@ -1179,6 +1183,9 @@ void PlayerPickupObject( CBasePlayer *pPlayer, CBaseEntity *pObject )
 	//Don't pick up if we don't have a phys object.
 	if ( pObject->VPhysicsGetObject() == NULL )
 		 return;
+
+	if (gEntList.FindEntityByClassname(NULL, "player_pickup"))
+		return;//already grabbed something
 
 	CPlayerPickupController *pController = (CPlayerPickupController *)CBaseEntity::Create( "player_pickup", pObject->GetAbsOrigin(), vec3_angle, pPlayer );
 	
@@ -1732,8 +1739,8 @@ void CWeaponPhysCannon::PrimaryFireEffect( void )
 
 	pOwner->ViewPunch( QAngle(-6, random->RandomInt(-2,2) ,0) );
 	
-	color32 white = { 245, 245, 255, 32 };
-	UTIL_ScreenFade( pOwner, white, 0.1f, 0.0f, FFADE_IN );
+	//color32 white = { 245, 245, 255, 32 };
+	//UTIL_ScreenFade( pOwner, white, 0.1f, 0.0f, FFADE_IN );
 
 	WeaponSound( SINGLE );
 }
@@ -2199,6 +2206,9 @@ void CWeaponPhysCannon::PrimaryAttack( void )
 			bValid = true;
 			pEntity = tr.m_pEnt;
 		}
+		//always allow if evil
+		if (tr.m_pEnt && tr.m_pEnt->IsNPC() && tr.m_pEnt->MyNPCPointer()->m_bEvil)
+			bValid = true;
 	}
 
 	if( !bValid )
@@ -2730,7 +2740,13 @@ CBaseEntity *CWeaponPhysCannon::FindObjectInCone( const Vector &vecOrigin, const
 //-----------------------------------------------------------------------------
 bool CGrabController::UpdateObject( CBasePlayer *pPlayer, float flError )
 {
- 	CBaseEntity *pEntity = GetAttached();
+	CBaseEntity *pEntity = GetAttached();
+	//LOAD BEARING ERROR COMPUTATION
+	//this alters a time-based variable. if phys_timescale is not 1, that variable may not behave as desired. we alter phys_timescale in chaos.
+	//if we don't do this, hopper mines cannot be picked up.
+	//i don't fully get how this works
+	if (pEntity)
+		ComputeError();
 	if ( !pEntity || ComputeError() > flError || pPlayer->GetGroundEntity() == pEntity || !pEntity->VPhysicsGetObject() )
 	{
 		return false;
@@ -3463,7 +3479,7 @@ bool CWeaponPhysCannon::CanPickupObject( CBaseEntity *pTarget )
 	{
 		if ( pTarget->VPhysicsIsFlesh( ) )
 			return false;
-		return CBasePlayer::CanPickupObject( pTarget, physcannon_maxmass.GetFloat(), 0 );
+		return CBasePlayer::CanPickupObject( pTarget, physcannon_maxmass.GetFloat(), 0, false );
 	}
 
 	if ( pTarget->IsNPC() && pTarget->MyNPCPointer()->CanBecomeRagdoll() )
@@ -3472,7 +3488,7 @@ bool CWeaponPhysCannon::CanPickupObject( CBaseEntity *pTarget )
 	if ( dynamic_cast<CRagdollProp*>(pTarget) )
 		return true;
 
-	return CBasePlayer::CanPickupObject( pTarget, 0, 0 );
+	return CBasePlayer::CanPickupObject( pTarget, 0, 0, false );
 }
 
 //-----------------------------------------------------------------------------
@@ -4067,7 +4083,7 @@ void CWeaponPhysCannon::DoEffectHolding( )
 //-----------------------------------------------------------------------------
 void CWeaponPhysCannon::DoEffectLaunch( Vector *pos )
 {
-	Assert( pos );
+	//Assert( pos );
 	if ( pos == NULL )
 		return;
 

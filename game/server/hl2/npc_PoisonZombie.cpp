@@ -23,12 +23,13 @@
 #include "activitylist.h"
 #include "engine/IEngineSound.h"
 #include "npc_BaseZombie.h"
+#include "npc_PoisonZombie.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 #define BREATH_VOL_MAX  0.6
-
+extern int						g_iChaosSpawnCount;
 //
 // Controls how soon he throws the first headcrab after seeing his enemy (also when the first headcrab leaps off)
 //
@@ -100,11 +101,6 @@ enum
 };
 
 
-//-----------------------------------------------------------------------------
-// The maximum number of headcrabs we can have riding on our back.
-// NOTE: If you change this value you must also change the lookup table in Spawn!
-//-----------------------------------------------------------------------------
-#define MAX_CRABS	3	
 
 int AE_ZOMBIE_POISON_THROW_WARN_SOUND;
 int AE_ZOMBIE_POISON_PICKUP_CRAB;
@@ -134,101 +130,6 @@ static const char *pMoanSounds[] =
 //-----------------------------------------------------------------------------
 ConVar sk_zombie_poison_health( "sk_zombie_poison_health", "0");
 ConVar sk_zombie_poison_dmg_spit( "sk_zombie_poison_dmg_spit","0");
-
-class CNPC_PoisonZombie : public CAI_BlendingHost<CNPC_BaseZombie>
-{
-	DECLARE_CLASS( CNPC_PoisonZombie, CAI_BlendingHost<CNPC_BaseZombie> );
-
-public:
-
-	//
-	// CBaseZombie implemenation.
-	//
-	virtual Vector HeadTarget( const Vector &posSrc );
-	bool ShouldBecomeTorso( const CTakeDamageInfo &info, float flDamageThreshold );
-	virtual bool IsChopped( const CTakeDamageInfo &info )	{ return false; }
-
-	//
-	// CAI_BaseNPC implementation.
-	//
-	virtual float MaxYawSpeed( void );
-
-	virtual int RangeAttack1Conditions( float flDot, float flDist );
-	virtual int RangeAttack2Conditions( float flDot, float flDist );
-
-	virtual float GetClawAttackRange() const { return 70; }
-
-	virtual void PrescheduleThink( void );
-	virtual void BuildScheduleTestBits( void );
-	virtual int SelectSchedule( void );
-	virtual int SelectFailSchedule( int nFailedSchedule, int nFailedTask, AI_TaskFailureCode_t eTaskFailCode );
-	virtual int TranslateSchedule( int scheduleType );
-
-	virtual bool ShouldPlayIdleSound( void );
-
-	//
-	// CBaseAnimating implementation.
-	//
-	virtual void HandleAnimEvent( animevent_t *pEvent );
-
-	//
-	// CBaseEntity implementation.
-	//
-	virtual void Spawn( void );
-	virtual void Precache( void );
-	virtual void SetZombieModel( void );
-
-	virtual Class_T Classify( void );
-	virtual void Event_Killed( const CTakeDamageInfo &info );
-	virtual int OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo );
-
-	DECLARE_DATADESC();
-	DEFINE_CUSTOM_AI;
-
-	void PainSound( const CTakeDamageInfo &info );
-	void AlertSound( void );
-	void IdleSound( void );
-	void AttackSound( void );
-	void AttackHitSound( void );
-	void AttackMissSound( void );
-	void FootstepSound( bool fRightFoot );
-	void FootscuffSound( bool fRightFoot ) {};
-
-	virtual void StopLoopingSounds( void );
-
-protected:
-
-	virtual void MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize );
-	virtual bool MustCloseToAttack( void );
-
-	virtual const char *GetMoanSound( int nSoundIndex );
-	virtual const char *GetLegsModel( void );
-	virtual const char *GetTorsoModel( void );
-	virtual const char *GetHeadcrabClassname( void );
-	virtual const char *GetHeadcrabModel( void );
-
-private:
-
-	void BreatheOffShort( void );
-
-	void EnableCrab( int nCrab, bool bEnable );
-	int RandomThrowCrab( void );
-	void EvacuateNest( bool bExplosion, float flDamage, CBaseEntity *pAttacker );
-
-	CSoundPatch *m_pFastBreathSound;
-	CSoundPatch *m_pSlowBreathSound;
-
-	int m_nCrabCount;				// How many headcrabs we have on our back.
-	bool m_bCrabs[MAX_CRABS];		// Which crabs in particular are on our back.
-	float m_flNextCrabThrowTime;	// The next time we are allowed to throw a headcrab.
-
-	float m_flNextPainSoundTime;
-
-	bool m_bNearEnemy;
-
-	// NOT serialized:
-	int m_nThrowCrab;				// The crab we are about to throw.
-};
 
 LINK_ENTITY_TO_CLASS( npc_poisonzombie, CNPC_PoisonZombie );
 
@@ -310,7 +211,7 @@ void CNPC_PoisonZombie::Spawn( void )
 	ENVELOPE_CONTROLLER.Play( m_pSlowBreathSound, BREATH_VOL_MAX, 100 );
 
 	int nCrabs = m_nCrabCount;
-	if ( !nCrabs )
+	if ( !nCrabs && !m_bChaosSpawned)//let chaos-made zombies spawn with no crabs on back
 	{
 		nCrabs = MAX_CRABS;
 	}
@@ -612,7 +513,7 @@ int CNPC_PoisonZombie::RangeAttack2Conditions( float flDot, float flDist )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-Vector CNPC_PoisonZombie::HeadTarget( const Vector &posSrc )
+Vector CNPC_PoisonZombie::HeadTarget()
 {
 	int iCrabAttachment = LookupAttachment( "headcrab1" );
 	Assert( iCrabAttachment > 0 );
@@ -675,7 +576,14 @@ void CNPC_PoisonZombie::HandleAnimEvent( animevent_t *pEvent )
 		SetBodygroup( ZOMBIE_BODYGROUP_THROW, 0 );
 
 		CBlackHeadcrab *pCrab = (CBlackHeadcrab *)CreateNoSpawn( GetHeadcrabClassname(), EyePosition(), vec3_angle, this );
-		pCrab->AddSpawnFlags( SF_NPC_FALL_TO_GROUND );
+		pCrab->AddSpawnFlags(SF_NPC_FALL_TO_GROUND);
+		if (m_bChaosSpawned)
+		{
+			g_iChaosSpawnCount++;
+			pCrab->m_iChaosID = g_iChaosSpawnCount;
+		}
+		pCrab->m_bChaosPersist = m_bChaosPersist;
+		pCrab->m_bChaosSpawned = m_bChaosSpawned;
 		
 		// Fade if our parent is supposed to
 		if ( HasSpawnFlags( SF_NPC_FADE_CORPSE ) )
@@ -791,16 +699,17 @@ void CNPC_PoisonZombie::EvacuateNest( bool bExplosion, float flDamage, CBaseEnti
 			// Now slam the angles because the attachment point will have pitch and roll, which we can't use.
 			vecAngles = QAngle( 0, random->RandomFloat( 0, 360 ), 0 );
 
-			CBlackHeadcrab *pCrab = (CBlackHeadcrab *)CreateNoSpawn( GetHeadcrabClassname(), vecPosition, vecAngles, this );
-			pCrab->Spawn();
-
-			if( !HeadcrabFits(pCrab) )
+			CBlackHeadcrab *pCrab = (CBlackHeadcrab *)CreateNoSpawn(GetHeadcrabClassname(), vecPosition, vecAngles, this);
+			if (m_bChaosSpawned)
 			{
-				UTIL_Remove(pCrab);
-				continue;
+				g_iChaosSpawnCount++;
+				pCrab->m_iChaosID = g_iChaosSpawnCount;
 			}
+			pCrab->m_bChaosPersist = m_bChaosPersist;
+			pCrab->m_bChaosSpawned = m_bChaosSpawned;
+			pCrab->GetUnstuck(100, UF_NO_NODE_TELEPORT);
 
-			float flVelocityScale = 2.0f;
+			float flVelocityScale = 0.2f;
 			if ( bExplosion && ( flDamage > 10 ) )
 			{
 				flVelocityScale = 0.1 * flDamage;

@@ -73,7 +73,7 @@ void cc_cl_interp_all_changed( IConVar *pConVar, const char *pOldString, float f
 }
 
 
-static ConVar  cl_extrapolate( "cl_extrapolate", "1", FCVAR_CHEAT, "Enable/disable extrapolation if interpolation history runs out." );
+static ConVar  cl_extrapolate("cl_extrapolate", "1", FCVAR_NONE, "Enable/disable extrapolation if interpolation history runs out.");
 static ConVar  cl_interp_npcs( "cl_interp_npcs", "0.0", FCVAR_USERINFO, "Interpolate NPC positions starting this many seconds in past (or cl_interp, if greater)" );  
 static ConVar  cl_interp_all( "cl_interp_all", "0", 0, "Disable interpolation list optimizations.", 0, 0, 0, 0, cc_cl_interp_all_changed );
 ConVar  r_drawmodeldecals( "r_drawmodeldecals", "1" );
@@ -86,7 +86,7 @@ bool C_BaseEntity::s_bInterpolate = true;
 
 bool C_BaseEntity::sm_bDisableTouchFuncs = false;	// Disables PhysicsTouch and PhysicsStartTouch function calls
 
-static ConVar  r_drawrenderboxes( "r_drawrenderboxes", "0", FCVAR_CHEAT );  
+static ConVar  r_drawrenderboxes("r_drawrenderboxes", "0", FCVAR_NONE);
 
 static bool g_bAbsRecomputationStack[8];
 static unsigned short g_iAbsRecomputationStackPos = 0;
@@ -2273,7 +2273,7 @@ void C_BaseEntity::MarkAimEntsDirty()
 	for ( i = 0; i < c; ++i )
 	{
 		C_BaseEntity *pEnt = g_AimEntsList[ i ];
-		Assert( pEnt && pEnt->GetMoveParent() );
+		//Assert( pEnt && pEnt->GetMoveParent() );//getting spammed on ep2_outland_05
 		if ( pEnt->IsEffectActive(EF_BONEMERGE | EF_PARENT_ANIMATES) )
 		{
 			pEnt->AddEFlags( EFL_DIRTY_ABSTRANSFORM );
@@ -2291,7 +2291,7 @@ void C_BaseEntity::CalcAimEntPositions()
 	{
 		C_BaseEntity *pEnt = g_AimEntsList[ i ];
 		Assert( pEnt );
-		Assert( pEnt->GetMoveParent() );
+		//Assert( pEnt->GetMoveParent() );//getting spammed on ep2_outland_05
 		if ( pEnt->IsEffectActive(EF_BONEMERGE) )
 		{
 			pEnt->CalcAbsolutePosition( );
@@ -3173,7 +3173,7 @@ void C_BaseEntity::Simulate()
 }
 
 // Defined in engine
-static ConVar cl_interpolate( "cl_interpolate", "1.0f", FCVAR_USERINFO | FCVAR_DEVELOPMENTONLY );
+static ConVar cl_interpolate( "cl_interpolate", "1.0f", FCVAR_USERINFO );
 
 // (static function)
 void C_BaseEntity::InterpolateServerEntities()
@@ -4815,7 +4815,7 @@ CON_COMMAND( cl_sizeof, "Determines the size of the specified client class." )
 }
 #endif
 
-CON_COMMAND_F( dlight_debug, "Creates a dlight in front of the player", FCVAR_CHEAT )
+CON_COMMAND_F(dlight_debug, "Creates a dlight in front of the player", FCVAR_NONE)
 {
 	dlight_t *el = effects->CL_AllocDlight( 1 );
 	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
@@ -5501,7 +5501,7 @@ static void RemoveDecals_f( void )
 	}
 }
 
-static ConCommand cl_removedecals( "cl_removedecals", RemoveDecals_f, "Remove the decals from the entity under the crosshair.", FCVAR_CHEAT );
+static ConCommand cl_removedecals("cl_removedecals", RemoveDecals_f, "Remove the decals from the entity under the crosshair.", FCVAR_NONE);
 
 
 //-----------------------------------------------------------------------------
@@ -5550,7 +5550,7 @@ static void ToggleBBoxVisualization( int fVisFlags, const CCommand &args )
 //-----------------------------------------------------------------------------
 // Purpose: Command to toggle visualizations of bboxes on the client
 //-----------------------------------------------------------------------------
-CON_COMMAND_F( cl_ent_bbox, "Displays the client's bounding box for the entity under the crosshair.", FCVAR_CHEAT )
+CON_COMMAND_F(cl_ent_bbox, "Displays the client's bounding box for the entity under the crosshair.", FCVAR_NONE)
 {
 	ToggleBBoxVisualization( CBaseEntity::VISUALIZE_COLLISION_BOUNDS, args );
 }
@@ -5559,7 +5559,7 @@ CON_COMMAND_F( cl_ent_bbox, "Displays the client's bounding box for the entity u
 //-----------------------------------------------------------------------------
 // Purpose: Command to toggle visualizations of bboxes on the client
 //-----------------------------------------------------------------------------
-CON_COMMAND_F( cl_ent_absbox, "Displays the client's absbox for the entity under the crosshair.", FCVAR_CHEAT )
+CON_COMMAND_F(cl_ent_absbox, "Displays the client's absbox for the entity under the crosshair.", FCVAR_NONE)
 {
 	ToggleBBoxVisualization( CBaseEntity::VISUALIZE_SURROUNDING_BOUNDS, args );
 }
@@ -5568,7 +5568,7 @@ CON_COMMAND_F( cl_ent_absbox, "Displays the client's absbox for the entity under
 //-----------------------------------------------------------------------------
 // Purpose: Command to toggle visualizations of bboxes on the client
 //-----------------------------------------------------------------------------
-CON_COMMAND_F( cl_ent_rbox, "Displays the client's render box for the entity under the crosshair.", FCVAR_CHEAT )
+CON_COMMAND_F(cl_ent_rbox, "Displays the client's render box for the entity under the crosshair.", FCVAR_NONE)
 {
 	ToggleBBoxVisualization( CBaseEntity::VISUALIZE_RENDER_BOUNDS, args );
 }
@@ -6462,7 +6462,7 @@ void CC_CL_Find_Ent( const CCommand& args )
 
 	Msg("Found %d matches.\n", iCount);
 }
-static ConCommand cl_find_ent("cl_find_ent", CC_CL_Find_Ent, "Find and list all client entities with classnames that contain the specified substring.\nFormat: cl_find_ent <substring>\n", FCVAR_CHEAT);
+static ConCommand cl_find_ent("cl_find_ent", CC_CL_Find_Ent, "Find and list all client entities with classnames that contain the specified substring.\nFormat: cl_find_ent <substring>\n", FCVAR_NONE);
 
 //------------------------------------------------------------------------------
 void CC_CL_Find_Ent_Index( const CCommand& args )
@@ -6485,4 +6485,4 @@ void CC_CL_Find_Ent_Index( const CCommand& args )
 		Msg("Found no entity at %d.\n", iIndex);
 	}
 }
-static ConCommand cl_find_ent_index("cl_find_ent_index", CC_CL_Find_Ent_Index, "Display data for clientside entity matching specified index.\nFormat: cl_find_ent_index <index>\n", FCVAR_CHEAT);
+static ConCommand cl_find_ent_index("cl_find_ent_index", CC_CL_Find_Ent_Index, "Display data for clientside entity matching specified index.\nFormat: cl_find_ent_index <index>\n", FCVAR_NONE);

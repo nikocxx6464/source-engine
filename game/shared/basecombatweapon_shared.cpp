@@ -50,14 +50,16 @@
 #define HIDEWEAPON_THINK_CONTEXT			"BaseCombatWeapon_HideThink"
 
 extern bool UTIL_ItemCanBeTouchedByPlayer( CBaseEntity *pItem, CBasePlayer *pPlayer );
-
+#ifndef CLIENT_DLL
+extern ConVar chaos_no_reload;
+#endif
 #if defined ( TF_CLIENT_DLL ) || defined ( TF_DLL )
 #ifdef _DEBUG
-ConVar tf_weapon_criticals_force_random( "tf_weapon_criticals_force_random", "0", FCVAR_REPLICATED | FCVAR_CHEAT );
+ConVar tf_weapon_criticals_force_random( "tf_weapon_criticals_force_random", "0", FCVAR_REPLICATED );
 #endif // _DEBUG
-ConVar tf_weapon_criticals_bucket_cap( "tf_weapon_criticals_bucket_cap", "1000.0", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar tf_weapon_criticals_bucket_bottom( "tf_weapon_criticals_bucket_bottom", "-250.0", FCVAR_REPLICATED | FCVAR_CHEAT );
-ConVar tf_weapon_criticals_bucket_default( "tf_weapon_criticals_bucket_default", "300.0", FCVAR_REPLICATED | FCVAR_CHEAT );
+ConVar tf_weapon_criticals_bucket_cap( "tf_weapon_criticals_bucket_cap", "1000.0", FCVAR_REPLICATED );
+ConVar tf_weapon_criticals_bucket_bottom( "tf_weapon_criticals_bucket_bottom", "-250.0", FCVAR_REPLICATED );
+ConVar tf_weapon_criticals_bucket_default( "tf_weapon_criticals_bucket_default", "300.0", FCVAR_REPLICATED );
 #endif // TF
 
 CBaseCombatWeapon::CBaseCombatWeapon() : BASECOMBATWEAPON_DERIVED_FROM()
@@ -990,7 +992,7 @@ void CBaseCombatWeapon::Equip( CBaseCombatCharacter *pOwner )
 	SetTouch( NULL );
 	SetThink( NULL );
 #if !defined( CLIENT_DLL )
-	VPhysicsDestroyObject();
+	//VPhysicsDestroyObject();
 #endif
 
 	if ( pOwner->IsPlayer() )
@@ -1367,6 +1369,10 @@ bool CBaseCombatWeapon::ReloadOrSwitchWeapons( void )
 			 m_flNextPrimaryAttack < gpGlobals->curtime && 
 			 m_flNextSecondaryAttack < gpGlobals->curtime )
 		{
+#ifndef CLIENT_DLL
+			if (chaos_no_reload.GetBool())
+				return true;
+#endif
 			// if we're successfully reloading, we're done
 			if ( Reload() )
 				return true;
@@ -1544,6 +1550,10 @@ void CBaseCombatWeapon::HideThink( void )
 
 bool CBaseCombatWeapon::CanReload( void )
 {
+#ifndef CLIENT_DLL
+	if (chaos_no_reload.GetBool())
+		return false;
+#endif
 	if ( AutoFiresFullClip() && m_bFiringWholeClip )
 	{
 		return false;
@@ -1758,7 +1768,11 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	// -----------------------
 	//  Reload pressed / Clip Empty
 	// -----------------------
-	if ( ( pOwner->m_nButtons & IN_RELOAD ) && UsesClipsForAmmo1() && !m_bInReload ) 
+	if ( ( pOwner->m_nButtons & IN_RELOAD ) && UsesClipsForAmmo1() && !m_bInReload
+#ifndef CLIENT_DLL
+		&& !chaos_no_reload.GetBool()
+#endif
+		) 
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
@@ -2041,6 +2055,10 @@ bool CBaseCombatWeapon::ReloadsSingly( void ) const
 //-----------------------------------------------------------------------------
 bool CBaseCombatWeapon::Reload( void )
 {
+#ifndef CLIENT_DLL
+	if (chaos_no_reload.GetBool())
+		return false;
+#endif
 	return DefaultReload( GetMaxClip1(), GetMaxClip2(), ACT_VM_RELOAD );
 }
 
@@ -2119,6 +2137,10 @@ void CBaseCombatWeapon::CheckReload( void )
 				m_iClip1 += 1;
 				pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
 
+#ifndef CLIENT_DLL
+				if (chaos_no_reload.GetBool())
+					return;
+#endif
 				Reload();
 				return;
 			}
@@ -2243,6 +2265,10 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 	// If my clip is empty (and I use clips) start reload
 	if ( UsesClipsForAmmo1() && !m_iClip1 ) 
 	{
+#ifndef CLIENT_DLL
+		if (chaos_no_reload.GetBool())
+			return;
+#endif
 		Reload();
 		return;
 	}
@@ -2544,7 +2570,7 @@ BEGIN_PREDICTION_DATA( CBaseCombatWeapon )
 	DEFINE_FIELD( m_bFireOnEmpty, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bFiringWholeClip, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_flNextEmptySoundTime, FIELD_FLOAT ),
-	DEFINE_FIELD( m_Activity, FIELD_INTEGER ),
+	DEFINE_PRED_FIELD(m_Activity, FIELD_INTEGER, FTYPEDESC_INSENDTABLE),
 	DEFINE_FIELD( m_fFireDuration, FIELD_FLOAT ),
 	DEFINE_FIELD( m_iszName, FIELD_INTEGER ),		
 	DEFINE_FIELD( m_bFiresUnderwater, FIELD_BOOLEAN ),
@@ -2607,7 +2633,7 @@ BEGIN_DATADESC( CBaseCombatWeapon )
 
 // don't save these, init to 0 and regenerate
 //	DEFINE_FIELD( m_flNextEmptySoundTime, FIELD_TIME ),
-//	DEFINE_FIELD( m_Activity, FIELD_INTEGER ),
+	DEFINE_FIELD( m_Activity, FIELD_INTEGER ),
  	DEFINE_FIELD( m_nIdealSequence, FIELD_INTEGER ),
 	DEFINE_FIELD( m_IdealActivity, FIELD_INTEGER ),
 
@@ -2764,6 +2790,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CBaseCombatWeapon, DT_LocalWeaponData )
 	SendPropIntWithMinusOneFlag( SENDINFO(m_iClip1 ), 8 ),
 	SendPropIntWithMinusOneFlag( SENDINFO(m_iClip2 ), 8 ),
 	SendPropInt( SENDINFO(m_iPrimaryAmmoType ), 8 ),
+	SendPropInt( SENDINFO(m_Activity ), 8 ),
 	SendPropInt( SENDINFO(m_iSecondaryAmmoType ), 8 ),
 
 	SendPropInt( SENDINFO( m_nViewModelIndex ), VIEWMODEL_INDEX_BITS, SPROP_UNSIGNED ),
@@ -2778,6 +2805,7 @@ BEGIN_NETWORK_TABLE_NOBASE( CBaseCombatWeapon, DT_LocalWeaponData )
 	RecvPropIntWithMinusOneFlag( RECVINFO(m_iClip1 )),
 	RecvPropIntWithMinusOneFlag( RECVINFO(m_iClip2 )),
 	RecvPropInt( RECVINFO(m_iPrimaryAmmoType )),
+	RecvPropInt(RECVINFO(m_Activity)),
 	RecvPropInt( RECVINFO(m_iSecondaryAmmoType )),
 
 	RecvPropInt( RECVINFO( m_nViewModelIndex ) ),

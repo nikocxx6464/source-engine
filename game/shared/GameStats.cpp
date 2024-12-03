@@ -21,7 +21,8 @@
 #include <time.h>
 #ifdef GAME_DLL
 #include "vehicle_base.h"
-#endif 
+#include "hl2_player.h"
+#endif
 
 #if defined( _X360 )
 #include "xbox/xbox_win32stubs.h"
@@ -398,6 +399,15 @@ void CBaseGameStats::Event_FlippedVehicle( CBasePlayer *pDriver, CPropVehicleDri
 void CBaseGameStats::Event_PreSaveGameLoaded( char const *pSaveName, bool bInGame )
 {
 	StatsLog( "CBaseGameStats::Event_PreSaveGameLoaded [%s] %s\n", pSaveName, bInGame ? "in-game" : "at console" );
+	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
+	if (pPlayer)
+	{
+		CHL2_Player *pHL2Player = dynamic_cast<CHL2_Player*>(pPlayer);
+		if (pHL2Player)
+		{
+			pHL2Player->Event_PreSaveGameLoaded(pSaveName, bInGame);
+		}
+	}
 }
 
 bool CBaseGameStats::SaveToFileNOW( bool bForceSyncWrite /* = false */ )

@@ -22,7 +22,8 @@
 
 #define GOAL_POSITION_INVALID	Vector( FLT_MAX, FLT_MAX, FLT_MAX )
 
-ConVar DrawBattleLines( "ai_drawbattlelines", "0", FCVAR_CHEAT );
+ConVar DrawBattleLines("ai_drawbattlelines", "0", FCVAR_NONE);
+extern ConVar chaos_no_reload;
 
 
 static AI_StandoffParams_t AI_DEFAULT_STANDOFF_PARAMS = { AIHCR_MOVE_ON_COVER, true, true, 2.5, 1., 3, 25, 0, false, 0.f };
@@ -471,11 +472,13 @@ int CAI_StandoffBehavior::SelectScheduleUpdateWeapon( void )
 		StandoffMsg( "Out of ammo, reloading\n" );
 		if ( m_params.fCoverOnReload )
 		{
-			GetOuter()->SpeakSentence( STANDOFF_SENTENCE_OUT_OF_AMMO );
-			return SCHED_HIDE_AND_RELOAD;
+			GetOuter()->SpeakSentence(STANDOFF_SENTENCE_OUT_OF_AMMO);
+			if (!chaos_no_reload.GetBool())
+				return SCHED_HIDE_AND_RELOAD;
 		}
-		
-		return SCHED_RELOAD;
+
+		if (!chaos_no_reload.GetBool())
+			return SCHED_RELOAD;
 	}
 	
 	// Otherwise, update planned shots to fire before taking cover again

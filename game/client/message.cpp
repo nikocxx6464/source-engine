@@ -22,6 +22,7 @@
 #include "vgui/ISurface.h"
 #include "client_textmessage.h"
 #include "VGuiMatSurface/IMatSystemSurface.h"
+#include <string>
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -61,6 +62,7 @@ struct message_parms_t
 	float fadeTime;
 	const char *vguiFontName;
 	vgui::HFont	font;
+	int drawtype;
 };
 
 //
@@ -87,6 +89,7 @@ public:
 		wchar_t		ch;
 		byte		type;
 		byte		r, g, b, a;
+		int			drawtype;
 	};
 
 	CHudMessage( const char *pElementName );
@@ -116,7 +119,7 @@ public:
 
 public: // ITextMessage
 	virtual void		SetPosition( int x, int y );
-	virtual void		AddChar( int r, int g, int b, int a, wchar_t ch );
+	virtual void		AddChar(int r, int g, int b, int a, wchar_t ch, int drawtype);
 
 	virtual void		GetLength( int *wide, int *tall, const char *string );
 	virtual int			GetFontInfo( FONTABC *pABCs, vgui::HFont hFont );
@@ -585,7 +588,7 @@ void CHudMessage::MessageDrawScan( client_textmessage_t *pMessage, float time )
 		{
 			m_parms.text = line[j];
 			MessageScanNextChar();
-			textmessage->AddChar( m_parms.r, m_parms.g, m_parms.b, 255 - m_parms.fadeBlend, m_parms.text );
+			textmessage->AddChar(m_parms.r, m_parms.g, m_parms.b, 255 - m_parms.fadeBlend, m_parms.text, m_parms.pMessage->drawtype);
 		}
 
 		m_parms.y += vgui::surface()->GetFontTall( m_parms.font );
@@ -855,12 +858,28 @@ void CHudMessage::MsgFunc_HudMsg(bf_read &msg)
 	pNetMessage->fadein = msg.ReadFloat();
 	pNetMessage->fadeout = msg.ReadFloat();
 	pNetMessage->holdtime = msg.ReadFloat();
-	pNetMessage->fxtime	= msg.ReadFloat();
+	pNetMessage->fxtime = msg.ReadFloat();
+	pNetMessage->drawtype = msg.ReadByte();
+	pNetMessage->timertime = msg.ReadByte();
 
 	pNetMessage->pName = s_NetworkMessageNames[ channel ];
 
 	// see tmessage.cpp why 512
 	msg.ReadString( (char*)pNetMessage->pMessage, 512 );
+
+	//maybe don't put literal 255 here...
+	if (pNetMessage->timertime != 255)
+	{
+		char szMessage[512];
+		const char *pOriginalMsg = pNetMessage->pMessage;
+		//localize right now. this is a special case because of the time display that comes after the string
+		wchar_t *pwcText = g_pVGuiLocalize->Find(pOriginalMsg);
+		std::wstring text_ws(pwcText);
+		std::string text_str(text_ws.begin(), text_ws.end());
+		const char* text_char = text_str.c_str();
+		Q_snprintf(szMessage, sizeof(szMessage), "%s (%d)", text_char, pNetMessage->timertime);
+		pNetMessage->pMessage = strdup(szMessage);
+	}
 
 	MessageAdd( pNetMessage->pName );
 }
@@ -928,6 +947,7 @@ CHudMessage::message_t *CHudMessage::AllocMessage( void )
 	msg->b = 0;
 	msg->a = 0;
 	msg->font = 0;
+	msg->drawtype = FONT_DRAW_DEFAULT;
 
 	SetVisible( true );
 
@@ -963,7 +983,7 @@ void CHudMessage::SetPosition( int x, int y )
 //			ch - 
 // Output : int
 //-----------------------------------------------------------------------------
-void CHudMessage::AddChar( int r, int g, int b, int a, wchar_t ch )
+void CHudMessage::AddChar(int r, int g, int b, int a, wchar_t ch, int drawtype)
 {
 	message_t *msg = AllocMessage();
 	if ( !msg )
@@ -977,8 +997,8 @@ void CHudMessage::AddChar( int r, int g, int b, int a, wchar_t ch )
 	msg->b = b;
 	msg->a = a;
 	msg->ch = ch;
+	msg->drawtype = drawtype;
 }
-
 //-----------------------------------------------------------------------------
 // Purpose: Determine width and height of specified string
 // Input  : *wide - 
@@ -1053,7 +1073,7 @@ void CHudMessage::PaintCharacters()
 				{
 					vgui::surface()->DrawSetTextColor( msg->r,  msg->g,  msg->b,  msg->a );
 					vgui::surface()->DrawSetTextPos( xpos, ypos );
-					vgui::surface()->DrawUnicodeChar( msg->ch );
+					vgui::surface()->DrawUnicodeChar(msg->ch, (vgui::FontDrawType_t)msg->drawtype);
 				}
 				xpos += a + b + c;
 			}

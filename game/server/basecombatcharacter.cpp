@@ -62,11 +62,12 @@ extern int	g_interactionBarnacleVictimReleased;
 #endif //HL2_DLL
 
 extern ConVar weapon_showproficiency;
+extern ConVar chaos_steal_health;
 
 ConVar ai_show_hull_attacks( "ai_show_hull_attacks", "0" );
 ConVar ai_force_serverside_ragdoll( "ai_force_serverside_ragdoll", "0" );
 
-ConVar nb_last_area_update_tolerance( "nb_last_area_update_tolerance", "4.0", FCVAR_CHEAT, "Distance a character needs to travel in order to invalidate cached area" ); // 4.0 tested as sweet spot (for wanderers, at least). More resulted in little benefit, less quickly diminished benefit [7/31/2008 tom]
+ConVar nb_last_area_update_tolerance("nb_last_area_update_tolerance", "4.0", FCVAR_NONE, "Distance a character needs to travel in order to invalidate cached area"); // 4.0 tested as sweet spot (for wanderers, at least). More resulted in little benefit, less quickly diminished benefit [7/31/2008 tom]
 
 #ifndef _RETAIL
 ConVar ai_use_visibility_cache( "ai_use_visibility_cache", "1" );
@@ -1027,6 +1028,25 @@ Activity CBaseCombatCharacter::GetDeathActivity ( void )
 	}
 
 	return deathActivity;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Given and activity ID, return the activity name
+//-----------------------------------------------------------------------------
+const char *CBaseCombatCharacter::GetActivityName(int actID)
+{
+	if (actID == -1)
+		return "ACT_INVALID";
+
+	// m_pActivitySR only contains public activities, ActivityList_NameForIndex() has them all
+	const char *name = ActivityList_NameForIndex(actID);
+
+	if (!name)
+	{
+		AssertOnce(!"CAI_BaseNPC::GetActivityName() returning NULL!");
+	}
+
+	return name;
 }
 
 
@@ -2044,8 +2064,8 @@ void CBaseCombatCharacter::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector
 
 	pWeapon->Drop( vecThrow );
 	Weapon_Detach( pWeapon );
-
-	if ( HasSpawnFlags( SF_NPC_NO_WEAPON_DROP ) )
+	//PIN: always drop RPG so d3_c17_13 is more doable. players will notice this flag is checked if their RPG or the ammo box get removed
+	if (HasSpawnFlags(SF_NPC_NO_WEAPON_DROP) && !pWeapon->ClassMatches("weapon_rpg"))
 	{
 		// Don't drop weapons when the super physgun is happening.
 		UTIL_Remove( pWeapon );
@@ -2496,7 +2516,14 @@ int CBaseCombatCharacter::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 		if ( flIntegerDamage <= 0 )
 			return 0;
 
+		int nPrevHealth = GetHealth();
 		m_iHealth -= flIntegerDamage;
+		if (chaos_steal_health.GetBool())
+		{
+			if (m_iHealth <= 0)
+				m_iHealth = 0;
+			if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+		}
 	}
 
 	return 1;
@@ -2513,7 +2540,14 @@ int CBaseCombatCharacter::OnTakeDamage_Dead( const CTakeDamageInfo &info )
 	// do the damage
 	if ( m_takedamage != DAMAGE_EVENTS_ONLY )
 	{
+		int nPrevHealth = GetHealth();
 		m_iHealth -= info.GetDamage();
+		if (chaos_steal_health.GetBool())
+		{
+			if (m_iHealth <= 0)
+				m_iHealth = 0;
+			if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+		}
 	}
 
 	return 1;

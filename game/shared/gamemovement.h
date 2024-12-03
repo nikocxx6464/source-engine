@@ -212,7 +212,7 @@ protected:
 
 	// Ducking
 	virtual void	Duck( void );
-	virtual void	HandleDuckingSpeedCrop();
+	//virtual void	HandleDuckingSpeedCrop();
 	virtual void	FinishUnDuck( void );
 	virtual void	FinishDuck( void );
 	virtual bool	CanUnduck();

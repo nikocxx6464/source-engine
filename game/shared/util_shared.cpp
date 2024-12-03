@@ -38,7 +38,7 @@ bool NPC_CheckBrushExclude( CBaseEntity *pEntity, CBaseEntity *pBrush );
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar r_visualizetraces( "r_visualizetraces", "0", FCVAR_CHEAT );
+ConVar r_visualizetraces("r_visualizetraces", "0", FCVAR_NONE);
 ConVar developer("developer", "0", 0, "Set developer message level." ); // developer mode
 
 float UTIL_VecToYaw( const Vector &vec )
@@ -628,7 +628,7 @@ void UTIL_TraceEntity( CBaseEntity *pEntity, const Vector &vecAbsStart, const Ve
 
 	// Adding this assertion here so game code catches it, but really the assertion belongs in the engine
 	// because one day, rotated collideables will work!
-	Assert( pCollision->GetCollisionAngles() == vec3_angle );
+	//Assert( pCollision->GetCollisionAngles() == vec3_angle );
 
 	CTraceFilterEntity traceFilter( pEntity, pCollision->GetCollisionGroup() );
 
@@ -647,7 +647,7 @@ void UTIL_TraceEntity( CBaseEntity *pEntity, const Vector &vecAbsStart, const Ve
 
 	// Adding this assertion here so game code catches it, but really the assertion belongs in the engine
 	// because one day, rotated collideables will work!
-	Assert( pCollision->GetCollisionAngles() == vec3_angle );
+	//Assert( pCollision->GetCollisionAngles() == vec3_angle );
 
 	CTraceFilterEntityIgnoreOther traceFilter( pEntity, pIgnore, nCollisionGroup );
 

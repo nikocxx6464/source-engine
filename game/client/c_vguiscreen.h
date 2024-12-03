@@ -153,10 +153,10 @@ private:
 	CMaterialReference	m_OverlayMaterial;
 
 	VMatrix	m_PanelToWorld;
-
-	CPanelWrapper m_PanelWrapper;
-
 	CHandle<C_BasePlayer> m_hPlayerOwner;
+
+public:
+	CPanelWrapper m_PanelWrapper;
 };
 
 

@@ -198,12 +198,12 @@ class IMaterialSystem;
 class IStudioRender;
 
 #ifdef _DEBUG
-static ConVar s_UseNetworkVars( "UseNetworkVars", "1", FCVAR_CHEAT, "For profiling, toggle network vars." );
+static ConVar s_UseNetworkVars("UseNetworkVars", "1", FCVAR_NONE, "For profiling, toggle network vars.");
 #endif
 
 extern ConVar sv_noclipduringpause;
 ConVar sv_massreport( "sv_massreport", "0" );
-ConVar sv_force_transmit_ents( "sv_force_transmit_ents", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY, "Will transmit all entities to client, regardless of PVS conditions (will still skip based on transmit flags, however)." );
+ConVar sv_force_transmit_ents("sv_force_transmit_ents", "0", FCVAR_NONE, "Will transmit all entities to client, regardless of PVS conditions (will still skip based on transmit flags, however).");
 
 ConVar sv_autosave( "sv_autosave", "1", 0, "Set to 1 to autosave game on level transition. Does not affect autosave triggers." );
 ConVar *sv_maxreplay = NULL;
@@ -236,7 +236,7 @@ static int		g_nCommandClientIndex = 0;
 static int		g_nCurrentChapterIndex = -1;
 
 #ifdef _DEBUG
-static ConVar sv_showhitboxes( "sv_showhitboxes", "-1", FCVAR_CHEAT, "Send server-side hitboxes for specified entity to client (NOTE:  this uses lots of bandwidth, use on listen server only)." );
+static ConVar sv_showhitboxes("sv_showhitboxes", "-1", FCVAR_NONE, "Send server-side hitboxes for specified entity to client (NOTE:  this uses lots of bandwidth, use on listen server only).");
 #endif
 
 void PrecachePointTemplates();
@@ -1630,84 +1630,84 @@ static TITLECOMMENT gTitleComments[] =
 	{ "escape_",				"#Portal_Chapter11_Title"  },
 	{ "background2",			"#Portal_Chapter12_Title"  },
 #else
-	{ "intro", "#HL2_Chapter1_Title" },
+	{ "intro", "#hl2chaos_Chapter1_Title" },
 
-	{ "d1_trainstation_05", "#HL2_Chapter2_Title" },
-	{ "d1_trainstation_06", "#HL2_Chapter2_Title" },
+	{ "d1_trainstation_05", "#hl2chaos_Chapter2_Title" },
+	{ "d1_trainstation_06", "#hl2chaos_Chapter2_Title" },
 	
-	{ "d1_trainstation_", "#HL2_Chapter1_Title" },
+	{ "d1_trainstation_", "#hl2chaos_Chapter1_Title" },
 
-	{ "d1_canals_06", "#HL2_Chapter4_Title" },
-	{ "d1_canals_07", "#HL2_Chapter4_Title" },
-	{ "d1_canals_08", "#HL2_Chapter4_Title" },
-	{ "d1_canals_09", "#HL2_Chapter4_Title" },
-	{ "d1_canals_1", "#HL2_Chapter4_Title" },
+	{ "d1_canals_06", "#hl2chaos_Chapter4_Title" },
+	{ "d1_canals_07", "#hl2chaos_Chapter4_Title" },
+	{ "d1_canals_08", "#hl2chaos_Chapter4_Title" },
+	{ "d1_canals_09", "#hl2chaos_Chapter4_Title" },
+	{ "d1_canals_1", "#hl2chaos_Chapter4_Title" },
 	
-	{ "d1_canals_0", "#HL2_Chapter3_Title" },
+	{ "d1_canals_0", "#hl2chaos_Chapter3_Title" },
 
-	{ "d1_eli_", "#HL2_Chapter5_Title" },
+	{ "d1_eli_", "#hl2chaos_Chapter5_Title" },
 
-	{ "d1_town_", "#HL2_Chapter6_Title" },
+	{ "d1_town_", "#hl2chaos_Chapter6_Title" },
 
-	{ "d2_coast_09", "#HL2_Chapter8_Title" },
-	{ "d2_coast_1", "#HL2_Chapter8_Title" },
-	{ "d2_prison_01", "#HL2_Chapter8_Title" },
+	{ "d2_coast_09", "#hl2chaos_Chapter8_Title" },
+	{ "d2_coast_1", "#hl2chaos_Chapter8_Title" },
+	{ "d2_prison_01", "#hl2chaos_Chapter8_Title" },
 
-	{ "d2_coast_", "#HL2_Chapter7_Title" },
+	{ "d2_coast_", "#hl2chaos_Chapter7_Title" },
 
-	{ "d2_prison_06", "#HL2_Chapter9a_Title" },
-	{ "d2_prison_07", "#HL2_Chapter9a_Title" },
-	{ "d2_prison_08", "#HL2_Chapter9a_Title" },
+	{ "d2_prison_06", "#hl2chaos_Chapter9a_Title" },
+	{ "d2_prison_07", "#hl2chaos_Chapter9a_Title" },
+	{ "d2_prison_08", "#hl2chaos_Chapter9a_Title" },
 
-	{ "d2_prison_", "#HL2_Chapter9_Title" },
+	{ "d2_prison_", "#hl2chaos_Chapter9_Title" },
 
-	{ "d3_c17_01", "#HL2_Chapter9a_Title" },
-	{ "d3_c17_09", "#HL2_Chapter11_Title" },
-	{ "d3_c17_1", "#HL2_Chapter11_Title" },
+	{ "d3_c17_01", "#hl2chaos_Chapter9a_Title" },
+	{ "d3_c17_09", "#hl2chaos_Chapter11_Title" },
+	{ "d3_c17_1", "#hl2chaos_Chapter11_Title" },
 
-	{ "d3_c17_", "#HL2_Chapter10_Title" },
+	{ "d3_c17_", "#hl2chaos_Chapter10_Title" },
 
-	{ "d3_citadel_", "#HL2_Chapter12_Title" },
+	{ "d3_citadel_", "#hl2chaos_Chapter12_Title" },
 
-	{ "d3_breen_", "#HL2_Chapter13_Title" },
-	{ "credits", "#HL2_Chapter14_Title" },
+	{ "d3_breen_", "#hl2chaos_Chapter13_Title" },
+	{ "credits", "#hl2chaos_Chapter14_Title" },
 
-	{ "ep1_citadel_00", "#episodic_Chapter1_Title" },
-	{ "ep1_citadel_01", "#episodic_Chapter1_Title" },
-	{ "ep1_citadel_02b", "#episodic_Chapter1_Title" },
-	{ "ep1_citadel_02", "#episodic_Chapter1_Title" },
-	{ "ep1_citadel_03", "#episodic_Chapter2_Title" },
-	{ "ep1_citadel_04", "#episodic_Chapter2_Title" },
-	{ "ep1_c17_00a", "#episodic_Chapter3_Title" },
-	{ "ep1_c17_00", "#episodic_Chapter3_Title" },
-	{ "ep1_c17_01", "#episodic_Chapter4_Title" },
-	{ "ep1_c17_02b", "#episodic_Chapter4_Title" },
-	{ "ep1_c17_02", "#episodic_Chapter4_Title" },
-	{ "ep1_c17_05", "#episodic_Chapter5_Title" },
-	{ "ep1_c17_06", "#episodic_Chapter5_Title" },
+	{ "ep1_citadel_00", "#ep1chaos_Chapter1_Title" },
+	{ "ep1_citadel_01", "#ep1chaos_Chapter1_Title" },
+	{ "ep1_citadel_02b", "#ep1chaos_Chapter1_Title" },
+	{ "ep1_citadel_02", "#ep1chaos_Chapter1_Title" },
+	{ "ep1_citadel_03", "#ep1chaos_Chapter2_Title" },
+	{ "ep1_citadel_04", "#ep1chaos_Chapter2_Title" },
+	{ "ep1_c17_00a", "#ep1chaos_Chapter3_Title" },
+	{ "ep1_c17_00", "#ep1chaos_Chapter3_Title" },
+	{ "ep1_c17_01", "#ep1chaos_Chapter4_Title" },
+	{ "ep1_c17_02b", "#ep1chaos_Chapter4_Title" },
+	{ "ep1_c17_02", "#ep1chaos_Chapter4_Title" },
+	{ "ep1_c17_05", "#ep1chaos_Chapter5_Title" },
+	{ "ep1_c17_06", "#ep1chaos_Chapter5_Title" },
 
-	{ "ep2_outland_01a", "#ep2_Chapter1_Title" },
-	{ "ep2_outland_01", "#ep2_Chapter1_Title" },
-	{ "ep2_outland_02", "#ep2_Chapter2_Title" },
-	{ "ep2_outland_03", "#ep2_Chapter2_Title" },
-	{ "ep2_outland_04", "#ep2_Chapter2_Title" },
-	{ "ep2_outland_05", "#ep2_Chapter3_Title" },
+	{ "ep2_outland_01a", "#ep2chaos_Chapter1_Title" },
+	{ "ep2_outland_01", "#ep2chaos_Chapter1_Title" },
+	{ "ep2_outland_02", "#ep2chaos_Chapter2_Title" },
+	{ "ep2_outland_03", "#ep2chaos_Chapter2_Title" },
+	{ "ep2_outland_04", "#ep2chaos_Chapter2_Title" },
+	{ "ep2_outland_05", "#ep2chaos_Chapter3_Title" },
 	
-	{ "ep2_outland_06a", "#ep2_Chapter4_Title" },
-	{ "ep2_outland_06", "#ep2_Chapter3_Title" },
+	{ "ep2_outland_06a", "#ep2chaos_Chapter4_Title" },
+	{ "ep2_outland_06", "#ep2chaos_Chapter3_Title" },
 
-	{ "ep2_outland_07", "#ep2_Chapter4_Title" },
-	{ "ep2_outland_08", "#ep2_Chapter4_Title" },
-	{ "ep2_outland_09", "#ep2_Chapter5_Title" },
+	{ "ep2_outland_07", "#ep2chaos_Chapter4_Title" },
+	{ "ep2_outland_08", "#ep2chaos_Chapter4_Title" },
+	{ "ep2_outland_09", "#ep2chaos_Chapter5_Title" },
 	
-	{ "ep2_outland_10a", "#ep2_Chapter5_Title" },
-	{ "ep2_outland_10", "#ep2_Chapter5_Title" },
+	{ "ep2_outland_10a", "#ep2chaos_Chapter5_Title" },
+	{ "ep2_outland_10", "#ep2chaos_Chapter5_Title" },
 
-	{ "ep2_outland_11a", "#ep2_Chapter6_Title" },
-	{ "ep2_outland_11", "#ep2_Chapter6_Title" },
+	{ "ep2_outland_11a", "#ep2chaos_Chapter6_Title" },
+	{ "ep2_outland_11", "#ep2chaos_Chapter6_Title" },
 	
-	{ "ep2_outland_12a", "#ep2_Chapter7_Title" },
-	{ "ep2_outland_12", "#ep2_Chapter6_Title" },
+	{ "ep2_outland_12a", "#ep2chaos_Chapter7_Title" },
+	{ "ep2_outland_12", "#ep2chaos_Chapter6_Title" },
 #endif
 };
 

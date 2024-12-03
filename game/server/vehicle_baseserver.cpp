@@ -28,8 +28,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar g_debug_vehiclesound( "g_debug_vehiclesound", "0", FCVAR_CHEAT );
-ConVar g_debug_vehicleexit( "g_debug_vehicleexit", "0", FCVAR_CHEAT );
+ConVar g_debug_vehiclesound("g_debug_vehiclesound", "0", FCVAR_NONE);
+ConVar g_debug_vehicleexit("g_debug_vehicleexit", "0", FCVAR_NONE);
 
 ConVar sv_vehicle_autoaim_scale("sv_vehicle_autoaim_scale", "8");
 
@@ -620,20 +620,35 @@ bool CBaseServerVehicle::GetPassengerExitPoint( int nRole, Vector *pExitPoint, Q
 	if( CheckExitPoint( 180, 170, pExitPoint ) )
 		return true;
 
-	// All else failed, try popping them out the top.
+	trace_t tr;
 	Vector vecWorldMins, vecWorldMaxs;
+	//still nothing? then we're either attached to a crane or on the ceiling because sv_gravity was altered, in which case place below the car lmao
+	m_pVehicle->CollisionProp()->WorldSpaceAABB(&vecWorldMins, &vecWorldMaxs);
+	pExitPoint->x = (vecWorldMins.x + vecWorldMaxs.x) * 0.5f;
+	pExitPoint->y = (vecWorldMins.y + vecWorldMaxs.y) * 0.5f;
+	pExitPoint->z = vecWorldMaxs.z - 200.0f;
+
+	// Make sure it's clear
+	//why where these two traces using m_pVehicle->CollisionProp()->WorldSpaceCenter() as the start pos???
+	UTIL_TraceHull(*pExitPoint, *pExitPoint, VEC_HULL_MIN, VEC_HULL_MAX, MASK_PLAYERSOLID, m_pVehicle, COLLISION_GROUP_NONE, &tr);
+	if (!tr.startsolid)
+	{
+		return true;
+	}
+
+	// All else failed, try popping them out the top.
 	m_pVehicle->CollisionProp()->WorldSpaceAABB( &vecWorldMins, &vecWorldMaxs );
 	pExitPoint->x = (vecWorldMins.x + vecWorldMaxs.x) * 0.5f;
 	pExitPoint->y = (vecWorldMins.y + vecWorldMaxs.y) * 0.5f;
 	pExitPoint->z = vecWorldMaxs.z + 50.0f;
 
 	// Make sure it's clear
-	trace_t tr;
-	UTIL_TraceHull( m_pVehicle->CollisionProp()->WorldSpaceCenter(), *pExitPoint, VEC_HULL_MIN, VEC_HULL_MAX, MASK_PLAYERSOLID, m_pVehicle, COLLISION_GROUP_NONE, &tr );
+	UTIL_TraceHull(*pExitPoint, *pExitPoint, VEC_HULL_MIN, VEC_HULL_MAX, MASK_PLAYERSOLID, m_pVehicle, COLLISION_GROUP_NONE, &tr);
 	if ( !tr.startsolid )
 	{
 		return true;
 	}
+	
 
 	// No clear exit point available!
 	return false;
@@ -1043,8 +1058,8 @@ void CBaseServerVehicle::HandlePassengerEntry( CBaseCombatCharacter *pPassenger,
 		if ( iEntryAnim == ACTIVITY_NOT_AVAILABLE )
 		{
 			// Normal get in refuses to allow entry
-			if ( !bAllowEntryOutsideZone )
-				return;
+			//if ( !bAllowEntryOutsideZone )
+			//	return;
 
 			// We failed to find a valid entry anim, but we've got to get back in because the player's
 			// got stuck exiting the vehicle. For now, just use the first get in anim
@@ -1148,13 +1163,14 @@ bool CBaseServerVehicle::HandlePassengerExit( CBaseCombatCharacter *pPassenger )
 				// We may as well stand where we're going to get out at and stop being parented
 				pPlayer->SetAbsOrigin( vecExitFeetPoint );
 				pPlayer->SetParent( NULL );
-
+				pPlayer->GetUnstuck(500, UF_NO_NODE_TELEPORT);
 				return true;
 			}
 		}
 
 		// Couldn't find an animation, so exit immediately
-		pPlayer->LeaveVehicle( vecNewPos, angNewAngles );
+		pPlayer->LeaveVehicle(vecNewPos, angNewAngles);
+		pPlayer->GetUnstuck(500, UF_NO_NODE_TELEPORT);
 		return true;
 	}
 	else

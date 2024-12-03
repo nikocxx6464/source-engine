@@ -1684,4 +1684,4 @@ void CC_ai_drop_hint( const CCommand &args )
 		pHint->m_debugOverlays |= (OVERLAY_TEXT_BIT | OVERLAY_BBOX_BIT); 
 	}
 }
-ConCommand ai_drop_hint( "ai_drop_hint", CC_ai_drop_hint, "Drop an ai_hint at the player's current eye position.", FCVAR_CHEAT );
+ConCommand ai_drop_hint("ai_drop_hint", CC_ai_drop_hint, "Drop an ai_hint at the player's current eye position.", FCVAR_NONE);

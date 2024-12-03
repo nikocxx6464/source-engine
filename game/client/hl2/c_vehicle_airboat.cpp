@@ -31,20 +31,20 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar r_AirboatViewBlendTo( "r_AirboatViewBlendTo", "1", FCVAR_CHEAT );
-ConVar r_AirboatViewBlendToScale( "r_AirboatViewBlendToScale", "0.03", FCVAR_CHEAT );
-ConVar r_AirboatViewBlendToTime( "r_AirboatViewBlendToTime", "1.5", FCVAR_CHEAT );
+ConVar r_AirboatViewBlendTo("r_AirboatViewBlendTo", "1", FCVAR_NONE);
+ConVar r_AirboatViewBlendToScale("r_AirboatViewBlendToScale", "0.03", FCVAR_NONE);
+ConVar r_AirboatViewBlendToTime("r_AirboatViewBlendToTime", "1.5", FCVAR_NONE);
 
-ConVar cl_draw_airboat_wake( "cl_draw_airboat_wake", "1", FCVAR_CHEAT );
+ConVar cl_draw_airboat_wake("cl_draw_airboat_wake", "1", FCVAR_NONE);
 
 // Curve parameters for pitch/roll blending.
 // NOTE: Must restart (or create a new airboat) after changing these cvars!
-ConVar r_AirboatRollCurveZero( "r_AirboatRollCurveZero", "90.0", FCVAR_CHEAT );			// Roll less than this is clamped to zero.
-ConVar r_AirboatRollCurveLinear( "r_AirboatRollCurveLinear", "120.0", FCVAR_CHEAT );	// Roll greater than this is mapped directly.
+ConVar r_AirboatRollCurveZero("r_AirboatRollCurveZero", "90.0", FCVAR_NONE);			// Roll less than this is clamped to zero.
+ConVar r_AirboatRollCurveLinear("r_AirboatRollCurveLinear", "120.0", FCVAR_NONE);	// Roll greater than this is mapped directly.
 																						// Spline in between.
 
-ConVar r_AirboatPitchCurveZero( "r_AirboatPitchCurveZero", "25.0", FCVAR_CHEAT );		// Pitch less than this is clamped to zero.
-ConVar r_AirboatPitchCurveLinear( "r_AirboatPitchCurveLinear", "60.0", FCVAR_CHEAT );	// Pitch greater than this is mapped directly.
+ConVar r_AirboatPitchCurveZero("r_AirboatPitchCurveZero", "25.0", FCVAR_NONE);		// Pitch less than this is clamped to zero.
+ConVar r_AirboatPitchCurveLinear("r_AirboatPitchCurveLinear", "60.0", FCVAR_NONE);	// Pitch greater than this is mapped directly.
 																						// Spline in between.
 
 ConVar airboat_joy_response_move( "airboat_joy_response_move", "1" );					// Quadratic steering response

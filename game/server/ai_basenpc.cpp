@@ -86,6 +86,7 @@
 #include "death_pose.h"
 #include "datacache/imdlcache.h"
 #include "vstdlib/jobthread.h"
+#include "explode.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -99,7 +100,13 @@
 #include "collisionutils.h"
 
 extern ConVar sk_healthkit;
-
+extern ConVar chaos_steal_health;
+class CChaosEffect;
+//extern CUtlVector<CChaosEffect>	g_ActiveEffects;
+//extern CUtlVector<CChaosEffect>	g_ChaosEffects;
+//extern int						g_iChaosSpawnCount;
+extern CUtlVector<int>			g_iTerminated;
+//extern float						g_flNextEffectRem;
 // dvs: for opening doors -- these should probably not be here
 #include "ai_route.h"
 #include "ai_waypoint.h"
@@ -132,6 +139,8 @@ extern short		g_sModelIndexLaser;		// holds the index for the laser beam
 extern short		g_sModelIndexLaserDot;	// holds the index for the laser beam dot
 
 // Debugging tools
+ConVar chaos_explode_on_death("chaos_explode_on_death", "0", FCVAR_REPLICATED);
+ConVar chaos_no_reload("chaos_no_reload", "0");
 ConVar	ai_no_select_box( "ai_no_select_box", "0" );
 
 ConVar	ai_show_think_tolerance( "ai_show_think_tolerance", "0" );
@@ -499,6 +508,7 @@ void CAI_BaseNPC::CleanupOnDeath( CBaseEntity *pCulprit, bool bFireDeathOutput )
 	{
 		m_bDidDeathCleanup = true;
 
+
 		if ( m_NPCState == NPC_STATE_SCRIPT && m_hCine )
 		{
 			// bail out of this script here
@@ -576,6 +586,23 @@ void CAI_BaseNPC::SelectDeathPose( const CTakeDamageInfo &info )
 //-----------------------------------------------------------------------------
 void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 {
+	m_lifeState = LIFE_DYING;
+	if (chaos_explode_on_death.GetBool())
+		ExplosionCreate(GetAbsOrigin() + Vector(0, 0, 16), GetAbsAngles(), NULL, 100, 200, 0, 100, NULL);
+	//tell player we died. we don't use the regular KilledNPC method because the death wasn't necessarily by player's hand
+	if (m_bChaosSpawned && m_bChaosPersist)
+	{
+		/*CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
+		if (pPlayer)
+		{
+			CHL2_Player *pHL2Player = dynamic_cast<CHL2_Player*>(pPlayer);
+			if (pHL2Player)
+			{*/
+				g_iTerminated.AddToTail(m_iChaosID);
+				Msg("%i got killed\n", m_iChaosID);
+			/*}
+		}*/
+	}
 	if (IsCurSchedule(SCHED_NPC_FREEZE))
 	{
 		// We're frozen; don't die.
@@ -587,7 +614,6 @@ void CAI_BaseNPC::Event_Killed( const CTakeDamageInfo &info )
 	//Adrian: Select a death pose to extrapolate the ragdoll's velocity.
 	SelectDeathPose( info );
 
-	m_lifeState = LIFE_DYING;
 
 	CleanupOnDeath( info.GetAttacker() );
 
@@ -908,7 +934,14 @@ int CAI_BaseNPC::OnTakeDamage_Dying( const CTakeDamageInfo &info )
 	{
 		if ( m_takedamage != DAMAGE_EVENTS_ONLY )
 		{
+			int nPrevHealth = GetHealth();
 			m_iHealth -= info.GetDamage();
+			if (chaos_steal_health.GetBool())
+			{
+				if (m_iHealth <= 0)
+					m_iHealth = 0;
+				if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+			}
 
 			if (m_iHealth < -500)
 			{
@@ -955,7 +988,14 @@ int CAI_BaseNPC::OnTakeDamage_Dead( const CTakeDamageInfo &info )
 		// Accumulate corpse gibbing damage, so you can gib with multiple hits
 		if ( m_takedamage != DAMAGE_EVENTS_ONLY )
 		{
+			int nPrevHealth = GetHealth();
 			m_iHealth -= info.GetDamage() * 0.1;
+			if (chaos_steal_health.GetBool())
+			{
+				if (m_iHealth <= 0)
+					m_iHealth = 0;
+				if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+			}
 		}
 	}
 
@@ -963,7 +1003,14 @@ int CAI_BaseNPC::OnTakeDamage_Dead( const CTakeDamageInfo &info )
 	{
 		if ( m_takedamage != DAMAGE_EVENTS_ONLY )
 		{
+			int nPrevHealth = GetHealth();
 			m_iHealth -= info.GetDamage();
+			if (chaos_steal_health.GetBool())
+			{
+				if (m_iHealth <= 0)
+					m_iHealth = 0;
+				if (info.GetAttacker()) info.GetAttacker()->SetHealth(info.GetAttacker()->GetHealth() + (nPrevHealth - m_iHealth));
+			}
 
 			if (m_iHealth < -500)
 			{
@@ -1641,7 +1688,7 @@ bool CAI_BaseNPC::HasCondition( int iCondition )
 	
 	if ( interrupt == -1 )
 	{
-		Assert(0);
+		//Assert(0);
 		return false;
 	}
 	
@@ -6032,8 +6079,15 @@ Activity CAI_BaseNPC::TranslateActivity( Activity idealActivity, Activity *pIdea
 	if ( baseTranslation != weaponTranslation && HaveSequenceForActivity( baseTranslation ) )
 		return baseTranslation;
 
-	if ( idealWeaponActivity != baseTranslation && HaveSequenceForActivity( idealWeaponActivity ) )
-		return idealActivity;
+	if (idealWeaponActivity != baseTranslation && HaveSequenceForActivity(idealWeaponActivity))
+	{
+		//this used to return idealActivity instead, but i found that this was causing grigori to use non-weapon activities in town 02a.
+		//i don't know when this bug started happening.
+		//no other NPCs appear to go down this same code path, but if in the future an NPC is animating incorrectly and this message appears, now you know why.
+		//this may also remove the need for some weapon acttables referencing readiness levels.
+		Msg("%s weapon activity is %s, ideal activity %s\n", GetClassname(), GetActivityName(idealWeaponActivity), GetActivityName(idealActivity));
+		return idealWeaponActivity;
+	}
 
 	if ( idealActivity != idealWeaponActivity && HaveSequenceForActivity( idealActivity ) )
 		return idealActivity;
@@ -6775,6 +6829,7 @@ bool CAI_BaseNPC::IsNavHullValid() const
 //=========================================================
 void CAI_BaseNPC::NPCInit ( void )
 {
+	m_HackedGunPos = Vector(0, 0, 55);
 	if (!g_pGameRules->FAllowNPCs())
 	{
 		UTIL_Remove( this );
@@ -7732,7 +7787,7 @@ CBaseEntity *CAI_BaseNPC::BestEnemy( void )
 
 		// UNDONE: Move relationship checks into IsValidEnemy?
 		Disposition_t relation = IRelationType( pEnemy );
-		if ( (relation != D_HT && relation != D_FR)  )
+		if (!m_bEvil && (relation != D_HT && relation != D_FR)  )
 		{
 			DbgEnemyMsg( this, "    %s rejected: no hate/fear\n", pEnemy->GetDebugName() );
 			continue;
@@ -9554,9 +9609,12 @@ void CAI_BaseNPC::CollectShotStats( const Vector &vecShootOrigin, const Vector &
 Vector CAI_BaseNPC::GetActualShootPosition( const Vector &shootOrigin )
 {
 	// Project the target's location into the future.
-	Vector vecEnemyLKP = GetEnemyLKP();
-	Vector vecEnemyOffset = GetEnemy()->BodyTarget( shootOrigin ) - GetEnemy()->GetAbsOrigin();
-	Vector vecTargetPosition = vecEnemyOffset + vecEnemyLKP;
+	//Vector vecEnemyLKP = GetEnemyLKP();
+	//NDebugOverlay::Cross3D(vecEnemyLKP, 16, 255, 0, 0, true, 3);
+	//Vector vecEnemyOffset = GetEnemy()->BodyTarget(true) - GetEnemy()->GetAbsOrigin();
+	//NDebugOverlay::Cross3D(vecEnemyOffset, 16, 0, 255, 0, true, 3);
+	Vector vecTargetPosition = GetEnemy()->BodyTarget( shootOrigin, true);
+	//NDebugOverlay::Cross3D(vecTargetPosition, 16, 0, 0, 255, true, 3);
 
 #ifdef PORTAL
 	// Check if it's also visible through portals
@@ -10561,8 +10619,9 @@ BEGIN_DATADESC( CAI_BaseNPC )
 	//								m_poseAim_Pitch (not saved; recomputed on restore)
 	//								m_poseAim_Yaw (not saved; recomputed on restore)
 	//								m_poseMove_Yaw (not saved; recomputed on restore)
-	DEFINE_FIELD( m_flTimePingEffect,			FIELD_TIME ),
-	DEFINE_FIELD( m_bForceConditionsGather,		FIELD_BOOLEAN ),
+	DEFINE_FIELD(m_flTimePingEffect, FIELD_TIME),
+	DEFINE_FIELD(m_bForceConditionsGather, FIELD_BOOLEAN),
+	DEFINE_FIELD(m_bEvil, FIELD_BOOLEAN),
 	DEFINE_FIELD( m_bConditionsGathered,		FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_bSkippedChooseEnemy,		FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_NPCState,					FIELD_INTEGER ),

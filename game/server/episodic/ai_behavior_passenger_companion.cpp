@@ -32,7 +32,7 @@ ConVar passenger_collision_response_threshold( "passenger_collision_response_thr
 ConVar passenger_debug_entry( "passenger_debug_entry", "0" );
 ConVar passenger_use_leaning("passenger_use_leaning", "1" );
 extern ConVar passenger_debug_transition;
-
+extern ConVar chaos_no_reload;
 // Custom activities
 Activity ACT_PASSENGER_IDLE_AIM;
 Activity ACT_PASSENGER_RELOAD;
@@ -673,7 +673,7 @@ int CAI_PassengerBehaviorCompanion::SelectScheduleInsideVehicle( void )
 	}
 
 	// Reload when we have the chance
-	if ( HasCondition( COND_LOW_PRIMARY_AMMO ) && HasCondition( COND_SEE_ENEMY ) == false )
+	if (HasCondition(COND_LOW_PRIMARY_AMMO) && HasCondition(COND_SEE_ENEMY) == false && !chaos_no_reload.GetBool())
 			return SCHED_PASSENGER_RELOAD;
 
 	// Say an overturned line
@@ -725,7 +725,7 @@ int CAI_PassengerBehaviorCompanion::SelectScheduleOutsideVehicle( void )
 	
 	// This means that we're outside the vehicle with no intent to enter, which should have disabled us!
 	Disable();
-	Assert( 0 );
+	//Assert( 0 );
 
 	return SCHED_NONE;
 }

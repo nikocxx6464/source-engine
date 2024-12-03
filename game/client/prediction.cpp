@@ -39,10 +39,10 @@ ConVar	cl_lagcompensation	( "cl_lagcompensation","1", FCVAR_USERINFO | FCVAR_NOT
 ConVar	cl_showerror		( "cl_showerror", "0", 0, "Show prediction errors, 2 for above plus detailed field deltas." );
 
 static ConVar	cl_idealpitchscale	( "cl_idealpitchscale", "0.8", FCVAR_ARCHIVE );
-static ConVar	cl_predictionlist	( "cl_predictionlist", "0", FCVAR_CHEAT, "Show which entities are predicting\n" );
+static ConVar	cl_predictionlist("cl_predictionlist", "0", FCVAR_NONE, "Show which entities are predicting\n");
 
-static ConVar	cl_predictionentitydump( "cl_pdump", "-1", FCVAR_CHEAT, "Dump info about this entity to screen." );
-static ConVar	cl_predictionentitydumpbyclass( "cl_pclass", "", FCVAR_CHEAT, "Dump entity by prediction classname." );
+static ConVar	cl_predictionentitydump("cl_pdump", "-1", FCVAR_NONE, "Dump info about this entity to screen.");
+static ConVar	cl_predictionentitydumpbyclass("cl_pclass", "", FCVAR_NONE, "Dump entity by prediction classname.");
 static ConVar	cl_pred_optimize( "cl_pred_optimize", "2", 0, "Optimize for not copying data if didn't receive a network update (1), and also for not repredicting if there were no errors (2)." );
 
 #endif

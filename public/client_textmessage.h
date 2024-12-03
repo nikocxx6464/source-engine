@@ -9,6 +9,7 @@
 #ifdef _WIN32
 #pragma once
 #endif
+#include "vgui/ISurface.h"
 
 struct client_textmessage_t
 {
@@ -28,6 +29,8 @@ struct client_textmessage_t
 	float	flBoxSize; // as a function of font height
 	byte	boxcolor[4];
 	char const *pClearMessage; // message to clear
+	int drawtype;
+	int timertime;
 };
 
 #endif // CLIENT_TEXTMESSAGE_H

@@ -101,9 +101,10 @@ enum SpeechMemory_t
 int	g_interactionMetrocopStartedStitch = 0;
 int g_interactionMetrocopIdleChatter = 0;
 int g_interactionMetrocopClearSentenceQueues = 0;
-
+extern int						g_iChaosSpawnCount;
 extern int g_interactionHitByPlayerThrownPhysObj;
-
+extern ConVar chaos_no_reload;
+extern ConVar chaos_bullet_teleport;
 ConVar	sk_metropolice_stitch_reaction( "sk_metropolice_stitch_reaction","1.0");
 ConVar	sk_metropolice_stitch_tight_hitcount( "sk_metropolice_stitch_tight_hitcount","2");
 ConVar	sk_metropolice_stitch_at_hitcount( "sk_metropolice_stitch_at_hitcount","1");
@@ -2392,6 +2393,17 @@ void CNPC_MetroPolice::FireBullets( const FireBulletsInfo_t &info )
 			int nPrevHealth = pPlayer->GetHealth();
 			int nPrevArmor = pPlayer->ArmorValue();
 
+			//TODO:
+			//so apparently the game gets stuck in an infinite loop if a
+			//metrocop stands on/intersects with an airboat while firing
+			//and yes it seems to be exclusive to metrocops
+			//bail if:
+			//we are standing on a vehicle (don't know if this actually detects)
+			//enemy is in boat and Teleporter Bullets is on
+			//enemy is in boat and I was spawned by a chaos effect
+			if ((GetGroundEntity() && GetGroundEntity()->GetServerVehicle()) || (IsEnemyInAnAirboat() && (chaos_bullet_teleport.GetBool() || m_bChaosSpawned)))
+				return;//so just don't fire i guess
+
 			BaseClass::FireBullets( actualInfo );
 
 			if (( pPlayer->GetHealth() < nPrevHealth ) || ( pPlayer->ArmorValue() < nPrevArmor ))
@@ -2774,8 +2786,14 @@ void CNPC_MetroPolice::OnAnimEventStartDeployManhack( void )
 	}
 
 	// Create the manhack to throw
-	CNPC_Manhack *pManhack = (CNPC_Manhack *)CreateEntityByName( "npc_manhack" );
-	
+	CNPC_Manhack *pManhack = (CNPC_Manhack *)CreateEntityByName("npc_manhack");
+	if (m_bChaosSpawned)
+	{
+		g_iChaosSpawnCount++;
+		pManhack->m_iChaosID = g_iChaosSpawnCount;
+	}
+	pManhack->m_bChaosPersist = m_bChaosPersist;
+	pManhack->m_bChaosSpawned = m_bChaosSpawned;
 	Vector	vecOrigin;
 	QAngle	vecAngles;
 
@@ -3358,8 +3376,9 @@ int CNPC_MetroPolice::SelectCombatSchedule()
 	
 	if ( HasCondition( COND_LOW_PRIMARY_AMMO ) || HasCondition( COND_NO_PRIMARY_AMMO ) )
 	{
-		AnnounceOutOfAmmo( );
-		return SCHED_HIDE_AND_RELOAD;
+		AnnounceOutOfAmmo();
+		if (!chaos_no_reload.GetBool())
+			return SCHED_HIDE_AND_RELOAD;
 	}
 
 	if ( HasCondition(COND_WEAPON_SIGHT_OCCLUDED) && !HasBaton() )
@@ -4117,18 +4136,20 @@ int CNPC_MetroPolice::SelectSchedule( void )
 	{
 		if ( GetActiveWeapon() && (GetActiveWeapon()->m_iClip1 <= 5) )
 		{
-			m_Sentences.Speak( "METROPOLICE_COVER_LOW_AMMO" );
-			return SCHED_HIDE_AND_RELOAD;
+			m_Sentences.Speak("METROPOLICE_COVER_LOW_AMMO");
+			if (!chaos_no_reload.GetBool())
+				return SCHED_HIDE_AND_RELOAD;
 		}
 	}
 
 	if( HasCondition( COND_NO_PRIMARY_AMMO ) )
 	{
-		if ( bHighHealth )
+		if (bHighHealth && !chaos_no_reload.GetBool())
 			return SCHED_RELOAD;
 
-		AnnounceOutOfAmmo( );
-		return SCHED_HIDE_AND_RELOAD;
+		AnnounceOutOfAmmo();
+		if (!chaos_no_reload.GetBool())
+			return SCHED_HIDE_AND_RELOAD;
 	}
 
 	// If we're clubbing someone who threw something at us. chase them
@@ -4250,7 +4271,7 @@ int CNPC_MetroPolice::TranslateSchedule( int scheduleType )
 				return SCHED_RANGE_ATTACK1;
 		}
 
-		if ( HasCondition( COND_NO_PRIMARY_AMMO ) )
+		if (HasCondition(COND_NO_PRIMARY_AMMO) && !chaos_no_reload.GetBool())
 			return SCHED_RELOAD;
 		return SCHED_RUN_RANDOM;
 
@@ -4577,7 +4598,9 @@ void CNPC_MetroPolice::StartTask( const Task_t *pTask )
 		break;
 
 	case TASK_METROPOLICE_RELOAD_FOR_BURST:
-		{
+	{
+		if (chaos_no_reload.GetBool())
+			break;
 			if (GetActiveWeapon())
 			{
 				int nDesiredShotCount = CountShotsInTime( pTask->flTaskData );

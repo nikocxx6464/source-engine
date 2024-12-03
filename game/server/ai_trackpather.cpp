@@ -15,7 +15,8 @@
 #define	TRACKPATHER_DEBUG_LEADING	1
 #define	TRACKPATHER_DEBUG_PATH		2
 #define TRACKPATHER_DEBUG_TRACKS	3
-ConVar g_debug_trackpather( "g_debug_trackpather", "0", FCVAR_CHEAT );
+ConVar g_debug_trackpather("g_debug_trackpather", "0", FCVAR_NONE);
+extern ConVar chaos_npc_teleport;
 
 //------------------------------------------------------------------------------
 
@@ -1023,6 +1024,9 @@ void CAI_TrackPather::SelectNewDestTarget()
 //------------------------------------------------------------------------------
 void CAI_TrackPather::UpdateCurrentTargetLeading()
 {
+	//Msg("CAI_TrackPather::UpdateCurrentTargetLeading\n");
+	if (!m_pCurrentPathTarget)
+		return;
 	bool bRestingAtDest = false;
 	CPathTrack *pAdjustedDest;
 
@@ -1317,6 +1321,13 @@ void CAI_TrackPather::UpdateTrackNavigation( void )
 	{
 		FlyToPathTrack( m_target );
 		m_target = NULL_STRING;
+	}
+	Vector targetPos;
+	if (chaos_npc_teleport.GetBool() && GetTrackPatherTarget(&targetPos))
+	{
+		CPathTrack *pDest = BestPointOnPath(m_pCurrentPathTarget, targetPos, m_flAvoidDistance, true, m_bChooseFarthestPoint);
+		if (pDest)
+			Teleport(&pDest->GetAbsOrigin(), NULL, NULL);
 	}
 
 	if ( !IsLeading() )

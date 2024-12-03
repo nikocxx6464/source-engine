@@ -50,6 +50,7 @@ ConVar sniperviewdist("sniperviewdist", "35" );
 ConVar showsniperdist("showsniperdist", "0" );
 ConVar sniperspeak( "sniperspeak", "0" );
 ConVar sniper_xbox_delay( "sniper_xbox_delay", "1" );
+extern ConVar chaos_no_reload;
 
 // Moved to HL2_SharedGameRules because these are referenced by shared AmmoDef functions
 extern ConVar sk_dmg_sniper_penetrate_plr;
@@ -1392,7 +1393,8 @@ int CProtoSniper::SelectSchedule ( void )
 	if( !m_fWeaponLoaded )
 	{
 		// Reload is absolute priority.
-		return SCHED_RELOAD;
+		if (!chaos_no_reload.GetBool())
+			return SCHED_RELOAD;
 	}
 
 	if( !AI_GetSinglePlayer()->IsAlive() && m_bKilledPlayer )
@@ -1855,7 +1857,8 @@ int CProtoSniper::TranslateSchedule( int scheduleType )
 		break;
 
 	case SCHED_RELOAD:
-		return SCHED_PSNIPER_RELOAD;
+		if (!chaos_no_reload.GetBool())
+			return SCHED_PSNIPER_RELOAD;
 		break;
 	}
 	return BaseClass::TranslateSchedule( scheduleType );

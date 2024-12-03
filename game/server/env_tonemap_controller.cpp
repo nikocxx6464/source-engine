@@ -11,7 +11,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT, "The HDR tonemap scale. 1 = Use autoexposure, 0 = eyes fully closed, 16 = eyes wide open." );
+ConVar mat_hdr_tonemapscale("mat_hdr_tonemapscale", "1.0", FCVAR_NONE, "The HDR tonemap scale. 1 = Use autoexposure, 0 = eyes fully closed, 16 = eyes wide open.");
 
 // 0 - eyes fully closed / fully black
 // 1 - nominal 

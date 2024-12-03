@@ -66,7 +66,7 @@ const char *g_pJeepThinkContext = "JeepSeagullThink";
 
 ConVar	sk_jeep_gauss_damage( "sk_jeep_gauss_damage", "15" );
 ConVar	hud_jeephint_numentries( "hud_jeephint_numentries", "10", FCVAR_NONE );
-ConVar	g_jeepexitspeed( "g_jeepexitspeed", "100", FCVAR_CHEAT );
+ConVar	g_jeepexitspeed("g_jeepexitspeed", "100", FCVAR_NONE);
 
 extern ConVar autoaim_max_dist;
 extern ConVar sv_vehicle_autoaim_scale;
@@ -99,7 +99,10 @@ public:
 	int			GetExitAnimToUse( Vector &vecEyeExitEndpoint, bool &bAllPointsBlocked );
 };
 
-BEGIN_DATADESC( CPropJeep )
+BEGIN_DATADESC(CPropJeep)
+DEFINE_FIELD(m_bJeep, FIELD_BOOLEAN),
+DEFINE_FIELD(m_bJalopy, FIELD_BOOLEAN),
+DEFINE_FIELD(m_bAPC, FIELD_BOOLEAN),
 	DEFINE_FIELD( m_bGunHasBeenCutOff, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_flDangerSoundTime, FIELD_TIME ),
 	DEFINE_FIELD( m_nBulletType, FIELD_INTEGER ),
@@ -145,7 +148,7 @@ END_SEND_TABLE();
 
 // This is overriden for the episodic jeep
 #ifndef HL2_EPISODIC
-LINK_ENTITY_TO_CLASS( prop_vehicle_jeep, CPropJeep );
+//LINK_ENTITY_TO_CLASS( prop_vehicle_jeep, CPropJeep );
 #endif
 
 //-----------------------------------------------------------------------------
@@ -204,9 +207,25 @@ void CPropJeep::Precache( void )
 //------------------------------------------------
 void CPropJeep::Spawn( void )
 {
+	m_bJeep = false;
+	m_bJalopy = false;
+	m_bAPC = false;
 	// Setup vehicle as a real-wheels car.
-	SetVehicleType( VEHICLE_TYPE_CAR_WHEELS );
-
+	SetVehicleType(VEHICLE_TYPE_CAR_WHEELS);
+	if (FStrEq(STRING(GetModelName()), "models/buggy.mdl") || FStrEq(STRING(GetModelName()), "models/buggy_2.mdl") || FStrEq(STRING(GetModelName()), "models/buggy_0_5.mdl"))
+	{
+		m_bJeep = true;
+		m_bHasGun = true;
+		m_bUnableToFire = false;
+	}
+	else if (FStrEq(STRING(GetModelName()), "models/vehicle.mdl") || FStrEq(STRING(GetModelName()), "models/vehicle_2.mdl") || FStrEq(STRING(GetModelName()), "models/vehicle_0_5.mdl"))
+	{
+		m_bJalopy = true;
+	}
+	else if (FStrEq(STRING(GetModelName()), "models/combine_apc.mdl") || FStrEq(STRING(GetModelName()), "models/combine_apc_2.mdl") || FStrEq(STRING(GetModelName()), "models/combine_apc_0_5.mdl"))
+	{
+		m_bAPC = true;
+	}
 	BaseClass::Spawn();
 	m_flHandbrakeTime = gpGlobals->curtime + 0.1;
 	m_bInitialHandbrake = false;
@@ -792,7 +811,7 @@ void CPropJeep::Think( void )
 			}
 		}
 		
-		if ( hl2_episodic.GetBool() )
+		if ( m_bJalopy )
 		{
 			// Set its running animation idle
 			if ( m_bEnterAnimOn )
@@ -810,7 +829,7 @@ void CPropJeep::Think( void )
 		}
 
 		// If we're exiting and have had the tau cannon removed, we don't want to reset the animation
-		if ( hl2_episodic.GetBool() )
+		if (m_bJalopy)
 		{
 			// Reset on exit anim
 			GetServerVehicle()->HandleEntryExitFinish( m_bExitAnimOn, m_bExitAnimOn );
@@ -1287,7 +1306,8 @@ void CPropJeep::DampenUpMotion( Vector &vecVehicleEyePos, QAngle &vecVehicleEyeA
 void CPropJeep::SetupMove( CBasePlayer *player, CUserCmd *ucmd, IMoveHelper *pHelper, CMoveData *move )
 {
 	// If we are overturned and hit any key - leave the vehicle (IN_USE is already handled!).
-	if ( m_flOverturnedTime > OVERTURNED_EXIT_WAITTIME )
+	//disabled for chaos so you can drive on ceilings
+	/*if ( m_flOverturnedTime > OVERTURNED_EXIT_WAITTIME )
 	{
 		if ( (ucmd->buttons & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT|IN_SPEED|IN_JUMP|IN_ATTACK|IN_ATTACK2) ) && !m_bExitAnimOn )
 		{
@@ -1301,7 +1321,7 @@ void CPropJeep::SetupMove( CBasePlayer *player, CUserCmd *ucmd, IMoveHelper *pHe
 			}
 			return;
 		}
-	}
+	}*/
 
 	// If the throttle is disabled or we're upside-down, don't allow throttling (including turbo)
 	CUserCmd tmp;

@@ -13,6 +13,10 @@
 
 #include "basetoggle.h"
 #include "entityoutput.h"
+#include "EntityParticleTrail.h"
+
+// ACBOB: This is global scope in a header, so should be externed...
+extern bool g_bEndSolidTriggers;
 
 //
 // Spawnflags
@@ -44,7 +48,7 @@ class CBaseTrigger : public CBaseToggle
 	DECLARE_CLASS( CBaseTrigger, CBaseToggle );
 public:
 	CBaseTrigger();
-	
+	virtual void LogicExplode();
 	void Activate( void );
 	virtual void PostClientActive( void );
 	void InitTrigger( void );
@@ -64,7 +68,7 @@ public:
 	virtual void InputStartTouch( inputdata_t &inputdata );
 	virtual void InputEndTouch( inputdata_t &inputdata );
 
-	virtual bool UsesFilter( void ){ return ( m_hFilter.Get() != NULL ); }
+	virtual bool UsesFilter(void){ return (gEntList.FindEntityByName(NULL, m_iFilterName) != NULL); }
 	virtual bool PassesTriggerFilters(CBaseEntity *pOther);
 	virtual void StartTouch(CBaseEntity *pOther);
 	virtual void EndTouch(CBaseEntity *pOther);
@@ -81,7 +85,7 @@ public:
 
 	bool		m_bDisabled;
 	string_t	m_iFilterName;
-	CHandle<class CBaseFilter>	m_hFilter;
+	//CHandle<class CBaseFilter>	m_hFilter;
 
 protected:
 
@@ -136,7 +140,7 @@ class CBaseVPhysicsTrigger : public CBaseEntity
 
 public:
 	DECLARE_DATADESC();
-
+	virtual void LogicExplode();
 	virtual void Spawn();
 	virtual void UpdateOnRemove();
 	virtual bool CreateVPhysics();
@@ -151,13 +155,80 @@ public:
 
 	void InputToggle( inputdata_t &inputdata );
 	void InputEnable( inputdata_t &inputdata );
-	void InputDisable( inputdata_t &inputdata );
+	void InputDisable(inputdata_t &inputdata);
+	bool						m_bDisabled;
 	
 
 protected:
-	bool						m_bDisabled;
 	string_t					m_iFilterName;
 	CHandle<class CBaseFilter>	m_hFilter;
+};
+//=====================================================================================================================
+//-----------------------------------------------------------------------------
+// Purpose: VPhysics trigger that changes the motion of vphysics objects that touch it
+//-----------------------------------------------------------------------------
+class CTriggerVPhysicsMotion : public CBaseVPhysicsTrigger, public IMotionEvent
+{
+	DECLARE_CLASS(CTriggerVPhysicsMotion, CBaseVPhysicsTrigger);
+
+public:
+	void Spawn();
+	void Precache();
+	virtual void UpdateOnRemove();
+	bool CreateVPhysics();
+	void OnRestore();
+	virtual void LogicExplode();
+	// UNDONE: Pass trigger event in or change Start/EndTouch.  Add ITriggerVPhysics perhaps?
+	// BUGBUG: If a player touches two of these, his movement will screw up.
+	// BUGBUG: If a player uses crouch/uncrouch it will generate touch events and clear the motioncontroller flag
+	void StartTouch(CBaseEntity *pOther);
+	void EndTouch(CBaseEntity *pOther);
+
+	void InputSetVelocityLimitTime(inputdata_t &inputdata);
+
+	float LinearLimit();
+
+	inline bool HasGravityScale() { return m_gravityScale != 1.0 ? true : false; }
+	inline bool HasAirDensity() { return m_addAirDensity != 0 ? true : false; }
+	inline bool HasLinearLimit() { return LinearLimit() != 0.0f; }
+	inline bool HasLinearScale() { return m_linearScale != 1.0 ? true : false; }
+	inline bool HasAngularLimit() { return m_angularLimit != 0 ? true : false; }
+	inline bool HasAngularScale() { return m_angularScale != 1.0 ? true : false; }
+	inline bool HasLinearForce() { return m_linearForce != 0.0 ? true : false; }
+
+	DECLARE_DATADESC();
+
+	virtual simresult_e	Simulate(IPhysicsMotionController *pController, IPhysicsObject *pObject, float deltaTime, Vector &linear, AngularImpulse &angular);
+
+private:
+	IPhysicsMotionController	*m_pController;
+
+#ifndef _XBOX
+	EntityParticleTrailInfo_t	m_ParticleTrail;
+#endif //!_XBOX
+
+	float						m_gravityScale;
+	float						m_addAirDensity;
+	float						m_linearLimit;
+	float						m_linearLimitDelta;
+	float						m_linearLimitTime;
+	float						m_linearLimitStart;
+	float						m_linearLimitStartTime;
+	float						m_linearScale;
+	float						m_angularLimit;
+	float						m_angularScale;
+	float						m_linearForce;
+	QAngle						m_linearForceAngles;
+};
+// ##################################################################################
+//	>> TriggerVolume
+// ##################################################################################
+class CTriggerVolume : public CPointEntity	// Derive from point entity so this doesn't move across levels
+{
+public:
+	DECLARE_CLASS(CTriggerVolume, CPointEntity);
+
+	void		Spawn(void);
 };
 
 //-----------------------------------------------------------------------------
@@ -174,7 +245,7 @@ public:
 	}
 
 	DECLARE_CLASS( CTriggerHurt, CBaseTrigger );
-
+	virtual void LogicExplode();
 	void Spawn( void );
 	void RadiationThink( void );
 	void HurtThink( void );

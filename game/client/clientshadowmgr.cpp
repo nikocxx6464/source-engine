@@ -89,7 +89,7 @@
 static ConVar r_flashlightdrawfrustum( "r_flashlightdrawfrustum", "0" );
 static ConVar r_flashlightmodels( "r_flashlightmodels", "1" );
 static ConVar r_shadowrendertotexture( "r_shadowrendertotexture", "0" );
-static ConVar r_flashlight_version2( "r_flashlight_version2", "0", FCVAR_CHEAT | FCVAR_DEVELOPMENTONLY );
+static ConVar r_flashlight_version2("r_flashlight_version2", "0", FCVAR_NONE);
 
 ConVar r_flashlightdepthtexture( "r_flashlightdepthtexture", "1" );
 
@@ -683,7 +683,7 @@ void CTextureAllocator::GetTextureRect(TextureHandle_t handle, int& x, int& y, i
 
 static ConVar r_shadows( "r_shadows", "1" ); // hook into engine's cvars..
 static ConVar r_shadowmaxrendered("r_shadowmaxrendered", "32");
-static ConVar r_shadows_gamecontrol( "r_shadows_gamecontrol", "-1", FCVAR_CHEAT );	 // hook into engine's cvars..
+static ConVar r_shadows_gamecontrol("r_shadows_gamecontrol", "-1", FCVAR_NONE);	 // hook into engine's cvars..
 
 //-----------------------------------------------------------------------------
 // The class responsible for dealing with shadows on the client side
@@ -1178,7 +1178,7 @@ CClientShadowMgr::CClientShadowMgr() :
 //-----------------------------------------------------------------------------
 // Changes the shadow direction...
 //-----------------------------------------------------------------------------
-CON_COMMAND_F( r_shadowdir, "Set shadow direction", FCVAR_CHEAT )
+CON_COMMAND_F(r_shadowdir, "Set shadow direction", FCVAR_NONE)
 {
 	Vector dir;
 	if ( args.ArgC() == 1 )
@@ -1197,7 +1197,7 @@ CON_COMMAND_F( r_shadowdir, "Set shadow direction", FCVAR_CHEAT )
 	}
 }
 
-CON_COMMAND_F( r_shadowangles, "Set shadow angles", FCVAR_CHEAT )
+CON_COMMAND_F(r_shadowangles, "Set shadow angles", FCVAR_NONE)
 {
 	Vector dir;
 	QAngle angles;
@@ -1220,7 +1220,7 @@ CON_COMMAND_F( r_shadowangles, "Set shadow angles", FCVAR_CHEAT )
 	}
 }
 
-CON_COMMAND_F( r_shadowcolor, "Set shadow color", FCVAR_CHEAT )
+CON_COMMAND_F(r_shadowcolor, "Set shadow color", FCVAR_NONE)
 {
 	if (args.ArgC() == 1)
 	{
@@ -1239,7 +1239,7 @@ CON_COMMAND_F( r_shadowcolor, "Set shadow color", FCVAR_CHEAT )
 	}
 }
 
-CON_COMMAND_F( r_shadowdist, "Set shadow distance", FCVAR_CHEAT )
+CON_COMMAND_F(r_shadowdist, "Set shadow distance", FCVAR_NONE)
 {
 	if (args.ArgC() == 1)
 	{
@@ -1255,7 +1255,7 @@ CON_COMMAND_F( r_shadowdist, "Set shadow distance", FCVAR_CHEAT )
 	}
 }
 
-CON_COMMAND_F( r_shadowblobbycutoff, "some shadow stuff", FCVAR_CHEAT )
+CON_COMMAND_F(r_shadowblobbycutoff, "some shadow stuff", FCVAR_NONE)
 {
 	if (args.ArgC() == 1)
 	{

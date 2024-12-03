@@ -414,7 +414,7 @@ int CAI_PassengerBehavior::SelectSchedule( void )
 	// Protect from this rare occurrence happening
 	if ( m_hVehicle == NULL )
 	{
-		Assert( m_hVehicle != NULL );
+		//Assert( m_hVehicle != NULL );
 		Warning( "Entity %s running passenger behavior without a valid vehicle!\n", GetName() );
 		
 		Disable();

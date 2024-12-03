@@ -27,7 +27,7 @@
 #define ACTBUSY_COMBAT_PLAYER_MAX_DIST	720.0f	// NPCs in combat actbusy should try to stay within this distance of the player.
 
 ConVar	ai_actbusy_search_time( "ai_actbusy_search_time","10.0" );
-ConVar  ai_debug_actbusy( "ai_debug_actbusy", "0", FCVAR_CHEAT, "Used to debug actbusy behavior. Usage:\n\
+ConVar  ai_debug_actbusy("ai_debug_actbusy", "0", FCVAR_NONE, "Used to debug actbusy behavior. Usage:\n\
 1: Constantly draw lines from NPCs to the actbusy nodes they've chosen to actbusy at.\n\
 2: Whenever an NPC makes a decision to use an actbusy, show which actbusy they've chosen.\n\
 3: Selected NPCs (with npc_select) will report why they're not choosing actbusy nodes.\n\
@@ -3148,4 +3148,59 @@ CAI_ActBusyBehavior *CAI_ActBusyQueueGoal::GetQueueBehaviorForNPC( CAI_BaseNPC *
 	Assert( pBehavior );
 	return pBehavior;
 }
-
+void CAI_ActBusyGoal::LogicExplode()
+{
+	int nRandom = RandomInt(0, 3);
+	variant_t variant;
+	int iTries = 0;
+	CBaseEntity *pEnt;
+	switch (nRandom)
+	{
+	case 0:
+		m_flBusySearchRange = RandomInt(m_flBusySearchRange / 2, m_flBusySearchRange * 2);
+		AcceptInput("SetBusySearchRange", this, this, variant, 0);
+	//skipped ForceNPCToActBusy
+	case 1:
+	case 2:
+		pEnt = gEntList.RandomNamedEntityByClassname("npc*");
+		while (pEnt)
+		{
+			if (pEnt->IsNPC() && pEnt->GetEntityName() != NULL_STRING)
+			{
+				variant.SetString(pEnt->GetEntityName());
+				if (nRandom == 1)
+					AcceptInput("ForceThisNPCToActBusy", this, this, variant, 0);
+				else
+					AcceptInput("ForceThisNPCToLeave", this, this, variant, 0);
+				return;
+			}
+			else
+			{
+				iTries++;
+				pEnt = gEntList.RandomNamedEntityByClassname("npc*");
+			}
+			if (iTries > 10)
+				break;
+		}
+	case 3:
+		BaseClass::LogicExplode();
+	}
+}
+void CAI_ActBusyQueueGoal::LogicExplode()
+{
+	int nRandom = RandomInt(0, 3);
+	variant_t variant;
+	switch (nRandom)
+	{
+	case 0:
+		variant.SetInt(RandomInt(1, 20));
+		AcceptInput("PlayerStartedBlocking", this, this, variant, 0);
+	case 1:
+		variant.SetInt(RandomInt(1, 20));
+		AcceptInput("PlayerStoppedBlocking", this, this, variant, 0);
+	case 2:
+		AcceptInput("MoveQueueUp", this, this, variant, 0);
+	case 3:
+		BaseClass::LogicExplode();
+	}
+}

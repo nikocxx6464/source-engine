@@ -457,14 +457,16 @@ public:
 					}
 					else 
 					{
-						if ( pPhysObj && pPhysObj->GetSphereRadius() != 0 )
-						{
+						//if ( pPhysObj && pPhysObj->GetSphereRadius() != 0 )
+						//{
 							item.header.sphere.radius = pPhysObj->GetSphereRadius();
-						}
-						else
-						{
-							DevMsg( "Don't know how to save model for physics object (class \"%s\")\n", pOwner->GetClassname() );
-						}
+						//}
+						//else
+						//{
+						//	float flRadius = pPhysObj->GetSphereRadius();
+						//	DevMsg("Don't know how to save model for physics object (class \"%s\") %0.1f\n", pOwner->GetClassname(), flRadius);
+							//PIN: don't get why this is bad, removing check
+						//}
 					}
 				}
 			}

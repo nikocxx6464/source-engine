@@ -382,8 +382,11 @@ bool CNPC_Citizen::CreateBehaviors()
 //-----------------------------------------------------------------------------
 void CNPC_Citizen::Precache()
 {
-	SelectModel();
-	SelectExpressionType();
+	if (!m_bChaosSpawned)//if we're chaos spawned, we already selected
+	{
+		SelectModel();
+		SelectExpressionType();
+	}
 
 	if ( !npc_citizen_dont_precache_all.GetBool() )
 		PrecacheAllOfType( m_Type );

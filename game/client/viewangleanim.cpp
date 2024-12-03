@@ -63,10 +63,10 @@ void ResetViewAngles( void )
 	QAngle angles = vec3_angle;
 	engine->SetViewAngles( angles );
 }
-ConCommand viewanim_reset( "viewanim_reset", ResetViewAngles, "reset view angles!", FCVAR_CHEAT );
+ConCommand viewanim_reset("viewanim_reset", ResetViewAngles, "reset view angles!", FCVAR_NONE);
 
 // add a key frame to the test animation. first parameter is the time taken to get to this keyframe
-CON_COMMAND_F( viewanim_addkeyframe, "", FCVAR_CHEAT )
+CON_COMMAND_F(viewanim_addkeyframe, "", FCVAR_NONE)
 {
 	if ( g_pTestAnimation )
 	{

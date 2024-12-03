@@ -724,7 +724,7 @@ void CC_Prop_Debug( void )
 		}
 	}
 }
-static ConCommand prop_debug("prop_debug", CC_Prop_Debug, "Toggle prop debug mode. If on, props will show colorcoded bounding boxes. Red means ignore all damage. White means respond physically to damage but never break. Green maps health in the range of 100 down to 1.", FCVAR_CHEAT);
+static ConCommand prop_debug("prop_debug", CC_Prop_Debug, "Toggle prop debug mode. If on, props will show colorcoded bounding boxes. Red means ignore all damage. White means respond physically to damage but never break. Green maps health in the range of 100 down to 1.", FCVAR_NONE);
 
 //=============================================================================================================
 // BREAKABLE PROPS
@@ -2869,7 +2869,7 @@ int CPhysicsProp::ObjectCaps()
 	{
 		caps |= FCAP_IMPULSE_USE;
 	}
-	else if ( CBasePlayer::CanPickupObject( this, 35, 128 ) )
+	else if (CBasePlayer::CanPickupObject(this, 35, 128, UTIL_GetLocalPlayer() ? UTIL_GetLocalPlayer()->m_bSuperGrab : false))
 	{
 		caps |= FCAP_IMPULSE_USE;
 
@@ -3268,7 +3268,8 @@ static CBreakableProp *BreakModelCreate_Prop( CBaseEntity *pOwner, breakmodel_t 
 		}
 		pEntity->SetModelName( AllocPooledString( pModel->modelName ) );
 		pEntity->SetModel( STRING(pEntity->GetModelName()) );
-		pEntity->SetCollisionGroup( pModel->collisionGroup );
+		pEntity->SetCollisionGroup(pModel->collisionGroup);
+		pEntity->SetModelScale(pOwner->GetBaseAnimating()->GetModelScale());
 
 		if ( pModel->fadeMinDist > 0 && pModel->fadeMaxDist >= pModel->fadeMinDist )
 		{
@@ -3279,7 +3280,9 @@ static CBreakableProp *BreakModelCreate_Prop( CBaseEntity *pOwner, breakmodel_t 
 		{
 			pEntity->AddSpawnFlags( SF_PHYSPROP_IS_GIB );
 		}
-		pEntity->Spawn();
+		//pEntity->Spawn();
+		DispatchSpawn(pEntity);
+		pEntity->Activate();
 
 		// If we're burning, break into burning pieces
 		CBaseAnimating *pAnimating = dynamic_cast<CBreakableProp *>(pOwner);
@@ -5864,7 +5867,7 @@ void CC_Prop_Dynamic_Create( const CCommand &args )
 	CBaseEntity::SetAllowPrecache( bAllowPrecache );
 }
 
-static ConCommand prop_dynamic_create("prop_dynamic_create", CC_Prop_Dynamic_Create, "Creates a dynamic prop with a specific .mdl aimed away from where the player is looking.\n\tArguments: {.mdl name}", FCVAR_CHEAT);
+static ConCommand prop_dynamic_create("prop_dynamic_create", CC_Prop_Dynamic_Create, "Creates a dynamic prop with a specific .mdl aimed away from where the player is looking.\n\tArguments: {.mdl name}", FCVAR_NONE);
 
 
 
@@ -5888,7 +5891,7 @@ void CC_Prop_Physics_Create( const CCommand &args )
 	CreatePhysicsProp( pModelName, pPlayer->EyePosition(), pPlayer->EyePosition() + forward * MAX_TRACE_LENGTH, pPlayer, true );
 }
 
-static ConCommand prop_physics_create("prop_physics_create", CC_Prop_Physics_Create, "Creates a physics prop with a specific .mdl aimed away from where the player is looking.\n\tArguments: {.mdl name}", FCVAR_CHEAT);
+static ConCommand prop_physics_create("prop_physics_create", CC_Prop_Physics_Create, "Creates a physics prop with a specific .mdl aimed away from where the player is looking.\n\tArguments: {.mdl name}", FCVAR_NONE);
 
 
 CPhysicsProp* CreatePhysicsProp( const char *pModelName, const Vector &vTraceStart, const Vector &vTraceEnd, const IHandleEntity *pTraceIgnore, bool bRequireVCollide, const char *pClassName )
@@ -6127,7 +6130,7 @@ void CC_Ent_Rotate( const CCommand &args )
 	pEntity->SetLocalAngles( angles );
 }
 
-static ConCommand ent_rotate("ent_rotate", CC_Ent_Rotate, "Rotates an entity by a specified # of degrees", FCVAR_CHEAT);
+static ConCommand ent_rotate("ent_rotate", CC_Ent_Rotate, "Rotates an entity by a specified # of degrees", FCVAR_NONE);
 
 // This is a dummy. The entity is entirely clientside.
 LINK_ENTITY_TO_CLASS( func_proprrespawnzone, CBaseEntity );

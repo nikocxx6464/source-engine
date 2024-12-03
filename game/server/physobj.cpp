@@ -6,6 +6,7 @@
 //=============================================================================//
 
 #include "cbase.h"
+#include "eventqueue.h"
 #include "player.h"
 #include "vphysics_interface.h"
 #include "physics.h"
@@ -556,7 +557,7 @@ int CPhysBox::ObjectCaps()
 	}
 	else if ( !HasSpawnFlags( SF_PHYSBOX_IGNOREUSE ) )
 	{
-		if ( CBasePlayer::CanPickupObject( this, 35, 128 ) )
+		if (CBasePlayer::CanPickupObject(this, 35, 128, UTIL_GetLocalPlayer() ? UTIL_GetLocalPlayer()->m_bSuperGrab : false))
 		{
 			caps |= FCAP_IMPULSE_USE;
 		}
@@ -866,8 +867,10 @@ BEGIN_DATADESC( CPhysExplosion )
 
 	DEFINE_KEYFIELD( m_damage, FIELD_FLOAT, "magnitude" ),
 	DEFINE_KEYFIELD( m_radius, FIELD_FLOAT, "radius" ),
-	DEFINE_KEYFIELD( m_targetEntityName, FIELD_STRING, "targetentityname" ),
-	DEFINE_KEYFIELD( m_flInnerRadius, FIELD_FLOAT, "inner_radius" ),
+	DEFINE_KEYFIELD(m_targetEntityName, FIELD_STRING, "targetentityname"),
+	DEFINE_KEYFIELD(m_flInnerRadius, FIELD_FLOAT, "inner_radius"),
+	DEFINE_FIELD(m_bConstant, FIELD_BOOLEAN),
+	DEFINE_FIELD(m_bInvert, FIELD_BOOLEAN),
 
 	// Inputs
 	DEFINE_INPUTFUNC( FIELD_VOID, "Explode", InputExplode ),
@@ -930,6 +933,8 @@ void CPhysExplosion::InputExplode( inputdata_t &inputdata )
 //-----------------------------------------------------------------------------
 void CPhysExplosion::Explode( CBaseEntity *pActivator, CBaseEntity *pCaller )
 {
+	if (m_bConstant && GetParent())
+		SetAbsOrigin(GetParent()->GetAbsOrigin());
 	CBaseEntity *pEntity = NULL;
 	float		adjustedDamage, falloff, flDist;
 	Vector		vecSpot, vecOrigin;
@@ -1043,7 +1048,21 @@ void CPhysExplosion::Explode( CBaseEntity *pActivator, CBaseEntity *pCaller )
 	
 				if ( HasSpawnFlags( SF_PHYSEXPLOSION_NODAMAGE ) )
 				{
-					pEntity->VPhysicsTakeDamage( info );
+					if (m_bConstant)//not proper
+					{
+						IPhysicsObject *pPhysics = pEntity->VPhysicsGetObject();
+						if (pPhysics)
+						{
+							Vector dir = GetAbsOrigin() - pEntity->GetAbsOrigin();
+							if (!m_bInvert)
+								dir = -dir;
+							pPhysics->ApplyForceOffset(m_damage * dir * phys_pushscale.GetFloat(), GetAbsOrigin());
+						}
+					}
+					else
+					{
+						pEntity->VPhysicsTakeDamage(info);
+					}
 				}
 				else
 				{
@@ -1051,6 +1070,15 @@ void CPhysExplosion::Explode( CBaseEntity *pActivator, CBaseEntity *pCaller )
 				}
 			}
 		}
+	}
+	if (m_bConstant)
+	{
+		variant_t emptyVariant;
+		g_EventQueue.AddEvent(STRING(this->GetEntityName()), "Explode", emptyVariant, 0.1, this, this, 0);
+	}
+	else
+	{
+		//Assert(0);
 	}
 }
 
@@ -1264,7 +1292,7 @@ public:
 	{ 
 		int caps = BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION;
 
-		if ( CBasePlayer::CanPickupObject( this, 35, 128 ) )
+		if (CBasePlayer::CanPickupObject(this, 35, 128, UTIL_GetLocalPlayer() ? UTIL_GetLocalPlayer()->m_bSuperGrab : false))
 		{
 			caps |= FCAP_IMPULSE_USE;
 		}
@@ -1391,13 +1419,24 @@ void CPhysConvert::InputConvertTarget( inputdata_t &inputdata )
 	// Fire output
 	m_OnConvert.FireOutput( inputdata.pActivator, this );
 
-	CBaseEntity *entlist[512];
+	CBaseEntity *entlist[2048];
 	CBaseEntity *pSwap = gEntList.FindEntityByName( NULL, m_swapModel, NULL, inputdata.pActivator, inputdata.pCaller );
 	CBaseEntity *pEntity = NULL;
 	
 	int count = 0;
 	while ( (pEntity = gEntList.FindEntityByName( pEntity, m_target, NULL, inputdata.pActivator, inputdata.pCaller )) != NULL )
 	{
+		//must have a model and not be worldspawn and must be a real "thing"
+		if (!pEntity->GetModel() || pEntity->IsWorld() || !(pEntity->GetSolid() == SOLID_BSP || pEntity->GetSolid() == SOLID_VPHYSICS))
+			continue;
+		//must not be a vehicle or player or invisible brush entity of some kind
+		//must not already be vphysics
+		if (pEntity->GetServerVehicle() || pEntity->IsPlayer() || pEntity->IsSolidFlagSet(FSOLID_NOT_SOLID) || pEntity->GetMoveType() == MOVETYPE_VPHYSICS)
+			continue;
+		//can't be a button as buttons can be extremely critical
+		//TODO: find a way to keep entities as their original class while giving them vphysics so we can stop using this entity
+		if (pEntity->ClassMatches("func_button"))
+			continue;
 		entlist[count++] = pEntity;
 		if ( count >= ARRAYSIZE(entlist) )
 			break;

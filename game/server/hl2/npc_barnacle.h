@@ -86,6 +86,7 @@ public:
 
 	// The tongue's vphysics updated
 	void OnTongueTipUpdated();
+	void LostPrey( bool bRemoveRagdoll );
 
 private:
 	void SetAltitude( float flAltitude );
@@ -99,7 +100,6 @@ private:
  	void AttachTongueToTarget( CBaseEntity *pTouchEnt, Vector vecGrabPos );
 	CRagdollProp *AttachRagdollToTongue( CBaseAnimating *pAnimating );
 	void RemoveRagdoll( bool bDestroyRagdoll );
-	void LostPrey( bool bRemoveRagdoll );
 	void BitePrey( void );
 
 	// Updates the tongue length

@@ -56,7 +56,7 @@ CGlowOverlaySystem g_GlowOverlaySystem;
 
 ConVar cl_ShowSunVectors( "cl_ShowSunVectors", "0", 0 );
 
-ConVar cl_sun_decay_rate( "cl_sun_decay_rate", "0.05", FCVAR_CHEAT );
+ConVar cl_sun_decay_rate("cl_sun_decay_rate", "0.05", FCVAR_NONE);
 
 // Dot product space the overlays are drawn in.
 // Here it's setup to allow you to see it if you're looking within 40 degrees of the source.

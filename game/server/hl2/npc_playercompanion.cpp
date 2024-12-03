@@ -36,7 +36,7 @@ ConVar ai_debug_readiness("ai_debug_readiness", "0" );
 ConVar ai_use_readiness("ai_use_readiness", "1" ); // 0 = off, 1 = on, 2 = on for player squad only
 ConVar ai_readiness_decay( "ai_readiness_decay", "120" );// How many seconds it takes to relax completely
 ConVar ai_new_aiming( "ai_new_aiming", "1" );
-
+extern ConVar chaos_no_reload;
 #define GetReadinessUse()	ai_use_readiness.GetInt()
 
 extern ConVar g_debug_transitions;
@@ -875,7 +875,8 @@ int CNPC_PlayerCompanion::SelectScheduleCombat()
 {
 	if ( CanReload() && (HasCondition ( COND_NO_PRIMARY_AMMO ) || HasCondition(COND_LOW_PRIMARY_AMMO)) )
 	{
-		return SCHED_HIDE_AND_RELOAD;
+		if (!chaos_no_reload.GetBool())
+			return SCHED_HIDE_AND_RELOAD;
 	}
 	
 	return SCHED_NONE;
@@ -886,6 +887,8 @@ int CNPC_PlayerCompanion::SelectScheduleCombat()
 //-----------------------------------------------------------------------------
 bool CNPC_PlayerCompanion::CanReload( void )
 {
+	if (chaos_no_reload.GetBool())
+		return false;
 	if ( IsRunningDynamicInteraction() )
 		return false;
 
@@ -981,7 +984,8 @@ int CNPC_PlayerCompanion::TranslateSchedule( int scheduleType )
 						SpeakIfAllowed( TLK_PLRELOAD );
 					}
 				}
-				return SCHED_RELOAD;
+				if (!chaos_no_reload.GetBool())
+					return SCHED_RELOAD;
 			}
 		}
 		break;

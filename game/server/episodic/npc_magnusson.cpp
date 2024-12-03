@@ -16,6 +16,7 @@
 #include "ai_basenpc.h"
 #include "ai_hull.h"
 #include "ai_baseactor.h"
+#include "npc_playercompanion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -27,10 +28,10 @@
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-class CNPC_Magnusson : public CAI_BaseActor
+class CNPC_Magnusson : public CNPC_PlayerCompanion
 {
 public:
-	DECLARE_CLASS( CNPC_Magnusson, CAI_BaseActor );
+	DECLARE_CLASS(CNPC_Magnusson, CNPC_PlayerCompanion);
 
 	void	Spawn( void );
 	void	Precache( void );
@@ -80,6 +81,8 @@ int CNPC_Magnusson::GetSoundInterests ( void )
 //-----------------------------------------------------------------------------
 void CNPC_Magnusson::Spawn()
 {
+	if (!m_bChaosSpawned)
+		AddSpawnFlags(SF_NPC_NO_PLAYER_PUSHAWAY);
 	// Allow custom model usage (mostly for monitors)
 	char *szModel = (char *)STRING( GetModelName() );
 	if (!szModel || !*szModel)
@@ -100,11 +103,11 @@ void CNPC_Magnusson::Spawn()
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
 	SetBloodColor( BLOOD_COLOR_RED );
-	m_iHealth			= 8;
+	m_iHealth			= 80;
 	m_flFieldOfView		= 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	m_NPCState			= NPC_STATE_NONE;
 	
-	CapabilitiesAdd( bits_CAP_MOVE_GROUND | bits_CAP_OPEN_DOORS | bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD );
+	CapabilitiesAdd(bits_CAP_MOVE_GROUND | bits_CAP_OPEN_DOORS | bits_CAP_ANIMATEDFACE | bits_CAP_TURN_HEAD | bits_CAP_USE_WEAPONS);
 	CapabilitiesAdd( bits_CAP_FRIENDLY_DMG_IMMUNE );
 
 	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );

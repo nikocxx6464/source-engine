@@ -261,7 +261,7 @@ protected:
 #endif
 };
 
-static ConVar mat_fullbright( "mat_fullbright", "0", FCVAR_CHEAT ); // hook into engine's cvars..
+static ConVar mat_fullbright("mat_fullbright", "0", FCVAR_NONE); // hook into engine's cvars..
 extern ConVar r_DrawDetailProps;
 
 
@@ -1634,11 +1634,11 @@ void CDetailObjectSystem::UnserializeModelLighting( CUtlBuffer& buf )
 }
 
 
-ConVar cl_detail_multiplier( "cl_detail_multiplier", "1", FCVAR_CHEAT, "extra details to create" );
+ConVar cl_detail_multiplier("cl_detail_multiplier", "1", FCVAR_NONE, "extra details to create");
 
 #define SPRITE_MULTIPLIER  ( cl_detail_multiplier.GetInt() )
 
-ConVar cl_fastdetailsprites( "cl_fastdetailsprites", "1", FCVAR_CHEAT, "whether to use new detail sprite system");
+ConVar cl_fastdetailsprites("cl_fastdetailsprites", "1", FCVAR_NONE, "whether to use new detail sprite system");
 
 static bool DetailObjectIsFastSprite( DetailObjectLump_t const & lump )
 {

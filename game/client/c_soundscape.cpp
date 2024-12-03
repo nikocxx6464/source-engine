@@ -39,7 +39,7 @@ struct loopingsound_t
 	bool		isAmbient;		// Ambient sounds have no spatialization - they play from everywhere
 };
 
-ConVar soundscape_fadetime( "soundscape_fadetime", "3.0", FCVAR_CHEAT, "Time to crossfade sound effects between soundscapes" );
+ConVar soundscape_fadetime("soundscape_fadetime", "3.0", FCVAR_NONE, "Time to crossfade sound effects between soundscapes");
 
 #include "interval.h"
 
@@ -403,7 +403,7 @@ void C_SoundscapeSystem::Shutdown()
 
 // NOTE: This will not flush the server side so you cannot add or remove
 // soundscapes from the list, only change their parameters!!!!
-CON_COMMAND_F(cl_soundscape_flush, "Flushes the client side soundscapes", FCVAR_SERVER_CAN_EXECUTE|FCVAR_CHEAT)
+CON_COMMAND_F(cl_soundscape_flush, "Flushes the client side soundscapes", FCVAR_SERVER_CAN_EXECUTE)
 {
 	// save the current soundscape
 	audioparams_t tmp;
@@ -449,7 +449,7 @@ static int SoundscapeCompletion( const char *partial, char commands[ COMMAND_COM
 	return current;
 }
 
-CON_COMMAND_F_COMPLETION( playsoundscape, "Forces a soundscape to play", FCVAR_CHEAT, SoundscapeCompletion )
+CON_COMMAND_F_COMPLETION(playsoundscape, "Forces a soundscape to play", FCVAR_NONE, SoundscapeCompletion)
 {
 	if ( args.ArgC() < 2 )
 	{
@@ -462,7 +462,7 @@ CON_COMMAND_F_COMPLETION( playsoundscape, "Forces a soundscape to play", FCVAR_C
 }
 
 
-CON_COMMAND_F( stopsoundscape, "Stops all soundscape processing and fades current looping sounds", FCVAR_CHEAT )
+CON_COMMAND_F(stopsoundscape, "Stops all soundscape processing and fades current looping sounds", FCVAR_NONE)
 {
 	g_SoundscapeSystem.StartNewSoundscape( NULL );
 }

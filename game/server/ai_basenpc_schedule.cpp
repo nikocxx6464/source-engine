@@ -44,7 +44,7 @@ extern ConVar ai_use_think_optimizations;
 #define ShouldUseEfficiency() ( ai_use_think_optimizations.GetBool() && ai_use_efficiency.GetBool() )
 
 ConVar	ai_simulate_task_overtime( "ai_simulate_task_overtime", "0" );
-
+extern ConVar chaos_no_reload;
 #define MAX_TASKS_RUN 10
 
 struct TaskTimings
@@ -139,7 +139,7 @@ bool CAI_BaseNPC::SetSchedule( int localScheduleID )
 		{
 			if (!(localScheduleID == SCHED_SLEEP || localScheduleID == SCHED_WAIT_FOR_SCRIPT || localScheduleID == SCHED_SCRIPTED_WALK || localScheduleID == SCHED_SCRIPTED_RUN || localScheduleID == SCHED_SCRIPTED_CUSTOM_MOVE || localScheduleID == SCHED_SCRIPTED_WAIT || localScheduleID == SCHED_SCRIPTED_FACE) )
 			{
-				Assert( 0 );
+				//Assert( 0 );
 				// ExitScriptedSequence();
 			}
 		}
@@ -1750,7 +1750,8 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 		break;
 
 	case TASK_RELOAD:
-		ResetIdealActivity( ACT_RELOAD );
+		if (!chaos_no_reload.GetBool())
+			ResetIdealActivity( ACT_RELOAD );
 		break;
 
 	case TASK_SPECIAL_ATTACK1:

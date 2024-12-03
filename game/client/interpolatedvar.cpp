@@ -26,5 +26,5 @@ float CInterpolationContext::s_flLastTimeStamp = 0;
 float g_flLastPacketTimestamp = 0;
 
 
-ConVar cl_extrapolate_amount( "cl_extrapolate_amount", "0.25", FCVAR_CHEAT, "Set how many seconds the client will extrapolate entities for." );
+ConVar cl_extrapolate_amount("cl_extrapolate_amount", "0.25", FCVAR_NONE, "Set how many seconds the client will extrapolate entities for.");
 

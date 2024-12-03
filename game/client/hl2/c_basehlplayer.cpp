@@ -11,6 +11,15 @@
 #include "c_ai_basenpc.h"
 #include "in_buttons.h"
 #include "collisionutils.h"
+#include "hud.h"
+#include "hudelement.h"
+#include "hud_macros.h"
+#include "iclientmode.h"
+#include "c_basehlplayer.h"
+#include "vgui_controls/Panel.h"
+#include "vgui_controls/AnimationController.h"
+#include "vgui/ISurface.h"
+#include "hud_numericdisplay.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -30,7 +39,7 @@ ConVar cl_npc_speedmod_outtime( "cl_npc_speedmod_outtime", "1.5", FCVAR_CLIENTDL
 
 IMPLEMENT_CLIENTCLASS_DT(C_BaseHLPlayer, DT_HL2_Player, CHL2_Player)
 	RecvPropDataTable( RECVINFO_DT(m_HL2Local),0, &REFERENCE_RECV_TABLE(DT_HL2Local) ),
-	RecvPropBool( RECVINFO( m_fIsSprinting ) ),
+	RecvPropBool(RECVINFO(m_fIsSprinting)),
 END_RECV_TABLE()
 
 BEGIN_PREDICTION_DATA( C_BaseHLPlayer )
@@ -38,6 +47,59 @@ BEGIN_PREDICTION_DATA( C_BaseHLPlayer )
 	DEFINE_PRED_FIELD( m_fIsSprinting, FIELD_BOOLEAN, FTYPEDESC_INSENDTABLE ),
 END_PREDICTION_DATA()
 
+class CHudChaosBar : public CHudElement, public vgui::Panel
+{
+	DECLARE_CLASS_SIMPLE(CHudChaosBar, vgui::Panel);
+
+public:
+	CHudChaosBar(const char *pElementName);
+	virtual void Init(void);
+	//virtual void VidInit(void);
+	//virtual void Reset(void);
+	//virtual void OnThink();
+	void MsgFunc_Go(bf_read &msg);
+	virtual void ProcessInput();
+
+private:
+	float m_flScrollTime = 30;
+	float m_flXPos;
+	//virtual void Paint();
+};
+CHudChaosBar::CHudChaosBar(const char *pElementName) : CHudElement(pElementName), BaseClass(NULL, "CHudChaosBar")
+{
+	vgui::Panel *pParent = g_pClientMode->GetViewport();
+	SetParent(pParent);
+}
+DECLARE_HUDELEMENT(CHudChaosBar);
+DECLARE_HUD_MESSAGE(CHudChaosBar, Go);
+void CHudChaosBar::Init()
+{
+	HOOK_HUD_MESSAGE(CHudChaosBar, Go);
+	//SetSize(1, 1);
+}
+static CUtlSymbolTable g_ScriptSymbols(0, 128, true);
+void CHudChaosBar::MsgFunc_Go(bf_read &msg)
+{
+	SetBgColor(Color(msg.ReadFloat(), msg.ReadFloat(), msg.ReadFloat(), msg.ReadFloat()));
+	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ChaosBarMove");
+	float flPercent = msg.ReadFloat();
+	//480 is the "hud resolution" in terms of granularity
+	int iScaledWidth = 480 * engine->GetScreenAspectRatio();
+	float flWidth = vgui::scheme()->GetProportionalScaledValueEx(GetScheme(), iScaledWidth) * (1 - flPercent);//set bar width to a percent based on how much time until next effect.
+	SetSize(flWidth, GetTall());
+	//Msg("width %0.1f percent %0.01f\n", flWidth, 1 - flPercent);
+}
+void CHudChaosBar::ProcessInput()
+{
+	//Msg("ProcessInput\n\n\n");
+	//int iWidth, iTall;
+	//GetHudSize(iWidth, iTall);
+	//SetSize(50, 50);
+	//m_flXPos += gpGlobals->frametime * ((float)iWidth / m_flScrollTime);
+	//g_pVGuiSurface->DrawSetColor(255, 255, 255, 255);
+	//SetSize(m_flXPos, 50);
+	//g_pVGuiSurface->ApplyChanges();
+}
 //-----------------------------------------------------------------------------
 // Purpose: Drops player's primary weapon
 //-----------------------------------------------------------------------------

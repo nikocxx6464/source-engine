@@ -18,9 +18,9 @@
 
 extern ConVar default_fov;
 
-ConVar r_JeepViewBlendTo( "r_JeepViewBlendTo", "1", FCVAR_CHEAT );
-ConVar r_JeepViewBlendToScale( "r_JeepViewBlendToScale", "0.03", FCVAR_CHEAT );
-ConVar r_JeepViewBlendToTime( "r_JeepViewBlendToTime", "1.5", FCVAR_CHEAT );
+ConVar r_JeepViewBlendTo("r_JeepViewBlendTo", "1", FCVAR_NONE);
+ConVar r_JeepViewBlendToScale("r_JeepViewBlendToScale", "0.03", FCVAR_NONE);
+ConVar r_JeepViewBlendToTime("r_JeepViewBlendToTime", "1.5", FCVAR_NONE);
 
 #define JEEP_DELTA_LENGTH_MAX	12.0f			// 1 foot
 #define JEEP_FRAMETIME_MIN		1e-6

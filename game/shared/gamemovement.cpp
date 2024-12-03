@@ -55,9 +55,11 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "1", FCVAR_REPLICATED
 // duck controls. Its value is meaningless anytime we don't have the options window open.
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
+ConVar steepness_limit("steepness_limit", "0.7");
+
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL
-ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
+ConVar debug_latch_reset_onduck("debug_latch_reset_onduck", "1", FCVAR_NONE);
 #endif
 #endif
 
@@ -1333,7 +1335,7 @@ void CGameMovement::CheckWaterJump( void )
 			VectorCopy( vecEnd, vecStart );
 			vecEnd.z -= 1024.0f;
 			TracePlayerBBox( vecStart, vecEnd, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, tr );
-			if ( ( tr.fraction < 1.0f ) && ( tr.plane.normal.z >= 0.7 ) )
+			if ((tr.fraction < 1.0f) && (tr.plane.normal.z >= steepness_limit.GetFloat()))
 			{
 				mv->m_vecVelocity[2] = 256.0f;			// Push up
 				mv->m_nOldButtons |= IN_JUMP;		// Don't jump again until released
@@ -1563,7 +1565,7 @@ void CGameMovement::StepMove( Vector &vecDestination, trace_t &trace )
 	TracePlayerBBox( mv->GetAbsOrigin(), vecEndPos, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, trace );
 	
 	// If we are not on the ground any more then use the original movement attempt.
-	if ( trace.plane.normal[2] < 0.7 )
+	if (trace.plane.normal[2] < steepness_limit.GetFloat())
 	{
 		mv->SetAbsOrigin( vecDownPos );
 		VectorCopy( vecDownVel, mv->m_vecVelocity );
@@ -1877,7 +1879,7 @@ void CGameMovement::StayOnGround( void )
 	if ( trace.fraction > 0.0f &&			// must go somewhere
 		trace.fraction < 1.0f &&			// must hit something
 		!trace.startsolid &&				// can't be embedded in a solid
-		trace.plane.normal[2] >= 0.7 )		// can't hit a steep slope that we can't stand on anyway
+		trace.plane.normal[2] >= steepness_limit.GetFloat())		// can't hit a steep slope that we can't stand on anyway
 	{
 		float flDelta = fabs(mv->GetAbsOrigin().z - trace.endpos.z);
 
@@ -2404,8 +2406,8 @@ bool CGameMovement::CheckJumpButton( void )
 		return false;
 #endif
 
-	if ( mv->m_nOldButtons & IN_JUMP )
-		return false;		// don't pogo stick
+	//if ( mv->m_nOldButtons & IN_JUMP )
+	//	return false;		// don't pogo stick
 
 	// Cannot jump will in the unduck transition.
 	if ( player->m_Local.m_bDucking && (  player->GetFlags() & FL_DUCKING ) )
@@ -2433,7 +2435,7 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( g_bMovementOptimizations )
 	{
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
-		Assert( GetCurrentGravity() == 600.0f );
+		//Assert( GetCurrentGravity() == 600.0f );
 		flMul = 160.0f;	// approx. 21 units.
 #else
 		Assert( GetCurrentGravity() == 800.0f );
@@ -2476,9 +2478,14 @@ bool CGameMovement::CheckJumpButton( void )
 		
 		// We give a certain percentage of the current forward movement as a bonus to the jump speed.  That bonus is clipped
 		// to not accumulate over time.
+
+		//PIN: if using crouch, set maxspeed back to standing, or else ABH is OP
+		//Stock HL2 didn't implement duck speed like other speeds, but chaos does
+		float flPlrMaxSpeed = mv->m_flMaxSpeed == 64 ? 190 : mv->m_flMaxSpeed;
+
 		float flSpeedBoostPerc = ( !pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked ) ? 0.5f : 0.1f;
 		float flSpeedAddition = fabs( mv->m_flForwardMove * flSpeedBoostPerc );
-		float flMaxSpeed = mv->m_flMaxSpeed + ( mv->m_flMaxSpeed * flSpeedBoostPerc );
+		float flMaxSpeed = flPlrMaxSpeed + (flPlrMaxSpeed * flSpeedBoostPerc);
 		float flNewSpeed = ( flSpeedAddition + mv->m_vecVelocity.Length2D() );
 
 		// If we're over the maximum, we want to only boost as much as will get us to the goal speed
@@ -2679,7 +2686,7 @@ int CGameMovement::TryPlayerMove( Vector *pFirstDest, trace_t *pFirstTrace )
 
 		// If the plane we hit has a high z component in the normal, then
 		//  it's probably a floor
-		if (pm.plane.normal[2] > 0.7)
+		if (pm.plane.normal[2] > steepness_limit.GetFloat())
 		{
 			blocked |= 1;		// floor
 		}
@@ -2721,7 +2728,7 @@ int CGameMovement::TryPlayerMove( Vector *pFirstDest, trace_t *pFirstTrace )
 		{
 			for ( i = 0; i < numplanes; i++ )
 			{
-				if ( planes[i][2] > 0.7  )
+				if (planes[i][2] > steepness_limit.GetFloat())
 				{
 					// floor or slope
 					ClipVelocity( original_velocity, planes[i], new_velocity, 1 );
@@ -3463,7 +3470,7 @@ int CGameMovement::CheckStuck( void )
 //-----------------------------------------------------------------------------
 bool CGameMovement::InWater( void )
 {
-	return ( player->GetWaterLevel() > WL_Feet );
+	return (player->GetWaterLevel() > WL_Feet || player->m_bSwimInAir);
 }
 
 
@@ -3510,6 +3517,8 @@ int CGameMovement::GetPointContentsCached( const Vector &point, int slot )
 //-----------------------------------------------------------------------------
 bool CGameMovement::CheckWater( void )
 {
+	if (player->m_bSwimInAir)
+		return true;
 	Vector	point;
 	int		cont;
 
@@ -3654,7 +3663,7 @@ void TracePlayerBBoxForGround( const Vector& start, const Vector& end, const Vec
 	maxs.Init( MIN( 0, maxsSrc.x ), MIN( 0, maxsSrc.y ), maxsSrc.z );
 	ray.Init( start, end, mins, maxs );
 	UTIL_TraceRay( ray, fMask, player, collisionGroup, &pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3666,7 +3675,7 @@ void TracePlayerBBoxForGround( const Vector& start, const Vector& end, const Vec
 	maxs = maxsSrc;
 	ray.Init( start, end, mins, maxs );
 	UTIL_TraceRay( ray, fMask, player, collisionGroup, &pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3678,7 +3687,7 @@ void TracePlayerBBoxForGround( const Vector& start, const Vector& end, const Vec
 	maxs.Init( MIN( 0, maxsSrc.x ), maxsSrc.y, maxsSrc.z );
 	ray.Init( start, end, mins, maxs );
 	UTIL_TraceRay( ray, fMask, player, collisionGroup, &pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3690,7 +3699,7 @@ void TracePlayerBBoxForGround( const Vector& start, const Vector& end, const Vec
 	maxs.Init( maxsSrc.x, MIN( 0, maxsSrc.y ), maxsSrc.z );
 	ray.Init( start, end, mins, maxs );
 	UTIL_TraceRay( ray, fMask, player, collisionGroup, &pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3723,7 +3732,7 @@ void CGameMovement::TryTouchGroundInQuadrants( const Vector& start, const Vector
 	mins = minsSrc;
 	maxs.Init( MIN( 0, maxsSrc.x ), MIN( 0, maxsSrc.y ), maxsSrc.z );
 	TryTouchGround( start, end, mins, maxs, fMask, collisionGroup, pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3734,7 +3743,7 @@ void CGameMovement::TryTouchGroundInQuadrants( const Vector& start, const Vector
 	mins.Init( MAX( 0, minsSrc.x ), MAX( 0, minsSrc.y ), minsSrc.z );
 	maxs = maxsSrc;
 	TryTouchGround( start, end, mins, maxs, fMask, collisionGroup, pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3745,7 +3754,7 @@ void CGameMovement::TryTouchGroundInQuadrants( const Vector& start, const Vector
 	mins.Init( minsSrc.x, MAX( 0, minsSrc.y ), minsSrc.z );
 	maxs.Init( MIN( 0, maxsSrc.x ), maxsSrc.y, maxsSrc.z );
 	TryTouchGround( start, end, mins, maxs, fMask, collisionGroup, pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3756,7 +3765,7 @@ void CGameMovement::TryTouchGroundInQuadrants( const Vector& start, const Vector
 	mins.Init( MAX( 0, minsSrc.x ), minsSrc.y, minsSrc.z );
 	maxs.Init( maxsSrc.x, MIN( 0, maxsSrc.y ), maxsSrc.z );
 	TryTouchGround( start, end, mins, maxs, fMask, collisionGroup, pm );
-	if ( pm.m_pEnt && pm.plane.normal[2] >= 0.7)
+	if (pm.m_pEnt && pm.plane.normal[2] >= steepness_limit.GetFloat())
 	{
 		pm.fraction = fraction;
 		pm.endpos = endpos;
@@ -3841,12 +3850,12 @@ void CGameMovement::CategorizePosition( void )
 		TryTouchGround( bumpOrigin, point, GetPlayerMins(), GetPlayerMaxs(), MASK_PLAYERSOLID, COLLISION_GROUP_PLAYER_MOVEMENT, pm );
 		
 		// Was on ground, but now suddenly am not.  If we hit a steep plane, we are not on ground
-		if ( !pm.m_pEnt || pm.plane.normal[2] < 0.7 )
+		if (!pm.m_pEnt || pm.plane.normal[2] < steepness_limit.GetFloat())
 		{
 			// Test four sub-boxes, to see if any of them would have found shallower slope we could actually stand on
 			TryTouchGroundInQuadrants( bumpOrigin, point, MASK_PLAYERSOLID, COLLISION_GROUP_PLAYER_MOVEMENT, pm );
 
-			if ( !pm.m_pEnt || pm.plane.normal[2] < 0.7 )
+			if (!pm.m_pEnt || pm.plane.normal[2] < steepness_limit.GetFloat())
 			{
 				SetGroundEntity( NULL );
 				// probably want to add a check for a +z velocity too!
@@ -4026,7 +4035,7 @@ void CGameMovement::FixPlayerCrouchStuck( bool upward )
 		return;
 	
 	VectorCopy( mv->GetAbsOrigin(), test );	
-	for ( i = 0; i < 36; i++ )
+	for (i = 0; i < 36 * player->GetModelScale(); i++)
 	{
 		Vector org = mv->GetAbsOrigin();
 		org.z += direction;
@@ -4288,17 +4297,17 @@ void CGameMovement::SetDuckedEyeOffset( float duckFraction )
 //          bInAir - is the player in air
 //    NOTE: Only crop player speed once.
 //-----------------------------------------------------------------------------
-void CGameMovement::HandleDuckingSpeedCrop( void )
+/*void CGameMovement::HandleDuckingSpeedCrop( void )
 {
 	if ( !( m_iSpeedCropped & SPEED_CROPPED_DUCK ) && ( player->GetFlags() & FL_DUCKING ) && ( player->GetGroundEntity() != NULL ) )
 	{
-		float frac = 0.33333333f;
+		float frac = mv->m_flCrouchFraction;
 		mv->m_flForwardMove	*= frac;
 		mv->m_flSideMove	*= frac;
 		mv->m_flUpMove		*= frac;
 		m_iSpeedCropped		|= SPEED_CROPPED_DUCK;
 	}
-}
+}*/
 
 //-----------------------------------------------------------------------------
 // Purpose: Check to see if we are in a situation where we can unduck jump.
@@ -4307,12 +4316,12 @@ bool CGameMovement::CanUnDuckJump( trace_t &trace )
 {
 	// Trace down to the stand position and see if we can stand.
 	Vector vecEnd( mv->GetAbsOrigin() );
-	vecEnd.z -= 36.0f;						// This will have to change if bounding hull change!
+	vecEnd.z -= 36.0f * player->GetModelScale();// This will have to change if bounding hull change!
 	TracePlayerBBox( mv->GetAbsOrigin(), vecEnd, PlayerSolidMask(), COLLISION_GROUP_PLAYER_MOVEMENT, trace );
 	if ( trace.fraction < 1.0f )
 	{
 		// Find the endpoint.
-		vecEnd.z = mv->GetAbsOrigin().z + ( -36.0f * trace.fraction );
+		vecEnd.z = mv->GetAbsOrigin().z + (-36.0f * trace.fraction  * player->GetModelScale());
 
 		// Test a normal hull.
 		trace_t traceUp;
@@ -4356,7 +4365,7 @@ void CGameMovement::Duck( void )
 		return;
 
 	// Slow down ducked players.
-	HandleDuckingSpeedCrop();
+	//HandleDuckingSpeedCrop();
 
 	// If the player is holding down the duck button, the player is in duck transition, ducking, or duck-jumping.
 	if ( ( mv->m_nButtons & IN_DUCK ) || player->m_Local.m_bDucking  || bInDuck || bDuckJump )
@@ -4531,7 +4540,7 @@ void CGameMovement::Duck( void )
 		if ( ( player->m_Local.m_flDuckJumpTime == 0.0f ) && ( fabs(player->GetViewOffset().z - GetPlayerViewOffset( false ).z) > 0.1 ) )
 		{
 			// we should rarely ever get here, so assert so a coder knows when it happens
-			Assert(0);
+//			Assert(0);
 			DevMsg( 1, "Restoring player view height\n" );
 
 			// set the eye height to the non-ducked height
@@ -4540,7 +4549,7 @@ void CGameMovement::Duck( void )
 	}
 }
 
-static ConVar sv_optimizedmovement( "sv_optimizedmovement", "1", FCVAR_REPLICATED | FCVAR_DEVELOPMENTONLY );
+static ConVar sv_optimizedmovement( "sv_optimizedmovement", "1", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -4722,7 +4731,7 @@ void CGameMovement::PerformFlyCollisionResolution( trace_t &pm, Vector &move )
 	}
 
 	// stop if on ground
-	if (pm.plane.normal[2] > 0.7)
+	if (pm.plane.normal[2] > steepness_limit.GetFloat())
 	{		
 		base.Init();
 		if (mv->m_vecVelocity[2] < GetCurrentGravity() * gpGlobals->frametime)

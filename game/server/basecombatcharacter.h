@@ -134,7 +134,8 @@ public:
 
 	virtual	bool		FVisible ( CBaseEntity *pEntity, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL ); // true iff the parameter can be seen by me.
 	virtual bool		FVisible( const Vector &vecTarget, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL )	{ return BaseClass::FVisible( vecTarget, traceMask, ppBlocker ); }
-	static void			ResetVisibilityCache( CBaseCombatCharacter *pBCC = NULL );
+	static void			ResetVisibilityCache(CBaseCombatCharacter *pBCC = NULL);
+	static const char*	GetActivityName(int actID);
 
 #ifdef PORTAL
 	virtual	bool		FVisibleThroughPortal( const CProp_Portal *pPortal, CBaseEntity *pEntity, int traceMask = MASK_BLOCKLOS, CBaseEntity **ppBlocker = NULL );
@@ -488,14 +489,16 @@ protected:
 
 public:
 	static int					GetInteractionID();	// Returns the next interaction #
+	// Usable character items 
+	CNetworkArray(CBaseCombatWeaponHandle, m_hMyWeapons, MAX_WEAPONS);
+	void DropWeaponForWeaponStrip(CBaseCombatWeapon *pWeapon, const Vector &vecForward, const QAngle &vecAngles, float flDiameter);
+	void ThrowDirForWeaponStrip(CBaseCombatWeapon *pWeapon, const Vector &vecForward, Vector *pVecThrowDir);
 
 protected:
 	// Visibility-related stuff
 	bool ComputeLOS( const Vector &vecEyePosition, const Vector &vecTarget ) const;
 private:
 	// For weapon strip
-	void ThrowDirForWeaponStrip( CBaseCombatWeapon *pWeapon, const Vector &vecForward, Vector *pVecThrowDir );
-	void DropWeaponForWeaponStrip( CBaseCombatWeapon *pWeapon, const Vector &vecForward, const QAngle &vecAngles, float flDiameter );
 
 	friend class CScriptedTarget; // needs to access GetInteractionID()
 	
@@ -520,8 +523,6 @@ protected:
 	// shared ammo slots
 	CNetworkArrayForDerived( int, m_iAmmo, MAX_AMMO_SLOTS );
 
-	// Usable character items 
-	CNetworkArray( CBaseCombatWeaponHandle, m_hMyWeapons, MAX_WEAPONS );
 
 	CNetworkHandle( CBaseCombatWeapon, m_hActiveWeapon );
 

@@ -13,7 +13,7 @@
 #include "tier0/memdbgon.h"
 
 ConVar ai_debug_assault("ai_debug_assault", "0");
-
+extern ConVar chaos_no_reload;
 BEGIN_DATADESC( CRallyPoint )
 	DEFINE_KEYFIELD( m_AssaultPointName, FIELD_STRING, "assaultpoint" ),
 	DEFINE_KEYFIELD( m_RallySequenceName, FIELD_STRING, "rallysequence" ),
@@ -1257,9 +1257,10 @@ int CAI_AssaultBehavior::TranslateSchedule( int scheduleType )
 		break;
 
 	case SCHED_HOLD_RALLY_POINT:
-		if( HasCondition(COND_NO_PRIMARY_AMMO) || HasCondition(COND_LOW_PRIMARY_AMMO) )
+		if( HasCondition(COND_NO_PRIMARY_AMMO) | HasCondition(COND_LOW_PRIMARY_AMMO) )
 		{
-			return SCHED_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_RELOAD;
 		}
 		break;
 
@@ -1380,7 +1381,7 @@ int CAI_AssaultBehavior::SelectSchedule()
 		return SCHED_MELEE_ATTACK1;
 
 	// If you're empty, reload before trying to carry out any assault functions.
-	if( HasCondition( COND_NO_PRIMARY_AMMO ) )
+	if (HasCondition(COND_NO_PRIMARY_AMMO) && !chaos_no_reload.GetBool())
 		return SCHED_RELOAD;
 
 	if( m_bHitRallyPoint && !m_bHitAssaultPoint && !AssaultHasBegun() )
@@ -1446,7 +1447,8 @@ int CAI_AssaultBehavior::SelectSchedule()
 		else if( HasCondition( COND_NO_PRIMARY_AMMO ) )
 		{
 			// Don't run off to reload.
-			return SCHED_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_RELOAD;
 		}
 		else if( HasCondition( COND_LIGHT_DAMAGE ) || HasCondition( COND_HEAVY_DAMAGE ) )
 		{
@@ -1466,8 +1468,9 @@ int CAI_AssaultBehavior::SelectSchedule()
 
 	if( HasCondition( COND_NO_PRIMARY_AMMO ) )
 	{
-		GetOuter()->SpeakSentence( ASSAULT_SENTENCE_COVER_NO_AMMO );
-		return SCHED_HIDE_AND_RELOAD;
+		GetOuter()->SpeakSentence(ASSAULT_SENTENCE_COVER_NO_AMMO);
+		if (!chaos_no_reload.GetBool())
+			return SCHED_HIDE_AND_RELOAD;
 	}
 
 	if( m_hAssaultPoint->HasSpawnFlags( SF_ASSAULTPOINT_CLEARONARRIVAL ) )

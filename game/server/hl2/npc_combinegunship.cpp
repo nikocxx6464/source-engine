@@ -141,7 +141,7 @@ Activity ACT_GUNSHIP_CRASH;
 #define	GUNSHIP_DEBUG_STITCHING	3
 #define GUNSHIP_DEBUG_BELLYBLAST 4
 
-ConVar g_debug_gunship( "g_debug_gunship", "0", FCVAR_CHEAT );
+ConVar g_debug_gunship("g_debug_gunship", "0", FCVAR_NONE);
 
 //-----------------------------------------------------------------------------
 // Purpose: Dying gunship ragdoll controller

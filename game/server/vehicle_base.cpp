@@ -24,7 +24,7 @@
 
 #define SF_PROP_VEHICLE_ALWAYSTHINK		0x00000001
 
-ConVar g_debug_vehiclebase( "g_debug_vehiclebase", "0", FCVAR_CHEAT );
+ConVar g_debug_vehiclebase("g_debug_vehiclebase", "0", FCVAR_NONE);
 extern ConVar g_debug_vehicledriver;
 
 // CFourWheelServerVehicle
@@ -54,8 +54,9 @@ BEGIN_DATADESC( CPropVehicle )
 #endif // HL2_EPISODIC
 
 	// Keys
-	DEFINE_KEYFIELD( m_vehicleScript, FIELD_STRING, "VehicleScript" ),
-	DEFINE_FIELD( m_vecSmoothedVelocity, FIELD_VECTOR ),
+	DEFINE_KEYFIELD(m_vehicleScript, FIELD_STRING, "VehicleScript"),
+	DEFINE_FIELD(m_vecSmoothedVelocity, FIELD_VECTOR),
+	DEFINE_FIELD(m_vecLastBump, FIELD_VECTOR),
 
 	// Inputs
 	DEFINE_INPUTFUNC( FIELD_FLOAT, "Throttle", InputThrottle ),
@@ -830,9 +831,8 @@ bool CPropVehicleDriveable::CanExitVehicle( CBaseEntity *pEntity )
 void CPropVehicleDriveable::InputTurnOn( inputdata_t &inputdata )
 {
 	m_bEngineLocked = false;
-
+	m_VehiclePhysics.SetDisableEngine(false);//PIN: have to enable engine before starting it or else it's like "nope"
 	StartEngine();
-	m_VehiclePhysics.SetDisableEngine( false );
 
 }
 
@@ -1106,9 +1106,9 @@ CFourWheelServerVehicle::CFourWheelServerVehicle( void )
 }
 
 #ifdef HL2_EPISODIC
-ConVar r_JeepFOV( "r_JeepFOV", "82", FCVAR_CHEAT | FCVAR_REPLICATED );
+ConVar r_JeepFOV( "r_JeepFOV", "82", FCVAR_REPLICATED );
 #else
-ConVar r_JeepFOV( "r_JeepFOV", "90", FCVAR_CHEAT | FCVAR_REPLICATED );
+ConVar r_JeepFOV( "r_JeepFOV", "90", FCVAR_REPLICATED );
 #endif // HL2_EPISODIC
 
 //-----------------------------------------------------------------------------

@@ -197,7 +197,7 @@ void CViewEffects::LevelInit( void )
 
 
 static ConVar shake_show( "shake_show", "0", 0, "Displays a list of the active screen shakes." );
-static ConCommand shake_stop("shake_stop", CC_Shake_Stop, "Stops all active screen shakes.\n", FCVAR_CHEAT );
+static ConCommand shake_stop("shake_stop", CC_Shake_Stop, "Stops all active screen shakes.\n", FCVAR_NONE);
 
 //-----------------------------------------------------------------------------
 // Purpose: Stops all active screen shakes.

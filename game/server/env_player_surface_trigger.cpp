@@ -133,3 +133,16 @@ void CEnvPlayerSurfaceTrigger::InputEnable( inputdata_t &inputdata )
 {
 	m_bDisabled = false;
 }
+
+//for a chaos effect, several textures had their surface props changed (correctly) to grass.
+//this affects the texture used in highway 17 for most sand, which is blended with grass.
+//that material should still trigger when the player is on grass, so correct that here.
+bool CEnvPlayerSurfaceTrigger::IsTargetMaterial(char gameMaterial)
+{
+	if (gameMaterial == m_iTargetGameMaterial)
+		return true;
+	//if targetting sand and player is on our new "sandygrass" surfaceprop, count it as sand
+	else if (m_iTargetGameMaterial == 'N' && gameMaterial == 'K')
+		return true;
+	return false;
+}

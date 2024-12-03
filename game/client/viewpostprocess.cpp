@@ -40,25 +40,25 @@ bool g_bFlashlightIsOn = false;
 ConVar mat_bloomscale( "mat_bloomscale", "1" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
-ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
+ConVar mat_bloomamount_rate("mat_bloomamount_rate", "0.05f", FCVAR_NONE);
 static ConVar debug_postproc( "mat_debug_postprocessing_effects", "0", FCVAR_NONE, "0 = off, 1 = show post-processing passes in quadrants of the screen, 2 = only apply post-processing to the centre of the screen" );
-static ConVar split_postproc( "mat_debug_process_halfscreen", "0", FCVAR_CHEAT );
+static ConVar split_postproc("mat_debug_process_halfscreen", "0", FCVAR_NONE);
 static ConVar mat_postprocessing_combine( "mat_postprocessing_combine", "1", FCVAR_NONE, "Combine bloom, software anti-aliasing and color correction into one post-processing pass" );
-static ConVar mat_dynamic_tonemapping( "mat_dynamic_tonemapping", "1", FCVAR_CHEAT );
+static ConVar mat_dynamic_tonemapping("mat_dynamic_tonemapping", "1", FCVAR_NONE);
 static ConVar mat_show_ab_hdr( "mat_show_ab_hdr", "0" );
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
-ConVar mat_debug_autoexposure("mat_debug_autoexposure","0", FCVAR_CHEAT);
+ConVar mat_debug_autoexposure("mat_debug_autoexposure", "0", FCVAR_NONE);
 static ConVar mat_autoexposure_max( "mat_autoexposure_max", "2" );
 static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.5" );
 static ConVar mat_show_histogram( "mat_show_histogram", "0" );
-ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT );
-ConVar mat_hdr_uncapexposure( "mat_hdr_uncapexposure", "0", FCVAR_CHEAT );
-ConVar mat_force_bloom("mat_force_bloom","0", FCVAR_CHEAT);
+ConVar mat_hdr_tonemapscale("mat_hdr_tonemapscale", "1.0", FCVAR_NONE);
+ConVar mat_hdr_uncapexposure("mat_hdr_uncapexposure", "0", FCVAR_NONE);
+ConVar mat_force_bloom("mat_force_bloom", "0", FCVAR_NONE);
 ConVar mat_disable_bloom("mat_disable_bloom","0");
-ConVar mat_debug_bloom("mat_debug_bloom","0", FCVAR_CHEAT);
+ConVar mat_debug_bloom("mat_debug_bloom", "0", FCVAR_NONE);
 ConVar mat_colorcorrection( "mat_colorcorrection", "0" );
 
-ConVar mat_accelerate_adjust_exposure_down( "mat_accelerate_adjust_exposure_down", "3.0", FCVAR_CHEAT );
+ConVar mat_accelerate_adjust_exposure_down("mat_accelerate_adjust_exposure_down", "3.0", FCVAR_NONE);
 ConVar mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate", "1.0" );
 
 // fudge factor to make non-hdr bloom more closely match hdr bloom. Because of auto-exposure, high
@@ -74,16 +74,16 @@ static ConVar mat_bloom_scalefactor_scalar( "mat_bloom_scalefactor_scalar", "1.0
 //ConVar mat_exposure_center_region_x_flashlight( "mat_exposure_center_region_x_flashlight","0.33", FCVAR_CHEAT );
 //ConVar mat_exposure_center_region_y_flashlight( "mat_exposure_center_region_y_flashlight","0.33", FCVAR_CHEAT );
 
-ConVar mat_exposure_center_region_x( "mat_exposure_center_region_x","0.9", FCVAR_CHEAT );
-ConVar mat_exposure_center_region_y( "mat_exposure_center_region_y","0.85", FCVAR_CHEAT );
-ConVar mat_exposure_center_region_x_flashlight( "mat_exposure_center_region_x_flashlight","0.9", FCVAR_CHEAT );
-ConVar mat_exposure_center_region_y_flashlight( "mat_exposure_center_region_y_flashlight","0.85", FCVAR_CHEAT );
+ConVar mat_exposure_center_region_x("mat_exposure_center_region_x", "0.9", FCVAR_NONE);
+ConVar mat_exposure_center_region_y("mat_exposure_center_region_y", "0.85", FCVAR_NONE);
+ConVar mat_exposure_center_region_x_flashlight("mat_exposure_center_region_x_flashlight", "0.9", FCVAR_NONE);
+ConVar mat_exposure_center_region_y_flashlight("mat_exposure_center_region_y_flashlight", "0.85", FCVAR_NONE);
 
-ConVar mat_tonemap_algorithm( "mat_tonemap_algorithm", "1", FCVAR_CHEAT, "0 = Original Algorithm 1 = New Algorithm" );
-ConVar mat_tonemap_percent_target( "mat_tonemap_percent_target", "60.0", FCVAR_CHEAT );
-ConVar mat_tonemap_percent_bright_pixels( "mat_tonemap_percent_bright_pixels", "2.0", FCVAR_CHEAT );
-ConVar mat_tonemap_min_avglum( "mat_tonemap_min_avglum", "3.0", FCVAR_CHEAT );
-ConVar mat_fullbright( "mat_fullbright", "0", FCVAR_CHEAT );
+ConVar mat_tonemap_algorithm("mat_tonemap_algorithm", "1", FCVAR_NONE, "0 = Original Algorithm 1 = New Algorithm");
+ConVar mat_tonemap_percent_target("mat_tonemap_percent_target", "60.0", FCVAR_NONE);
+ConVar mat_tonemap_percent_bright_pixels("mat_tonemap_percent_bright_pixels", "2.0", FCVAR_NONE);
+ConVar mat_tonemap_min_avglum("mat_tonemap_min_avglum", "3.0", FCVAR_NONE);
+ConVar mat_fullbright("mat_fullbright", "0", FCVAR_NONE);
 
 extern ConVar localplayer_visionflags;
 
@@ -1126,7 +1126,7 @@ void ResetToneMapping(float value)
 	pRenderContext->ResetToneMappingScale(value);
 }
 
-static ConVar mat_force_tonemap_scale( "mat_force_tonemap_scale", "0.0", FCVAR_CHEAT );
+static ConVar mat_force_tonemap_scale("mat_force_tonemap_scale", "0.0", FCVAR_NONE);
 
 static void SetToneMapScale(IMatRenderContext *pRenderContext, float newvalue, float minvalue, float maxvalue)
 {

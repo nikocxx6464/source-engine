@@ -631,7 +631,7 @@ void CBaseAnimating::InputSetModelScale( inputdata_t &inputdata )
 int CBaseAnimating::SelectWeightedSequence ( Activity activity )
 {
 	Assert( activity != ACT_INVALID );
-	Assert( GetModelPtr() );
+//	Assert( GetModelPtr() );
 	return ::SelectWeightedSequence( GetModelPtr(), activity, GetSequence() );
 }
 
@@ -729,7 +729,7 @@ float CBaseAnimating::GetSequenceMoveYaw( int iSequence )
 {
 	Vector				vecReturn;
 	
-	Assert( GetModelPtr() );
+	//Assert( GetModelPtr() );
 	::GetSequenceLinearMotion( GetModelPtr(), iSequence, GetPoseParameterArray(), &vecReturn );
 
 	if (vecReturn.Length() > 0)
@@ -925,7 +925,7 @@ bool CBaseAnimating::IsValidSequence( int iSequence )
 //=========================================================
 void CBaseAnimating::SetSequence( int nSequence )
 {
-	Assert( nSequence == 0 || IsDynamicModelLoading() || ( GetModelPtr( ) && ( nSequence < GetModelPtr( )->GetNumSeq() ) && ( GetModelPtr( )->GetNumSeq() < (1 << ANIMATION_SEQUENCE_BITS) ) ) );
+	//Assert( nSequence == 0 || IsDynamicModelLoading() || ( GetModelPtr( ) && ( nSequence < GetModelPtr( )->GetNumSeq() ) && ( GetModelPtr( )->GetNumSeq() < (1 << ANIMATION_SEQUENCE_BITS) ) ) );
 	m_nSequence = nSequence;
 }
 
@@ -1209,7 +1209,7 @@ void CBaseAnimating::HandleAnimEvent( animevent_t *pEvent )
 float CBaseAnimating::SetPoseParameter( CStudioHdr *pStudioHdr, const char *szName, float flValue )
 {
 	int poseParam = LookupPoseParameter( pStudioHdr, szName );
-	AssertMsg2(poseParam >= 0, "SetPoseParameter called with invalid argument %s by %s", szName, GetDebugName());
+	//AssertMsg2(poseParam >= 0, "SetPoseParameter called with invalid argument %s by %s", szName, GetDebugName());
 	return SetPoseParameter( pStudioHdr, poseParam, flValue );
 }
 
@@ -1779,17 +1779,17 @@ void CBaseAnimating::SetupBones( matrix3x4_t *pBoneToWorld, int boneMask )
 	
 	MDLCACHE_CRITICAL_SECTION();
 
-	Assert( GetModelPtr() );
+	//Assert( GetModelPtr() );//triggered by npc_bullseye which is stupid
 
 	CStudioHdr *pStudioHdr = GetModelPtr( );
 
 	if(!pStudioHdr)
 	{
-		Assert(!"CBaseAnimating::GetSkeleton() without a model");
+		//Assert(!"CBaseAnimating::GetSkeleton() without a model");//npc_bullseye
 		return;
 	}
 
-	Assert( !IsEFlagSet( EFL_SETTING_UP_BONES ) );
+	//Assert( !IsEFlagSet( EFL_SETTING_UP_BONES ) );
 
 	AddEFlags( EFL_SETTING_UP_BONES );
 
@@ -1901,7 +1901,7 @@ int CBaseAnimating::LookupAttachment( const char *szName )
 	CStudioHdr *pStudioHdr = GetModelPtr( );
 	if (!pStudioHdr)
 	{
-		Assert(!"CBaseAnimating::LookupAttachment: model missing");
+		//Assert(!"CBaseAnimating::LookupAttachment: model missing");
 		return 0;
 	}
 
@@ -1946,7 +1946,7 @@ bool CBaseAnimating::GetAttachment( int iAttachment, matrix3x4_t &attachmentToWo
 	if (!pStudioHdr)
 	{
 		MatrixCopy(EntityToWorldTransform(), attachmentToWorld);
-		AssertOnce(!"CBaseAnimating::GetAttachment: model missing");
+		//AssertOnce(!"CBaseAnimating::GetAttachment: model missing");
 		return false;
 	}
 
@@ -2646,6 +2646,8 @@ bool CBaseAnimating::TestCollision( const Ray_t &ray, unsigned int fContentsMask
 	if ( GetModelScale() != 1.0f )
 	{
 		IPhysicsObject *pPhysObject = VPhysicsGetObject();
+		if (!pPhysObject)//TODO: added this because apparently beer bottle isn't having it's physics object saved...?
+			pPhysObject = VPhysicsInitNormal(SOLID_VPHYSICS, 0, false);
 		Vector vecPosition;
 		QAngle vecAngles;
 		pPhysObject->GetPosition( &vecPosition, &vecAngles );

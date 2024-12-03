@@ -20,20 +20,22 @@
 #include "ai_playerally.h"
 #include "ai_senses.h"
 #include "soundent.h"
+#include "npc_playercompanion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 ConVar monk_headshot_freq( "monk_headshot_freq", "2" );
+extern ConVar chaos_no_reload;
 
 //-----------------------------------------------------------------------------
 // Activities.
 //-----------------------------------------------------------------------------
 int ACT_MONK_GUN_IDLE;
 
-class CNPC_Monk : public CAI_PlayerAlly
+class CNPC_Monk : public CNPC_PlayerCompanion
 {
-	DECLARE_CLASS( CNPC_Monk, CAI_PlayerAlly );
+	DECLARE_CLASS(CNPC_Monk, CNPC_PlayerCompanion);
 
 public:
 
@@ -436,10 +438,12 @@ int CNPC_Monk::TranslateSchedule( int scheduleType )
 	case SCHED_RELOAD:
 		if( ShouldBackAway() )
 		{
-			return SCHED_MONK_BACK_AWAY_AND_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_MONK_BACK_AWAY_AND_RELOAD;
 		}
 
-		return SCHED_RELOAD;
+		if (!chaos_no_reload.GetBool())
+			return SCHED_RELOAD;
 		break;
 	}
 
@@ -474,7 +478,8 @@ int CNPC_Monk::SelectSchedule()
 	{
 		if ( HasCondition ( COND_NO_PRIMARY_AMMO ) )
 		{
-			return SCHED_HIDE_AND_RELOAD;
+			if (!chaos_no_reload.GetBool())
+				return SCHED_HIDE_AND_RELOAD;
 		}
 	}
 
@@ -488,7 +493,9 @@ void CNPC_Monk::StartTask( const Task_t *pTask )
 	switch( pTask->iTask )
 	{
 	case TASK_RELOAD:
-		{
+	{
+		if (chaos_no_reload.GetBool())
+			break;
 			if ( GetActiveWeapon() && GetActiveWeapon()->HasPrimaryAmmo() )
 			{
 				// Don't reload if you have done so while moving (See BACK_AWAY_AND_RELOAD schedule).
@@ -524,7 +531,9 @@ void CNPC_Monk::RunTask( const Task_t *pTask )
 	switch( pTask->iTask )
 	{
 	case TASK_RELOAD:
-		{
+	{
+		if (chaos_no_reload.GetBool())
+			break;
 			Activity reloadGesture = TranslateActivity( ACT_GESTURE_RELOAD );
 			if ( GetIdealActivity() != ACT_RELOAD && reloadGesture != ACT_INVALID )
 			{

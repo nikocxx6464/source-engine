@@ -83,7 +83,8 @@ extern bool g_bRenderingScreenshot;
 extern ConVar sensitivity;
 #endif
 
-ConVar zoom_sensitivity_ratio( "zoom_sensitivity_ratio", "1.0", 0, "Additional mouse sensitivity scale factor applied when FOV is zoomed in." );
+ConVar zoom_sensitivity_ratio("zoom_sensitivity_ratio", "1.0", 0, "Additional mouse sensitivity scale factor applied when FOV is zoomed in.");
+ConVar chaos_yawroll("chaos_yawroll", "0");
 
 CViewRender g_DefaultViewRender;
 IViewRender *view = NULL;	// set in cldll_client_init.cpp if no mod creates their own
@@ -112,11 +113,11 @@ static ConVar v_centerspeed( "v_centerspeed","500" );
 // and motions look the most natural.
 ConVar v_viewmodel_fov( "viewmodel_fov", "54", FCVAR_ARCHIVE );
 #else
-ConVar v_viewmodel_fov( "viewmodel_fov", "54", FCVAR_CHEAT );
+ConVar v_viewmodel_fov("viewmodel_fov", "54", FCVAR_NONE);
 #endif
 ConVar mat_viewportscale( "mat_viewportscale", "1.0", FCVAR_ARCHIVE, "Scale down the main viewport (to reduce GPU impact on CPU profiling)", true, (1.0f / 640.0f), true, 1.0f );
 ConVar mat_viewportupscale( "mat_viewportupscale", "1", FCVAR_ARCHIVE, "Scale the viewport back up" );
-ConVar cl_leveloverview( "cl_leveloverview", "0", FCVAR_CHEAT );
+ConVar cl_leveloverview("cl_leveloverview", "0", FCVAR_NONE);
 
 #ifdef ANDROID
 #define MAPEXTENTS_DEFAULT "12288" // small optimization
@@ -124,14 +125,14 @@ ConVar cl_leveloverview( "cl_leveloverview", "0", FCVAR_CHEAT );
 #define MAPEXTENTS_DEFAULT "16384"
 #endif
 
-static ConVar r_mapextents( "r_mapextents", MAPEXTENTS_DEFAULT, FCVAR_CHEAT,
+static ConVar r_mapextents( "r_mapextents", MAPEXTENTS_DEFAULT, FCVAR_NONE,
 						   "Set the max dimension for the map.  This determines the far clipping plane" );
 
 // UNDONE: Delete this or move to the material system?
 ConVar	gl_clear( "gl_clear", "0");
-ConVar	gl_clear_randomcolor( "gl_clear_randomcolor", "0", FCVAR_CHEAT, "Clear the back buffer to random colors every frame. Helps spot open seams in geometry." );
+ConVar	gl_clear_randomcolor("gl_clear_randomcolor", "0", FCVAR_NONE, "Clear the back buffer to random colors every frame. Helps spot open seams in geometry.");
 
-static ConVar r_farz( "r_farz", "-1", FCVAR_CHEAT, "Override the far clipping plane. -1 means to use the value in env_fog_controller." );
+static ConVar r_farz("r_farz", "-1", FCVAR_NONE, "Override the far clipping plane. -1 means to use the value in env_fog_controller.");
 static ConVar cl_demoviewoverride( "cl_demoviewoverride", "0", 0, "Override view during demo playback" );
 
 
@@ -690,8 +691,9 @@ void CViewRender::SetUpViews()
 		// FIXME: What happens when there's no player?
 		if (pPlayer)
 		{
-			pPlayer->CalcView( view.origin, view.angles, view.zNear, view.zFar, view.fov );
-
+			pPlayer->CalcView(view.origin, view.angles, view.zNear, view.zFar, view.fov);
+			if (chaos_yawroll.GetBool())
+				view.angles.z = view.angles.y;
 			// If we are looking through another entities eyes, then override the angles/origin for view
 			int viewentity = render->GetViewEntity();
 

@@ -30,8 +30,7 @@ class CPropJeepEpisodic : public CPropJeep
 	DECLARE_SERVERCLASS();
 
 public:
-					CPropJeepEpisodic( void );
-
+	CPropJeepEpisodic( void );
 	virtual void	Spawn( void );
 	virtual void	Activate( void );
 	virtual void	Think( void );
@@ -81,7 +80,17 @@ protected:
 			void			CreateCargoTrigger( void );
 	virtual float			GetUprightTime( void ) { return 1.0f; }
 	virtual float			GetUprightStrength( void );
-	virtual bool			ShouldPuntUseLaunchForces( PhysGunForce_t reason ) { return ( reason == PHYSGUN_FORCE_PUNTED ); }
+	virtual bool			ShouldPuntUseLaunchForces( PhysGunForce_t reason )
+	{
+		if (m_bJalopy)
+		{
+			return (reason == PHYSGUN_FORCE_PUNTED);
+		}
+		else
+		{
+			return BaseClass::ShouldPuntUseLaunchForces(reason);
+		}
+	}
 	virtual void			HandleWater( void );
 
 	virtual AngularImpulse	PhysGunLaunchAngularImpulse( void );
@@ -135,7 +144,7 @@ private:
 	bool	m_bRadarEnabled;
 	bool	m_bRadarDetectsEnemies;
 	float	m_flNextRadarUpdateTime;
-	EHANDLE	m_hRadarScreen;
+	CNetworkHandle(CBaseEntity, m_hRadarScreen);
 
 	EHANDLE	m_hLinkControllerFront;
 	EHANDLE m_hLinkControllerRear;

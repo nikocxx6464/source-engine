@@ -1041,7 +1041,7 @@ void C_SporeExplosion::AddParticles( void )
 }
 
 
-ConVar cl_sporeclipdistance( "cl_sporeclipdistance", "512", FCVAR_CHEAT | FCVAR_CLIENTDLL );
+ConVar cl_sporeclipdistance( "cl_sporeclipdistance", "512", FCVAR_CLIENTDLL );
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : fTimeDelta - 

@@ -200,7 +200,8 @@ public:
 	bool ShouldCollide( int collisionGroup, int contentsMask ) const;
 
 	bool				m_bForcePlayerEyePoint;			// Uses player's eyepoint instead of 'vehicle_driver_eyes' attachment
-
+	bool IsLocked(){ return m_bLocked; }
+	void SetLocked(bool bBool){ m_bLocked = bBool; }
 protected:
 
 	// Contained IServerVehicle

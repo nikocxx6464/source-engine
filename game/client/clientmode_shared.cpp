@@ -158,7 +158,7 @@ CON_COMMAND( messagemode2, "Opens chat dialog" )
 }
 
 #ifdef _DEBUG
-CON_COMMAND_F( crash, "Crash the client. Optional parameter -- type of crash:\n 0: read from NULL\n 1: write to NULL\n 2: DmCrashDump() (xbox360 only)", FCVAR_CHEAT )
+CON_COMMAND_F(crash, "Crash the client. Optional parameter -- type of crash:\n 0: read from NULL\n 1: write to NULL\n 2: DmCrashDump() (xbox360 only)", FCVAR_NONE)
 {
 	int crashtype = 0;
 	int dummy;
