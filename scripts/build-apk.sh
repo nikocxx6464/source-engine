@@ -1,6 +1,6 @@
-export ICON=lc.png
-export PACKAGE=lostcoast
-export APP_NAME="Half-Life 2: Lost Coast"
+export ICON=mod_icon.png
+export PACKAGE=hl2chaos
+export APP_NAME="Half-Life 2: Chaos"
 cd srceng-mod-launcher
 git clone https://gitlab.com/LostGamer/android-sdk
 export ANDROID_SDK_HOME=$PWD/android-sdk
