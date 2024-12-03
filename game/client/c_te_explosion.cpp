@@ -336,7 +336,7 @@ void TE_Explosion( IRecipientFilter& filter, float delay, KeyValues *pKeyValues 
 	int nMagnitude = pKeyValues->GetInt( "magnitude" );
 	int r, g, b, a;
 	pKeyValues->GetColor("color").GetColor(r, g, b, a);
-	color32 color = { r, g, b, a };
+	color32 color = { (byte)r, (byte)g, (byte)b, (byte)a };
 	//color32 color = { pKeyValues->GetColor("color").r, pKeyValues->GetColor("color").g, pKeyValues->GetColor("color").b, pKeyValues->GetColor("color").a };
 	TE_Explosion( filter, 0.0f, &vecOrigin, nModelIndex, flScale, nFrameRate,
 		nFlags, nRadius, nMagnitude, color, &vecNormal, (unsigned char)nMaterialType, false);
