@@ -35,7 +35,7 @@ VALID_BUILD_TYPES = ['fastnative', 'fast', 'release', 'debug', 'nooptimize', 'sa
 LINKFLAGS = {
 	'common': {
 		'msvc':  ['/DEBUG'], # always create PDB, doesn't affect result binaries
-		'clang': ['-fvisibility=hidden'],
+		'clang': ['-fvisibility=default'],
 		'gcc':   ['-Wl,--no-undefined'],
 		'owcc':  ['-Wl,option stack=512k', '-fvisibility=hidden']
 	},
@@ -68,7 +68,7 @@ CFLAGS = {
 	'release': {
 		'msvc':    ['/O2', '/MT'],
 		'owcc':    ['-O3', '-fomit-leaf-frame-pointer', '-fomit-frame-pointer', '-finline-functions', '-finline-limit=512'],
-		'default': ['-O2', '-funsafe-math-optimizations', '-ftree-vectorize', '-ffast-math']
+		'default': ['-O3', '-funsafe-math-optimizations', '-ftree-vectorize', '-ffast-math']
 	},
 	'debug': {
 		'msvc':    ['/Od', '/MTd'],
