@@ -37,7 +37,7 @@ LINKFLAGS = {
 		'msvc':  ['/DEBUG'], # always create PDB, doesn't affect result binaries
 		'clang': ['-fvisibility=default'],
 		'gcc':   ['-Wl,--no-undefined'],
-		'owcc':  ['-Wl,option stack=512k', '-fvisibility=hidden']
+		'owcc':  ['-Wl,option stack=512k', '-fvisibility=default']
 	},
 	'sanitize': {
 		'clang': ['-fsanitize=undefined', '-fsanitize=address'],

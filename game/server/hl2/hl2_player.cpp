@@ -199,7 +199,7 @@ void ClearPersistEnts()
 }
 void ClearShuffleData()
 {
-	if (chaos_shuffle_debug.GetBool()) Msg("clearing shuffle list\n");
+	if (chaos_shuffle_debug.GetBool()) DevMsg("clearing shuffle list\n");
 	for (int k = 0; k < NUM_EFFECTS; k++)
 		g_iShufflePicked[k] = NULL;
 }
@@ -328,7 +328,7 @@ CChaosStoredEnt *StoreEnt(CBaseEntity *pEnt)
 CBaseEntity *RetrieveStoredEnt(CChaosStoredEnt *pStoredEnt, bool bPersist)
 {
 	CBaseEntity *pEnt = CreateEntityByName(pStoredEnt->strClassname);
-	//Msg("Spawning persist ent %i\n", pStoredEnt->chaosid);
+	//DevMsg("Spawning persist ent %i\n", pStoredEnt->chaosid);
 	//if we don't find a duplicate, that's also okay.
 	pEnt->KeyValue("targetname", STRING(pStoredEnt->targetname));
 	pEnt->m_iChaosID = pStoredEnt->chaosid;
@@ -421,7 +421,7 @@ CON_COMMAND(chaos_print, "print all effects for debugging")
 	{
 		if (g_ChaosEffects.Size() < i + 1)
 			break;
-		Msg("%i: %s %s\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), g_ChaosEffects[i]->m_bActive ? "ACTIVE" : "");
+		DevMsg("%i: %s %s\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), g_ChaosEffects[i]->m_bActive ? "ACTIVE" : "");
 	}
 }
 #ifdef DEBUG
@@ -596,7 +596,7 @@ CON_COMMAND(chaos_test_rng, "test if RNG works well monte-carlo style. arg 1 is 
 				iPicks[0] = 0;
 				for (int i = 1; i < NUM_EFFECTS; i++)
 				{
-					if (chaos_print_rng.GetBool()) Msg("i %i, %s %i += %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), iWeightSum, g_ChaosEffects[i]->m_iCurrentWeight);
+					if (chaos_print_rng.GetBool()) DevMsg("i %i, %s %i += %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), iWeightSum, g_ChaosEffects[i]->m_iCurrentWeight);
 					iWeightSum += g_ChaosEffects[i]->m_iCurrentWeight;
 					iPicks[i] = 0;
 				}
@@ -608,14 +608,14 @@ CON_COMMAND(chaos_test_rng, "test if RNG works well monte-carlo style. arg 1 is 
 				}
 				for (int k = 0; k < NUM_EFFECTS; k++)
 				{
-					Msg("%i: %s picked %i times\n", k, STRING(g_ChaosEffects[k]->m_strGeneralName), iPicks[k]);
+					DevMsg("%i: %s picked %i times\n", k, STRING(g_ChaosEffects[k]->m_strGeneralName), iPicks[k]);
 				}
 			}
 		}
 	}
 	else
 	{
-		Msg("Specify number of times to run RNG\n");
+		DevMsg("Specify number of times to run RNG\n");
 	}
 }
 CON_COMMAND(chaos_test_rng_uniform, "return result of every possible number. good for testing if picking logic is faulty.")
@@ -631,7 +631,7 @@ CON_COMMAND(chaos_test_rng_uniform, "return result of every possible number. goo
 			iPicks[0] = 0;
 			for (int i = 1; i < NUM_EFFECTS; i++)
 			{
-				if (chaos_print_rng.GetBool()) Msg("i %i, %s %i += %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), iWeightSum, g_ChaosEffects[i]->m_iCurrentWeight);
+				if (chaos_print_rng.GetBool()) DevMsg("i %i, %s %i += %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), iWeightSum, g_ChaosEffects[i]->m_iCurrentWeight);
 				iWeightSum += g_ChaosEffects[i]->m_iCurrentWeight;
 				iPicks[i] = 0;
 			}
@@ -644,7 +644,7 @@ CON_COMMAND(chaos_test_rng_uniform, "return result of every possible number. goo
 			}
 			for (int k = 0; k < NUM_EFFECTS; k++)
 			{
-				Msg("%i: %s picked %i times\n", k, STRING(g_ChaosEffects[k]->m_strGeneralName), iPicks[k]);
+				DevMsg("%i: %s picked %i times\n", k, STRING(g_ChaosEffects[k]->m_strGeneralName), iPicks[k]);
 			}
 		}
 	}
@@ -661,22 +661,22 @@ CON_COMMAND_F(chaos_group, "Creates a chaos group.", FCVAR_SERVER_CAN_EXECUTE)
 		{
 			if (g_iGroups[i][0] == 0)
 			{
-				Msg("Making group %i\n", i);
+				DevMsg("Making group %i\n", i);
 				if (atoi(args[MAX_EFFECTS_IN_GROUP + 1]))
-					Msg("Desired group exceeds group size limit\n");
+					DevMsg("Desired group exceeds group size limit\n");
 				bFullOnGroups = false;
 				for (int j = 1; j < MAX_EFFECTS_IN_GROUP + 1; j++)
 				{
 					if (!atoi(args[j]))
 						break;
-					Msg("Adding effect %i to group %i\n", , i);
+					DevMsg("Adding effect %i to group %i\n", , i);
 					g_iGroups[i][j - 1] = atoi(args[j]);
 				}
 				break;
 			}
 		}
 		if (bFullOnGroups)
-			Msg("Could not create group, no more groups can be made\n");
+			DevMsg("Could not create group, no more groups can be made\n");
 		*/
 		for (int i = 1; atoi(args[i]); i++)
 		{
@@ -686,7 +686,7 @@ CON_COMMAND_F(chaos_group, "Creates a chaos group.", FCVAR_SERVER_CAN_EXECUTE)
 				int iToMe = atoi(args[i]);
 				if (iAddMe == iToMe)//dont add an effect to its own exclude list because why
 					continue;
-				Msg("Added %s to effect %s's exclusion list in slot %i\n", STRING(g_ChaosEffects[iAddMe]->m_strGeneralName), STRING(g_ChaosEffects[iToMe]->m_strGeneralName), g_ChaosEffects[iToMe]->m_iExcludeCount);
+				DevMsg("Added %s to effect %s's exclusion list in slot %i\n", STRING(g_ChaosEffects[iAddMe]->m_strGeneralName), STRING(g_ChaosEffects[iToMe]->m_strGeneralName), g_ChaosEffects[iToMe]->m_iExcludeCount);
 				g_ChaosEffects[iToMe]->m_iExclude[g_ChaosEffects[iToMe]->m_iExcludeCount] = iAddMe;
 				g_ChaosEffects[iToMe]->m_iExcludeCount++;
 			}
@@ -694,7 +694,7 @@ CON_COMMAND_F(chaos_group, "Creates a chaos group.", FCVAR_SERVER_CAN_EXECUTE)
 	}
 	else
 	{
-		Msg("Specify numbers to assign to group\n");
+		DevMsg("Specify numbers to assign to group\n");
 	}
 }
 CON_COMMAND(getunstuck, "try to get unstuck right now")
@@ -1223,7 +1223,7 @@ void CHL2_Player::HandleArmorReduction( void )
 //
 void CHL2_Player::Event_PreSaveGameLoaded(char const *pSaveName, bool bInGame)
 {
-	Msg("CHL2_Player::Event_PreSaveGameLoaded [%s] %s\n", pSaveName, bInGame ? "in-game" : "at console");
+	DevMsg("CHL2_Player::Event_PreSaveGameLoaded [%s] %s\n", pSaveName, bInGame ? "in-game" : "at console");
 	//write out to a text file.
 	SavePersistEnts();
 	//might end up not being able to see anything
@@ -1238,7 +1238,7 @@ int CHL2_Player::FindWeightSum()
 		pEffect = g_ChaosEffects[i];
 		if (g_ChaosEffects[i]->WasShufflePicked())
 			continue;
-		if (chaos_print_rng.GetBool()) Msg("i %i, %s %i += %i\n", i, STRING(pEffect->m_strGeneralName), iWeightSum, pEffect->m_iCurrentWeight);
+		if (chaos_print_rng.GetBool()) DevMsg("i %i, %s %i += %i\n", i, STRING(pEffect->m_strGeneralName), iWeightSum, pEffect->m_iCurrentWeight);
 		iWeightSum += pEffect->m_iCurrentWeight;
 		//recover weight for recent effects
 		//add a fraction of the maximum weight on every interval
@@ -1813,7 +1813,7 @@ void CHL2_Player::HandleAdmireGlovesAnimation( void )
 
 /*void CHL2_Player::RewindEffectTimes(float flExtraTime)
 {
-	Msg("CHL2_Player::RewindEffectTimes\n");
+	DevMsg("CHL2_Player::RewindEffectTimes\n");
 	m_flNextEffectTime = chaos_effect_interval.GetFloat() - GetElapsedEffectTime() + flExtraTime;
 	for (int i = 0; g_ActiveEffects.Size() >= i + 1; i++)
 	{
@@ -1825,10 +1825,10 @@ void CHL2_Player::HandleAdmireGlovesAnimation( void )
 		//2 * 30 = 60
 
 		//m_ActiveEffects[m_ActiveEffects.Size() - 1 - i].m_flDuration = chaos_effect_interval.GetFloat() - GetElapsedEffectTime() + flEffectBulkTime;//hit elements in reverse order
-		//Msg("%s duration changed to %0.1f\n", STRING(m_ActiveEffects[m_ActiveEffects.Size() - 1 - i].m_strHudName), m_ActiveEffects[m_ActiveEffects.Size() - 1 - i].m_flDuration);
+		//DevMsg("%s duration changed to %0.1f\n", STRING(m_ActiveEffects[m_ActiveEffects.Size() - 1 - i].m_strHudName), m_ActiveEffects[m_ActiveEffects.Size() - 1 - i].m_flDuration);
 
 		g_ActiveEffects[i].m_flStartTime = gpGlobals->curtime - (GetElapsedEffectTime() + flEffectBulkTime);
-		Msg("%s start time changed to %0.1f - (%0.1f + %0.1f) = %0.1f\n", STRING(g_ActiveEffects[i].m_strHudName), gpGlobals->curtime, GetElapsedEffectTime(), flEffectBulkTime, g_ActiveEffects[i].m_flStartTime);
+		DevMsg("%s start time changed to %0.1f - (%0.1f + %0.1f) = %0.1f\n", STRING(g_ActiveEffects[i].m_strHudName), gpGlobals->curtime, GetElapsedEffectTime(), flEffectBulkTime, g_ActiveEffects[i].m_flStartTime);
 	}
 	m_flFirstEffectTime = m_flNextEffectTime - chaos_effect_interval.GetFloat();
 }*/
@@ -1935,7 +1935,7 @@ void CHL2_Player::ReplaceEffects()
 		{
 			if (pEffect->DoRestorationAbort())
 			{
-				Msg("Killing effect %s\n", STRING(pEffect->m_strHudName));
+				DevMsg("Killing effect %s\n", STRING(pEffect->m_strHudName));
 				pEffect->StopEffect();
 			}
 		}
@@ -1955,7 +1955,7 @@ void CHL2_Player::ReplaceEffects()
 
 		if (pEffect->DoRestorationAbort())
 		{
-			Msg("Restoring effect %s\n", STRING(pEffect->m_strHudName));
+			DevMsg("Restoring effect %s\n", STRING(pEffect->m_strHudName));
 			pEffect->RestoreEffect();
 		}
 		//make two lists equal again
@@ -1984,7 +1984,7 @@ void CHL2_Player::RemoveDeadEnts()
 				//Warning("Does id %i (name '%s') match dead id? %i\n", pDeadEnt->m_iChaosID, STRING(pDeadEnt->GetEntityName()), g_iTerminated[kID]);
 				if (g_iTerminated[kID] == pDeadEnt->m_iChaosID)
 				{
-					//Msg("Removing dead persist entity %i\n", g_iTerminated[kID]);
+					//DevMsg("Removing dead persist entity %i\n", g_iTerminated[kID]);
 					variant_t value;
 					g_EventQueue.AddEvent(pDeadEnt, "Kill", value, 0.01f, this, this);
 					break;
@@ -1993,7 +1993,7 @@ void CHL2_Player::RemoveDeadEnts()
 		}
 		else
 		{
-			//Msg("Entity '%s' was not chaos-persist\n", STRING(pDeadEnt->GetEntityName()));
+			//DevMsg("Entity '%s' was not chaos-persist\n", STRING(pDeadEnt->GetEntityName()));
 		}
 		pDeadEnt = gEntList.NextEnt(pDeadEnt);
 	}
@@ -2005,23 +2005,23 @@ void CHL2_Player::SpawnStoredEnts()
 {
 	for (int j = 0; g_PersistEnts.Size() >= j + 1; j++)
 	{
-		//Msg("Entity block\n");
+		//DevMsg("Entity block\n");
 		CBaseEntity *pDupeEnt = gEntList.FirstEnt();
 		while (pDupeEnt)
 		{
 			if (pDupeEnt->m_bChaosPersist)
 			{
-				//Msg("Is chaosid %i (name '%s') what we have on file? %i\n", pDupeEnt->m_iChaosID, STRING(pDupeEnt->GetEntityName()), g_PersistEnts[j]->chaosid);
+				//DevMsg("Is chaosid %i (name '%s') what we have on file? %i\n", pDupeEnt->m_iChaosID, STRING(pDupeEnt->GetEntityName()), g_PersistEnts[j]->chaosid);
 				if (pDupeEnt->m_iChaosID == g_PersistEnts[j]->chaosid)
 				{
-					//Msg("Found duplicate entity %s with chaosid %i, replacing with saved version\n", STRING(pDupeEnt->GetEntityName()), pDupeEnt->m_iChaosID);
+					//DevMsg("Found duplicate entity %s with chaosid %i, replacing with saved version\n", STRING(pDupeEnt->GetEntityName()), pDupeEnt->m_iChaosID);
 					pDupeEnt->SUB_Remove();
 					break;
 				}
 			}
 			else
 			{
-				//Msg("Entity '%s' was not chaos-persist\n", STRING(pDupeEnt->GetEntityName()));
+				//DevMsg("Entity '%s' was not chaos-persist\n", STRING(pDupeEnt->GetEntityName()));
 			}
 			pDupeEnt = gEntList.NextEnt(pDupeEnt);
 		}
@@ -2161,7 +2161,7 @@ void CHL2_Player::PlayerRunCommand(CUserCmd *ucmd, IMoveHelper *moveHelper)
 		}
 	}
 
-	//Msg("Player time: [ACTIVE: %f]\t[IDLE: %f]\n", m_flMoveTime, m_flIdleTime );
+	//DevMsg("Player time: [ACTIVE: %f]\t[IDLE: %f]\n", m_flMoveTime, m_flIdleTime );
 
 	BaseClass::PlayerRunCommand( ucmd, moveHelper );
 }
@@ -4682,7 +4682,7 @@ WeaponProficiency_t CHL2_Player::CalcWeaponProficiency( CBaseCombatWeapon *pWeap
 
 	if( weapon_showproficiency.GetBool() != 0 )
 	{
-		Msg("Player switched to %s, proficiency is %s\n", pWeapon->GetClassname(), GetWeaponProficiencyName( proficiency ) );
+		DevMsg("Player switched to %s, proficiency is %s\n", pWeapon->GetClassname(), GetWeaponProficiencyName( proficiency ) );
 	}
 
 	return proficiency;
@@ -5537,7 +5537,7 @@ void CHL2_Player::PopulateEffects()
 
 void CHL2_Player::ClearEffectContextCache()
 {
-	Msg("CHL2_Player::ClearEffectContextCache()\n");
+	DevMsg("CHL2_Player::ClearEffectContextCache()\n");
 	for (int i = 1; i < NUM_EFFECTS; i++)
 	{
 		g_ChaosEffects[i]->m_iContextStatusCache = C_STATUS_UNKNOWN;
@@ -5613,7 +5613,7 @@ int CHL2_Player::PickEffect(int iWeightSum, bool bTest, int iControl)
 		{
 			int iCurrentWeight = g_ChaosEffects[i]->m_iCurrentWeight;
 			CChaosEffect *candEffect = g_ChaosEffects[i];
-			if (chaos_print_rng.GetBool()) Msg("i %i, %s %i <= %i\n", i, STRING(candEffect->m_strGeneralName), nRandom, iCurrentWeight);
+			if (chaos_print_rng.GetBool()) DevMsg("i %i, %s %i <= %i\n", i, STRING(candEffect->m_strGeneralName), nRandom, iCurrentWeight);
 			//shuffle: skip over already-picked effects since we took their weight out
 			if (candEffect->WasShufflePicked())
 				continue;
@@ -5640,23 +5640,23 @@ int CHL2_Player::PickEffect(int iWeightSum, bool bTest, int iControl)
 						if (nRandom < iCurrentWeight)
 						{
 							Assert(candEffect->m_nID != EFFECT_ERROR);
-							if (chaos_print_rng.GetBool()) Msg("Chose effect i %i %s starting number %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
+							if (chaos_print_rng.GetBool()) DevMsg("Chose effect i %i %s starting number %i\n", i, STRING(g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
 							if (chaos_vote_enable.GetBool())
 								g_ChaosEffects[i]->m_bInVoteList = true;
 							return i;
 						}
-						if (chaos_print_rng.GetBool()) Msg("%i > %i\n", nRandom, iCurrentWeight);
+						if (chaos_print_rng.GetBool()) DevMsg("%i > %i\n", nRandom, iCurrentWeight);
 						//nRandom -= g_ChaosEffects[i]->m_iCurrentWeight;
 					}
 					else
 					{
-						if (chaos_print_rng.GetBool()) Msg("Bad context for i %i %s\n", i, (g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
+						if (chaos_print_rng.GetBool()) DevMsg("Bad context for i %i %s\n", i, (g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
 						candEffect->m_iContextStatusCache = C_STATUS_BAD;
 					}
 				}
 				else
 				{
-					if (chaos_print_rng.GetBool()) Msg("Bad activeness for i %i %s\n", i, (g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
+					if (chaos_print_rng.GetBool()) DevMsg("Bad activeness for i %i %s\n", i, (g_ChaosEffects[i]->m_strGeneralName), nRememberRandom);
 				}
 				if (!bGoodActiveness || !bGoodContext)
 				{
@@ -5672,7 +5672,7 @@ int CHL2_Player::PickEffect(int iWeightSum, bool bTest, int iControl)
 				else
 					break;
 			}
-			if (chaos_print_rng.GetBool()) Msg("%i -= %i\n", nRandom, iCurrentWeight);
+			if (chaos_print_rng.GetBool()) DevMsg("%i -= %i\n", nRandom, iCurrentWeight);
 			nRandom -= iCurrentWeight;
 		}
 	}
@@ -5684,10 +5684,10 @@ bool CHL2_Player::EffectOrGroupAlreadyActive(int iEffect)
 	if (chaos_ignore_activeness.GetBool())
 		return false;
 
-	//Msg("Checking for effect number %i\n", g_ChaosEffects[iEffect]->m_nID);
+	//DevMsg("Checking for effect number %i\n", g_ChaosEffects[iEffect]->m_nID);
 	if (g_ChaosEffects[iEffect]->m_bActive)
 	{
-		//Msg("Effect is already active %i\n", g_ChaosEffects[iEffect]->m_nID);
+		//DevMsg("Effect is already active %i\n", g_ChaosEffects[iEffect]->m_nID);
 		return true;
 	}
 
@@ -5696,7 +5696,7 @@ bool CHL2_Player::EffectOrGroupAlreadyActive(int iEffect)
 		return false;
 
 	//check groups
-	if (groupcheck_debug.GetBool()) Msg("Checking groups for effect number %i\n", iEffect);
+	if (groupcheck_debug.GetBool()) DevMsg("Checking groups for effect number %i\n", iEffect);
 	bool bNotInAnyGroup = true;
 	if (g_ChaosEffects[iEffect]->m_iExcludeCount > 0)
 	{
@@ -5706,19 +5706,19 @@ bool CHL2_Player::EffectOrGroupAlreadyActive(int iEffect)
 			int iOtherEffect = g_ChaosEffects[iEffect]->m_iExclude[i];
 			if (g_ChaosEffects[iOtherEffect]->m_bActive)
 			{
-				if (groupcheck_debug.GetBool()) Msg("Effect %i is active, so %i cannot be chosen\n", iOtherEffect, iEffect);
+				if (groupcheck_debug.GetBool()) DevMsg("Effect %i is active, so %i cannot be chosen\n", iOtherEffect, iEffect);
 				return true;
 			}
 			else
 			{
-				if (groupcheck_debug.GetBool()) Msg("Effect %i is not active\n", iOtherEffect);
+				if (groupcheck_debug.GetBool()) DevMsg("Effect %i is not active\n", iOtherEffect);
 			}
 		}
 	}
 
 	if (bNotInAnyGroup)
 	{
-		if (groupcheck_debug.GetBool()) Msg("Effect %i wasn't in any group\n", iEffect);
+		if (groupcheck_debug.GetBool()) DevMsg("Effect %i wasn't in any group\n", iEffect);
 		if (chaos_grouponly.GetBool())
 			return true;//if this is on, we only want effects that are in a group
 	}
@@ -5931,18 +5931,18 @@ bool CChaosEffect::WasShufflePicked()
 		{
 			if (!g_iShufflePicked[j])
 			{
-				//if (chaos_shuffle_debug.GetBool()) Msg("j %i\n", j);
+				//if (chaos_shuffle_debug.GetBool()) DevMsg("j %i\n", j);
 				continue;
 			}
 			if (g_iShufflePicked[j] == m_nID)
 			{
-				if (chaos_shuffle_debug.GetBool()) Msg("effect %i, %s skipped for being already picked\n", m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
+				if (chaos_shuffle_debug.GetBool()) DevMsg("effect %i, %s skipped for being already picked\n", m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
 				return true;
 			}
-			if (chaos_shuffle_debug.GetBool()) Msg("effect in slot %i, %i, %s was not our target of %i, %s\n", j, g_iShufflePicked[j], (g_ChaosEffects[g_iShufflePicked[j]]->m_strGeneralName), m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
+			if (chaos_shuffle_debug.GetBool()) DevMsg("effect in slot %i, %i, %s was not our target of %i, %s\n", j, g_iShufflePicked[j], (g_ChaosEffects[g_iShufflePicked[j]]->m_strGeneralName), m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
 		}
 	}
-	if (chaos_shuffle_debug.GetBool()) Msg("effect %i, %s has not been picked\n", m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
+	if (chaos_shuffle_debug.GetBool()) DevMsg("effect %i, %s has not been picked\n", m_nID, (g_ChaosEffects[m_nID]->m_strGeneralName));
 	return false;
 }
 
@@ -5971,10 +5971,10 @@ void CHL2_Player::DoChaosHUDBar()
 	UserMessageBegin(user, "Go");
 	//WRITE_BYTE(0);
 	//For some reason the color data is read in the REVERSE of how it was sent?!
-	WRITE_FLOAT(chaos_bar_a.GetInt());
-	WRITE_FLOAT(chaos_bar_b.GetInt());
-	WRITE_FLOAT(chaos_bar_g.GetInt());
 	WRITE_FLOAT(chaos_bar_r.GetInt());
+	WRITE_FLOAT(chaos_bar_g.GetInt());
+	WRITE_FLOAT(chaos_bar_b.GetInt());
+	WRITE_FLOAT(chaos_bar_a.GetInt());
 	if (chaos.GetBool())
 		WRITE_FLOAT(g_flNextEffectRem / chaos_effect_interval.GetFloat());
 	else
@@ -6020,7 +6020,7 @@ void PrintEffectName(int i, int iHidden, bool bDead, CChaosEffect *pEffect, bool
 void CHL2_Player::DoChaosHUDText()
 {
 	int iHidden = 0;
-	//Msg("CHL2_Player::DoChaosHUDText\n");
+	//DevMsg("CHL2_Player::DoChaosHUDText\n");
 	//for (int i = 0; m_iActiveEffects.Size() >= i + 1; i++)
 	for (int i = 0; i < MAX_ACTIVE_EFFECTS; i++)
 	{
@@ -6042,7 +6042,7 @@ void CHL2_Player::DoChaosHUDText()
 			iHidden++;
 			bHide = true;
 		}
-		//Msg("i %i Effect %s ID %i iHidden %i\n", i, STRING(pEffect->m_strHudName), pEffect->m_nID, iHidden);
+		//DevMsg("i %i Effect %s ID %i iHidden %i\n", i, STRING(pEffect->m_strHudName), pEffect->m_nID, iHidden);
 		PrintEffectName(i, iHidden, pl.deadflag, pEffect, bHide);
 	}
 }
@@ -6050,7 +6050,7 @@ void CHL2_Player::StartGivenEffect(int nID)
 {
 	Assert(nID != EFFECT_ERROR);
 	g_flNextEffectRem = chaos_effect_interval.GetFloat();
-	Msg("Effect %s\n", (g_ChaosEffects[nID]->m_strHudName));
+	DevMsg("Effect %s\n", (g_ChaosEffects[nID]->m_strHudName));
 	g_ChaosEffects[nID]->m_bActive = true;
 	//add to list of picked effects if shuffle mode is on
 	if (chaos_shuffle_mode.GetBool())
@@ -6059,7 +6059,7 @@ void CHL2_Player::StartGivenEffect(int nID)
 		{
 			if (!g_iShufflePicked[j])
 			{
-				if (chaos_shuffle_debug.GetBool()) Msg("added effect %i, %s to picked list\n", nID, (g_ChaosEffects[nID]->m_strGeneralName));
+				if (chaos_shuffle_debug.GetBool()) DevMsg("added effect %i, %s to picked list\n", nID, (g_ChaosEffects[nID]->m_strGeneralName));
 				g_iShufflePicked[j] = nID;
 				break;
 			}
@@ -6247,7 +6247,7 @@ void CChaosEffect::StopEffect()
 //
 void CChaosEffect::RestoreEffect()
 {
-	Msg("Restoring effect %i\n", m_nID);
+	DevMsg("Restoring effect %i\n", m_nID);
 	StartEffect();
 }
 
@@ -6316,7 +6316,7 @@ bool CChaosEffect::DoRestorationAbort()
 //stop effect as soon as possible
 void CChaosEffect::AbortEffect()
 {
-	Msg("Aborting effect %i\n", m_nID);
+	DevMsg("Aborting effect %i\n", m_nID);
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
 	CHL2_Player *pHL2Player = static_cast<CHL2_Player*>(pPlayer);
 	pHL2Player->StopGivenEffect(m_nID);
@@ -6432,21 +6432,21 @@ CNodeList *CChaosEffect::GetNearbyNodes(int iNodes)
 		pNode = g_pBigAINet->GetNode(node);
 		if (pNode->GetType() != NODE_GROUND)
 		{
-			if (getnearbynodes_debug.GetBool()) Msg("Rejected node %i for not being a ground node\n", pNode->GetId());
+			if (getnearbynodes_debug.GetBool()) DevMsg("Rejected node %i for not being a ground node\n", pNode->GetId());
 			continue;
 		}
 		float flDist = (UTIL_GetLocalPlayer()->GetAbsOrigin() - pNode->GetPosition(HULL_HUMAN)).Length();
 		if (flDist < flClosest)
 		{
-			if (getnearbynodes_debug.GetBool()) Msg("node %i is closer (%0.1f) than previous closest (%0.1f)\n", pNode->GetId(), flDist, flClosest);
+			if (getnearbynodes_debug.GetBool()) DevMsg("node %i is closer (%0.1f) than previous closest (%0.1f)\n", pNode->GetId(), flDist, flClosest);
 			flClosest = flDist;
 		}
 		if (!full || (flDist < result->ElementAtHead().dist))
 		{
-			if (getnearbynodes_debug.GetBool()) Msg("Adding node %i to list. full is %s, %0.1f < %0.1f\n", pNode->GetId(), full ? "TRUE" : "FALSE", flDist, result->Count() > 0 ? result->ElementAtHead().dist : 1234);
+			if (getnearbynodes_debug.GetBool()) DevMsg("Adding node %i to list. full is %s, %0.1f < %0.1f\n", pNode->GetId(), full ? "TRUE" : "FALSE", flDist, result->Count() > 0 ? result->ElementAtHead().dist : 1234);
 			if (full)
 			{
-				if (getnearbynodes_debug.GetBool()) Msg("List full, removing node %i to add node %i\n", result->ElementAtHead().nodeIndex, pNode->GetId());
+				if (getnearbynodes_debug.GetBool()) DevMsg("List full, removing node %i to add node %i\n", result->ElementAtHead().nodeIndex, pNode->GetId());
 				result->RemoveAtHead();
 			}
 			result->Insert(AI_NearNode_t(node, flDist));
@@ -6457,7 +6457,7 @@ CNodeList *CChaosEffect::GetNearbyNodes(int iNodes)
 			if (getnearbynodes_debug.GetBool()) Warning("Not adding  %i to list. full is %s, %0.1f < %0.1f\n", pNode->GetId(), full ? "TRUE" : "FALSE", flDist, result->Count() > 0 ? result->ElementAtHead().dist : 1234);
 		}
 	}
-	Msg("list has %i nodes\n", result->Count());
+	DevMsg("list has %i nodes\n", result->Count());
 	return result;
 }
 CAI_Node *CChaosEffect::NearestNodeToPoint(const Vector &vPosition, bool bCheckVisibility)
@@ -6814,8 +6814,8 @@ void CHL2_Player::MaintainEvils()
 					//verbose due to debugging
 					int reltype = (int)pSubject->IRelationType(pTarget);
 					int priority = pSubject->IRelationPriority(pTarget);
-					//Msg("reltype %i\n", reltype);
-					//Msg("priority %i\n", priority);
+					//DevMsg("reltype %i\n", reltype);
+					//DevMsg("priority %i\n", priority);
 					if (reltype != D_HT || priority != 100)
 					{
 						pSubject->AddEntityRelationship(pTarget, D_HT, 100);
@@ -6823,7 +6823,7 @@ void CHL2_Player::MaintainEvils()
 							pTarget->AddEntityRelationship(pSubject, D_HT, 100);
 						else
 							pTarget->AddEntityRelationship(pSubject, D_NU, 100);
-						//Msg("Applying relationship to %s and %s\n", STRING(pSubject->GetEntityName()), STRING(pTarget->GetEntityName()));
+						//DevMsg("Applying relationship to %s and %s\n", STRING(pSubject->GetEntityName()), STRING(pTarget->GetEntityName()));
 					}
 				}
 			}
@@ -6993,7 +6993,7 @@ CAI_BaseNPC *CChaosEffect::ChaosSpawnNPC(const char *className, string_t strActu
 		else if (FStrEq(className, "npc_combinedropship"))
 		{
 			int nRandom = 1;// RandomInt(-3, 1);//cargo type. avoid 0 cause that does nothing
-			Msg("crate type %i\n", nRandom);
+			DevMsg("crate type %i\n", nRandom);
 			if (nRandom == -3) pNPC->KeyValue("CrateType", "-3");//jeep
 			if (nRandom == -2)//apc
 			{
@@ -7762,7 +7762,6 @@ void CEColors::StartEffect()
 		int g = RandomInt(0, 255);
 		int b = RandomInt(0, 255);
 		Q_snprintf(szcolor, sizeof(szcolor), "%i %i %i", r, g, b);
-		Msg("%s\n", szcolor);
 		colorVariant.SetString(MAKE_STRING(szcolor));
 		pEnt->AcceptInput("Color", UTIL_GetLocalPlayer(), UTIL_GetLocalPlayer(), colorVariant, 0);
 		pEnt = gEntList.NextEnt(pEnt);
@@ -7887,7 +7886,6 @@ void CENPCRels::DoNPCRels(int disposition, bool bRevert)
 				if (pSubject->IRelationType(pTarget) != disposition || pSubject->IRelationPriority(pTarget) != 100)
 				{
 					pSubject->AddEntityRelationship(pTarget, (Disposition_t)disposition, 100);
-					//Msg("Applying relationship to %s and %s\n", STRING(pSubject->GetEntityName()), STRING(pTarget->GetEntityName()));
 				}
 			}
 		}
@@ -8181,7 +8179,7 @@ void CERandomSong::StartEffect()
 		nRandom = RandomInt(0, 58);
 	else
 		nRandom = RandomInt(0, 47);
-	Msg("Song number %i\n", nRandom);
+	DevMsg("Song number %i\n", nRandom);
 	if (nRandom == 0) sSongName = "*#music/hl1_song10.mp3";
 	else if (nRandom == 1) sSongName = "*#music/hl1_song11.mp3";
 	else if (nRandom == 2) sSongName = "*#music/hl1_song14.mp3";
@@ -8264,7 +8262,7 @@ void CETreeSpam::StartEffect()
 {
 	CAI_Node *pNode;
 	CNodeList *result = GetNearbyNodes(80);
-	Msg("list has %i nodes\n", result->Count());
+	DevMsg("list has %i nodes\n", result->Count());
 	CUtlVector<Vector> vecTreeSpots;//positions of trees we've placed, or other places we'd like to avoid
 	vecTreeSpots.AddToTail(UTIL_GetLocalPlayer()->GetAbsOrigin());
 	//track doors because often nodes are placed around doorways, and trees often block necessary doorways
@@ -8278,14 +8276,14 @@ void CETreeSpam::StartEffect()
 	for (; result->Count(); result->RemoveAtHead())
 	{
 		pNode = g_pBigAINet->GetNode(result->ElementAtHead().nodeIndex);
-		Msg("node %i\n", pNode->GetId());
+		DevMsg("node %i\n", pNode->GetId());
 		CBaseEntity *pEnt = CreateEntityByName("prop_dynamic");
 		trace_t tr;
 		Vector vecNodePos = pNode->GetOrigin();
 		UTIL_TraceLine(vecNodePos + Vector(0, 0, 16), vecNodePos - Vector(0, 0, 100), MASK_SOLID, NULL, COLLISION_GROUP_NONE, &tr);
 		if (tr.m_pEnt && (tr.m_pEnt->GetMoveType() == MOVETYPE_VPHYSICS || tr.m_pEnt->IsNPC()))
 		{
-			Msg("Tree (node %i) on bad ground\n", pNode->GetId());
+			DevMsg("Tree (node %i) on bad ground\n", pNode->GetId());
 			continue;
 		}
 		bool bDone = false;
@@ -8678,7 +8676,7 @@ void CEGravitySet::StartEffect()
 	{
 	case EFFECT_ZEROG:
 		sv_gravity.SetValue(0);
-		Msg("Setting sv_gravity to 0\n");
+		DevMsg("Setting sv_gravity to 0\n");
 		pVehicle = gEntList.FindEntityByClassname(NULL, "prop_v*");
 		/*
 		while (pVehicle)
@@ -8698,7 +8696,7 @@ void CEGravitySet::StartEffect()
 		break;
 	case EFFECT_SUPERG:
 		sv_gravity.SetValue(bNegative ? -1800 : 1800);
-		Msg("Setting sv_gravity to %i\n", bNegative ? -1800 : 1800);
+		DevMsg("Setting sv_gravity to %i\n", bNegative ? -1800 : 1800);
 		pVehicle = gEntList.FindEntityByClassname(NULL, "prop_v*");
 		while (pVehicle)
 		{
@@ -8708,7 +8706,7 @@ void CEGravitySet::StartEffect()
 		break;
 	case EFFECT_LOWG:
 		sv_gravity.SetValue(bNegative ? -200 : 200);
-		Msg("Setting sv_gravity to %i\n", bNegative ? -200 : 200);
+		DevMsg("Setting sv_gravity to %i\n", bNegative ? -200 : 200);
 		pVehicle = gEntList.FindEntityByClassname(NULL, "prop_v*");
 		while (pVehicle)
 		{
@@ -8717,7 +8715,7 @@ void CEGravitySet::StartEffect()
 		}
 		break;
 	case EFFECT_INVERTG:
-		Msg("Setting sv_gravity to %i\n", -sv_gravity.GetInt());
+		DevMsg("Setting sv_gravity to %i\n", -sv_gravity.GetInt());
 		sv_gravity.SetValue(-sv_gravity.GetInt());
 		pVehicle = gEntList.FindEntityByClassname(NULL, "prop_v*");
 		while (pVehicle)
@@ -8766,7 +8764,7 @@ void CEGravitySet::StopEffect()
 	case EFFECT_SUPERG:
 	case EFFECT_LOWG:
 		sv_gravity.SetValue(bNegative ? -600 : 600);
-		Msg("Unsetting sv_gravity to %i\n", bNegative ? -600 : 600);
+		DevMsg("Unsetting sv_gravity to %i\n", bNegative ? -600 : 600);
 		pVehicle = gEntList.FindEntityByClassname(NULL, "prop_v*");
 		/*
 		while (pVehicle)
@@ -8785,7 +8783,7 @@ void CEGravitySet::StopEffect()
 		*/
 		break;
 	case EFFECT_INVERTG:
-		Msg("Setting sv_gravity to %i\n", -sv_gravity.GetInt());
+		DevMsg("Setting sv_gravity to %i\n", -sv_gravity.GetInt());
 		sv_gravity.SetValue(-sv_gravity.GetInt());
 		break;
 	}
@@ -9326,7 +9324,7 @@ void CESuitSwap::StartEffect()
 {
 	int iHealth = UTIL_GetLocalPlayer()->GetHealth();
 	int iSuit = UTIL_GetLocalPlayer()->m_ArmorValue;
-	//Msg("health %i suit %i\n", iHealth, iSuit);
+	//DevMsg("health %i suit %i\n", iHealth, iSuit);
 	UTIL_GetLocalPlayer()->SetHealth(iSuit);
 	UTIL_GetLocalPlayer()->SetArmorValue(iHealth);
 	if (iSuit == 0)
