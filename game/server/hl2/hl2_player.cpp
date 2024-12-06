@@ -6218,9 +6218,9 @@ void CChaosEffect::StopEffect()
 	case EFFECT_ORTHO_CAM:
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "camnormal\n");
 		break;
-	case EFFECT_INTERP_NPCS:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "cl_interp_npcs 0");
-		break;
+//	case EFFECT_INTERP_NPCS:
+//		engine->ClientCommand(engine->PEntityOfEntIndex(1), "cl_interp_npcs 0");
+//		break;
 	case EFFECT_DISABLE_SAVE:
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "save_disable 0");
 		break;
@@ -6265,7 +6265,7 @@ bool CChaosEffect::DoRestorationAbort()
 	{
 	//env_physexplosion has be recreated or deleted
 	case EFFECT_PULL_TO_PLAYER:
-	case EFFECT_PUSH_FROM_PLAYER:
+//	case EFFECT_PUSH_FROM_PLAYER:
 
 	//trees have to be recreated or deleted
 	case EFFECT_FOREST:
@@ -7728,7 +7728,7 @@ void CEPullToPlayer::MaintainEffect()
 		StartEffect();
 	}
 }
-void CEPushFromPlayer::MaintainEffect()
+/*void CEPushFromPlayer::MaintainEffect()
 {
 	CBaseEntity *pEnt = gEntList.FindEntityByName(NULL, "chaos_push_from_player");
 	if (pEnt)
@@ -7740,7 +7740,7 @@ void CEPushFromPlayer::MaintainEffect()
 	{
 		StartEffect();
 	}
-}
+}*/
 void CEColors::StartEffect()
 {
 	CBaseEntity *pEnt = gEntList.FirstEnt();
