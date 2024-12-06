@@ -5454,7 +5454,7 @@ void CHL2_Player::PopulateEffects()
 	CreateEffect<CEPhysSpeedSet>(EFFECT_PHYS_FAST,			MAKE_STRING("#hl2c_phys_fast"),			EC_NONE,									chaos_time_phys_fast.GetFloat(),			chaos_prob_phys_fast.GetInt());
 	CreateEffect<CEPhysSpeedSet>(EFFECT_PHYS_SLOW,			MAKE_STRING("#hl2c_phys_slow"),			EC_NONE,									chaos_time_phys_slow.GetFloat(),			chaos_prob_phys_slow.GetInt());
 	CreateEffect<CEPullToPlayer>(EFFECT_PULL_TO_PLAYER,		MAKE_STRING("#hl2c_pulltoplr"),			EC_NONE,									chaos_time_pull_to_player.GetFloat(),		chaos_prob_pull_to_player.GetInt());
-	CreateEffect<CEPushFromPlayer>(EFFECT_PUSH_FROM_PLAYER,	MAKE_STRING("#hl2c_pushfromplr"),		EC_NONE,									chaos_time_push_from_player.GetFloat(),		chaos_prob_push_from_player.GetInt());
+//	CreateEffect<CEPushFromPlayer>(EFFECT_PUSH_FROM_PLAYER,	MAKE_STRING("#hl2c_pushfromplr"),		EC_NONE,									chaos_time_push_from_player.GetFloat(),		chaos_prob_push_from_player.GetInt());
 	CreateEffect<CEStop>(EFFECT_NO_MOVEMENT,				MAKE_STRING("#hl2c_stop"),				EC_NONE,									chaos_time_no_movement.GetFloat(),			chaos_prob_no_movement.GetInt());
 	CreateEffect<CESuperMovement>(EFFECT_SUPER_MOVEMENT,	MAKE_STRING("#hl2c_super_speed"),		EC_NONE,									chaos_time_super_movement.GetFloat(),		chaos_prob_super_movement.GetInt());
 	CreateEffect<CELockVehicles>(EFFECT_LOCK_VEHICLE,		MAKE_STRING("#hl2c_lock_veh"),			EC_BOAT | EC_BUGGY,							chaos_time_lock_vehicle.GetFloat(),			chaos_prob_lock_vehicle.GetInt());
@@ -5509,7 +5509,7 @@ void CHL2_Player::PopulateEffects()
 	CreateEffect<CENoBrake>(EFFECT_NO_BRAKE,				MAKE_STRING("#hl2c_no_brake"),			EC_BUGGY,									chaos_time_no_brake.GetFloat(),				chaos_prob_no_brake.GetInt());
 	CreateEffect<CEForceInOutCar>(EFFECT_FORCE_INOUT_CAR,	MAKE_STRING("#hl2c_force_inout"),		EC_BUGGY | EC_BOAT | EC_PLAYER_TELEPORT,	-1,											chaos_prob_force_inout_car.GetInt());
 	CreateEffect<CEWeaponRemove>(EFFECT_WEAPON_REMOVE,		MAKE_STRING("#hl2c_wep_remove"),		EC_NEED_PHYSGUN,							-1,											chaos_prob_weapon_remove.GetInt());
-	CreateEffect<>(EFFECT_INTERP_NPCS,						MAKE_STRING("#hl2c_interp_npcs"),		EC_NONE,									chaos_time_interp_npcs.GetFloat(),			chaos_prob_interp_npcs.GetInt());
+//	CreateEffect<>(EFFECT_INTERP_NPCS,						MAKE_STRING("#hl2c_interp_npcs"),		EC_NONE,									chaos_time_interp_npcs.GetFloat(),			chaos_prob_interp_npcs.GetInt());
 	CreateEffect<CEPhysConvert>(EFFECT_PHYS_CONVERT,		MAKE_STRING("#hl2c_phys_convert"),		EC_NONE,									-1,											chaos_prob_phys_convert.GetInt());
 	CreateEffect<CEIncline>(EFFECT_INCLINE,					MAKE_STRING("#hl2c_no_climb"),			EC_NONE,									chaos_time_incline.GetFloat(),				chaos_prob_incline.GetInt());
 	CreateEffect<>(EFFECT_DISABLE_SAVE,						MAKE_STRING("#hl2c_no_save"),			EC_NONE,									chaos_time_disable_save.GetFloat(),			chaos_prob_disable_save.GetInt());
@@ -6042,7 +6042,7 @@ void CHL2_Player::DoChaosHUDText()
 			iHidden++;
 			bHide = true;
 		}
-		//DevMsg("i %i Effect %s ID %i iHidden %i\n", i, STRING(pEffect->m_strHudName), pEffect->m_nID, iHidden);
+		Msg("plz send this to tester chat if you game crashed\ni %i\nEffect %s\nID %i\niHidden %i\n", i, STRING(pEffect->m_strHudName), pEffect->m_nID, iHidden);
 		PrintEffectName(i, iHidden, pl.deadflag, pEffect, bHide);
 	}
 }
@@ -6121,10 +6121,10 @@ void CChaosEffect::StartEffect()
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_picmip 4;r_lod 6;mat_filtertextures 0;mat_filterlightmaps 0");
 		break;
 	case EFFECT_NO_MOUSE_HORIZONTAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_yaw 0.0f;cl_yawspeed 0");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_yaw 0.0f;cl_yawspeed 0;touch_yaw 0");
 		break;
 	case EFFECT_NO_MOUSE_VERTICAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_pitch 0.0f;cl_pitchspeed 0");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_pitch 0.0f;cl_pitchspeed 0;touch_pitch 0");
 		break;
 	case EFFECT_GIVE_ALL_WEAPONS:
 		UTIL_GetLocalPlayer()->EquipSuit();
@@ -6157,9 +6157,9 @@ void CChaosEffect::StartEffect()
 	case EFFECT_ORTHO_CAM:
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "camortho;c_orthoheight 135;c_orthowidth 240\n");
 		break;
-	case EFFECT_INTERP_NPCS:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "cl_interp_npcs 5");
-		break;
+//	case EFFECT_INTERP_NPCS:
+//		engine->ClientCommand(engine->PEntityOfEntIndex(1), "cl_interp_npcs 5");
+//		break;
 	case EFFECT_DISABLE_SAVE:
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "save_disable 1");
 		break;
@@ -6194,10 +6194,10 @@ void CChaosEffect::StopEffect()
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_picmip -1;r_lod -1;mat_filtertextures 1;mat_filterlightmaps 1\n");
 		break;
 	case EFFECT_NO_MOUSE_HORIZONTAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec yaw\n");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "touch_yaw 120;exec yaw\n");
 		break;
 	case EFFECT_NO_MOUSE_VERTICAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec pitch\n");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "touch_pitch 90;exec pitch\n");
 		break;
 	case EFFECT_NADE_GUNS:
 		chaos_replace_bullets_with_grenades.SetValue(0);
@@ -7199,7 +7199,7 @@ bool CEPullToPlayer::CheckStrike(const CTakeDamageInfo &info)
 {
 	return (info.GetDamageType() & DMG_CRUSH | DMG_SLASH | DMG_BLAST) != 0;
 }
-void CEPushFromPlayer::StartEffect()
+/*void CEPushFromPlayer::StartEffect()
 {
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
 	if (pPlayer)
@@ -7232,7 +7232,7 @@ void CEPushFromPlayer::StopEffect()
 void CEPushFromPlayer::TransitionEffect()
 {
 	StartEffect();
-}
+}*/
 void CERandomWeaponGive::StartEffect()
 {
 	UTIL_GetLocalPlayer()->EquipSuit();

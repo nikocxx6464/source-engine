@@ -17,7 +17,7 @@ enum Effect_T
 	EFFECT_PHYS_FAST,
 	EFFECT_PHYS_SLOW,
 	EFFECT_PULL_TO_PLAYER,
-	EFFECT_PUSH_FROM_PLAYER,
+//	EFFECT_PUSH_FROM_PLAYER,
 	EFFECT_NO_MOVEMENT,
 	EFFECT_SUPER_MOVEMENT,
 	EFFECT_LOCK_VEHICLE,
@@ -78,7 +78,7 @@ enum Effect_T
 	EFFECT_NO_BRAKE,
 	EFFECT_FORCE_INOUT_CAR,
 	EFFECT_WEAPON_REMOVE,
-	EFFECT_INTERP_NPCS,
+//	EFFECT_INTERP_NPCS,
 	EFFECT_PHYS_CONVERT,
 	EFFECT_INCLINE,
 	EFFECT_DISABLE_SAVE,
@@ -325,14 +325,14 @@ public:
 	void StartEffect() override;
 	void MaintainEffect() override;
 };
-class CEPushFromPlayer : public CChaosEffect
+/*class CEPushFromPlayer : public CChaosEffect
 {
 public:
 	void MaintainEffect() override;
 	void StartEffect() override;
 	void StopEffect() override;
 	void TransitionEffect() override;
-};
+};*/
 class CEPullToPlayer : public CChaosEffect
 {
 public:

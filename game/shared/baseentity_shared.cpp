@@ -468,7 +468,7 @@ bool CBaseEntity::KeyValue( const char *szKeyName, const char *szValue )
 
 		if ( *ent_debugkeys.GetString() && !Q_stricmp(ent_debugkeys.GetString(), STRING(m_iClassname)) )
 		{
-			// Msg( "-- found entity of type %s\n", STRING(m_iClassname) );
+			// DevMsg( "-- found entity of type %s\n", STRING(m_iClassname) );
 			printKeyHits = true;
 			debugName = STRING(m_iClassname);
 		}
@@ -478,7 +478,7 @@ bool CBaseEntity::KeyValue( const char *szKeyName, const char *szValue )
 		{
 			if ( !printKeyHits && *ent_debugkeys.GetString() && !Q_stricmp(dmap->dataClassName, ent_debugkeys.GetString()) )
 			{
-				// Msg( "-- found class of type %s\n", dmap->dataClassName );
+				// DevMsg( "-- found class of type %s\n", dmap->dataClassName );
 				printKeyHits = true;
 				debugName = dmap->dataClassName;
 			}
@@ -486,14 +486,14 @@ bool CBaseEntity::KeyValue( const char *szKeyName, const char *szValue )
 			if ( ::ParseKeyvalue(this, dmap->dataDesc, dmap->dataNumFields, szKeyName, szValue) )
 			{
 				if ( printKeyHits )
-					Msg( "(%s) key: %-16s value: %s\n", debugName, szKeyName, szValue );
+					DevMsg( "(%s) key: %-16s value: %s\n", debugName, szKeyName, szValue );
 				
 				return true;
 			}
 		}
 
 		if ( printKeyHits )
-			Msg( "!! (%s) key not handled: \"%s\" \"%s\"\n", STRING(m_iClassname), szKeyName, szValue );
+			DevMsg( "!! (%s) key not handled: \"%s\" \"%s\"\n", STRING(m_iClassname), szKeyName, szValue );
 	}
 
 #endif
@@ -826,7 +826,7 @@ void CBaseEntity::SetNextThink( float thinkTime, const char *szContext )
 #ifdef _DEBUG
 		if ( m_iCurrentThinkContext != NO_THINK_CONTEXT )
 		{
-			Msg( "Warning: Setting base think function within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
+			DevMsg( "Warning: Setting base think function within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
 		}
 #endif
 
@@ -862,7 +862,7 @@ float CBaseEntity::GetNextThink( const char *szContext )
 #ifdef _DEBUG
 		if ( m_iCurrentThinkContext != NO_THINK_CONTEXT )
 		{
-			Msg( "Warning: Getting base nextthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
+			DevMsg( "Warning: Getting base nextthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
 		}
 #endif
 
@@ -897,7 +897,7 @@ int	CBaseEntity::GetNextThinkTick( const char *szContext /*= NULL*/ )
 #ifdef _DEBUG
 		if ( m_iCurrentThinkContext != NO_THINK_CONTEXT )
 		{
-			Msg( "Warning: Getting base nextthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
+			DevMsg( "Warning: Getting base nextthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
 		}
 #endif
 
@@ -936,7 +936,7 @@ float CBaseEntity::GetLastThink( const char *szContext )
 #ifdef _DEBUG
 		if ( m_iCurrentThinkContext != NO_THINK_CONTEXT )
 		{
-			Msg( "Warning: Getting base lastthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
+			DevMsg( "Warning: Getting base lastthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
 		}
 #endif
 		// Old system
@@ -960,7 +960,7 @@ int CBaseEntity::GetLastThinkTick( const char *szContext /*= NULL*/ )
 #ifdef _DEBUG
 		if ( m_iCurrentThinkContext != NO_THINK_CONTEXT )
 		{
-			Msg( "Warning: Getting base lastthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
+			DevMsg( "Warning: Getting base lastthink time within think context %s\n", STRING(m_aThinkFunctions[m_iCurrentThinkContext].m_iszContext) );
 		}
 #endif
 		// Old system
@@ -2137,7 +2137,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 #ifdef GAME_DLL
 bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 {
-	Msg("GetUnstuck called by %s named %s\n", STRING(m_iClassname), STRING(m_iName));
+	DevMsg("GetUnstuck called by %s named %s\n", STRING(m_iClassname), STRING(m_iName));
 	bool bNoDebug = (flags & UF_NO_DEBUG) != 0;
 	bool bAllowNodeTeleport = !(flags & UF_NO_NODE_TELEPORT);
 	bool bNoDuck = (flags & UF_NO_DUCK) != 0;
@@ -2172,18 +2172,18 @@ bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 	UTIL_TraceLine(vecGoodSpot, vecGoodSpot, IsPlayer() ? MASK_PLAYERSOLID : MASK_NPCSOLID, this, COLLISION_GROUP_NONE, &trace2);
 	if (trace2.startsolid)
 	{
-		if (unstuck_debug.GetInt() == 1 && !bNoDebug) Msg("Skipping pretrace, origin inside world\n");
+		if (unstuck_debug.GetInt() == 1 && !bNoDebug) DevMsg("Skipping pretrace, origin inside world\n");
 		flags |= UF_NO_PRETRACE;
 	}
 	if (trace2.DidHitNonWorldEntity())
 	{
-		if (unstuck_debug.GetInt() == 1 && !bNoDebug) Msg("Skipping entities in pretrace, origin inside entity\n");
+		if (unstuck_debug.GetInt() == 1 && !bNoDebug) DevMsg("Skipping entities in pretrace, origin inside entity\n");
 		flags |= UF_PRETRACE_SKIP_ENTS;
 	}
-	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.fraction != 1.0f) Msg("trace.fraction != 1.0f\n");
-	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.surface.flags & SURF_SKY) Msg("trace.surface.flags & SURF_SKY\n");
-	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.surface.flags & SURF_NODRAW) Msg("trace.surface.flags & SURF_NODRAW\n");
-	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.DidHit()) Msg("trace.DidHit()\n");
+	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.fraction != 1.0f) DevMsg("trace.fraction != 1.0f\n");
+	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.surface.flags & SURF_SKY) DevMsg("trace.surface.flags & SURF_SKY\n");
+	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.surface.flags & SURF_NODRAW) DevMsg("trace.surface.flags & SURF_NODRAW\n");
+	if (unstuck_debug.GetInt() == 1 && !bNoDebug) if (trace.DidHit()) DevMsg("trace.DidHit()\n");
 	if ((trace.surface.flags & SURF_SKY) || (trace.surface.flags & SURF_NODRAW) || trace.DidHit())
 	{
 		//d2_coast_01 setpos -10514 -3019 780
@@ -2193,15 +2193,15 @@ bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 		if (trace.fraction != 1.0f)
 			bGotStuck = true;
 		else
-			Msg("Not stuck a\n");
+			DevMsg("Not stuck a\n");
 	}
 	else
-		Msg("Not stuck b\n");
+		DevMsg("Not stuck b\n");
 	//we could be below a displacement
 	if (!CheckIfBelowGround(GetAbsOrigin(), bNoDebug))
 		bGotStuck = true;
 	else
-		Msg("Not stuck c\n");
+		DevMsg("Not stuck c\n");
 	if (bGotStuck)
 	{
 		//force ducking state
@@ -2218,7 +2218,7 @@ bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 		for (int i = 10; i <= flMaxDist && !bDone; i += 10)//don't actually do 500 tests. that's insane.
 		{
 			bool bGranular = i > flMaxDist / 2;
-			//Msg("Unstuck i %i\n", i);
+			//DevMsg("Unstuck i %i\n", i);
 			//original noclip unstuck test only tested in cardinal directions, but we're better than that
 			for (float UFlip = 1; UFlip >= -1 && !bDone; UFlip -= bGranular ? 0.5 : 1)
 			{
@@ -2259,18 +2259,18 @@ bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 		{
 			if (bAllowNodeTeleport)
 			{
-				if (unstuck_debug.GetInt() == 2 && !bNoDebug) Msg("Putting at node\n");
+				if (unstuck_debug.GetInt() == 2 && !bNoDebug) DevMsg("Putting at node\n");
 				return PutAtNearestNode(flMaxDist, true);//i change this boolean purely on whatever i need at any moment. i am a good programmer.
 			}
 			else
 			{
-				if (unstuck_debug.GetInt() == 2 && !bNoDebug) Msg("Can't fit\n");
+				if (unstuck_debug.GetInt() == 2 && !bNoDebug) DevMsg("Can't fit\n");
 				return false;
 			}
 		}
 		else
 		{
-			if (unstuck_debug.GetInt() == 2 && !bNoDebug) Msg("Found place\n");
+			if (unstuck_debug.GetInt() == 2 && !bNoDebug) DevMsg("Found place\n");
 			return true;//found a place to teleport to
 		}
 	}
@@ -2288,7 +2288,7 @@ bool CBaseEntity::GetUnstuck(float flMaxDist, int flags)
 			}
 		}
 	}
-	Msg("Not stuck\n");
+	DevMsg("Not stuck\n");
 	return true;//not stuck anyway
 }
 bool CBaseEntity::FindOffsetSpot(Vector forward, float FFlip, Vector right, float RFlip, Vector up, float UFlip, Vector& vecGoodSpot, int flDist, CUtlVector<Vector> &vecBadDirections, int flags)
@@ -2305,13 +2305,13 @@ bool CBaseEntity::FindOffsetSpot(Vector forward, float FFlip, Vector right, floa
 	}
 	if (unstuck_debug.GetInt() == 1 && !bNoDebug)
 	{
-		Msg("Trying direction %s %s %s\n",
+		DevMsg("Trying direction %s %s %s\n",
 			vecTestDir.x > 0 ? "EAST" : vecTestDir.x < 0 ? "WEST" : "",
 			vecTestDir.y > 0 ? "NORTH" : vecTestDir.y < 0 ? "SOUTH" : "",
 			vecTestDir.z > 0 ? "UP" : vecTestDir.z < 0 ? "DOWN" : "");
 	}
 	Vector vecDest = GetAbsOrigin() + vecTestDir * flDist;
-	if (unstuck_debug.GetInt() == 1 && !bNoDebug) Msg("Testing spot %0.1f %0.1f %0.1f\n", vecDest.x, vecDest.y, vecDest.z);
+	if (unstuck_debug.GetInt() == 1 && !bNoDebug) DevMsg("Testing spot %0.1f %0.1f %0.1f\n", vecDest.x, vecDest.y, vecDest.z);
 	if (FindPassableSpace(vecTestDir, flDist, vecGoodSpot, vecBadDirections, flags))
 	{
 		if (unstuck_debug.GetInt() == 1 && !bNoDebug) Warning("Found spot %0.1f %0.1f %0.1f\n", vecDest.x, vecDest.y, vecDest.z);
@@ -2360,7 +2360,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 		{
 			if (unstuck_debug.GetInt() == 1 && !bNoDebug)
 			{
-				Msg("Rejected spot %0.1f %0.1f %0.1f, Don't want to go through walls. Direction %s %s %s\n", vecDest.x, vecDest.y, vecDest.z,
+				DevMsg("Rejected spot %0.1f %0.1f %0.1f, Don't want to go through walls. Direction %s %s %s\n", vecDest.x, vecDest.y, vecDest.z,
 					direction.x > 0 ? "EAST" : direction.x < 0 ? "WEST" : "",
 					direction.y > 0 ? "NORTH" : direction.y < 0 ? "SOUTH" : "",
 					direction.z > 0 ? "UP" : direction.z < 0 ? "DOWN" : "");
@@ -2387,7 +2387,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 	{
 		if (unstuck_debug.GetInt() == 1 && !bNoDebug)
 		{
-			Msg("Rejected spot %0.1f %0.1f %0.1f, Can't fit\n", vecDest.x, vecDest.y, vecDest.z);
+			DevMsg("Rejected spot %0.1f %0.1f %0.1f, Can't fit\n", vecDest.x, vecDest.y, vecDest.z);
 			//NDebugOverlay::Cross3D(vecDest, 16, 0, 0, 0, true, 30);//a bit too much noise
 		}
 		return false;
@@ -2401,7 +2401,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 	{
 		if (unstuck_debug.GetInt() == 1 && !bNoDebug)
 		{
-			Msg("Rejected spot %0.1f %0.1f %0.1f, Bad ground\n", vecDest.x, vecDest.y, vecDest.z);
+			DevMsg("Rejected spot %0.1f %0.1f %0.1f, Bad ground\n", vecDest.x, vecDest.y, vecDest.z);
 			NDebugOverlay::Line(vecDest, vecDest - Vector(0, 0, 32768), 255, 0, 0, true, 30);
 		}
 		return false;
@@ -2409,7 +2409,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 	//ground we found could still be below a displacement
 	if (!CheckIfBelowGround(floorTrace.endpos, bNoDebug))
 		return false;
-	if (unstuck_debug.GetInt() == 2 && !bNoDebug) Msg("Good ground at %0.1f %0.1f %0.1f\n", vecDest.x, vecDest.y, vecDest.z);
+	if (unstuck_debug.GetInt() == 2 && !bNoDebug) DevMsg("Good ground at %0.1f %0.1f %0.1f\n", vecDest.x, vecDest.y, vecDest.z);
 	if (unstuck_debug.GetInt() == 2 && !bNoDebug) DebugSweptBox(GetAbsOrigin(), vecDest, CollisionProp()->CollisionSpaceMins(), CollisionProp()->CollisionSpaceMaxs(), 255, 0, 0, 5);
 	oldorigin = vecDest;
 	return true;
@@ -2427,16 +2427,16 @@ bool CBaseEntity::CheckIfBelowGround(Vector vecPos, bool bNoDebug)
 	UTIL_TraceLine(ceilingTrace1.endpos, ceilingTrace1.endpos - Vector(0, 0, 32768), IsPlayer() ? MASK_PLAYERSOLID : MASK_NPCSOLID, this, COLLISION_GROUP_NONE, &ceilingTrace2);
 	if (unstuck_debug.GetInt() == 1 && !bNoDebug)
 	{
-		Msg("vecPos %0.1f %0.1f %0.1f\n", vecPos.x, vecPos.y, vecPos.z);
-		Msg("groundTrace.endpos %0.1f %0.1f %0.1f\n", groundTrace.endpos.x, groundTrace.endpos.y, groundTrace.endpos.z);
-		Msg("ceilingTrace1.endpos %0.1f %0.1f %0.1f\n", ceilingTrace1.endpos.x, ceilingTrace1.endpos.y, ceilingTrace1.endpos.z);
-		Msg("ceilingTrace2.endpos %0.1f %0.1f %0.1f\n", ceilingTrace2.endpos.x, ceilingTrace2.endpos.y, ceilingTrace2.endpos.z);
+		DevMsg("vecPos %0.1f %0.1f %0.1f\n", vecPos.x, vecPos.y, vecPos.z);
+		DevMsg("groundTrace.endpos %0.1f %0.1f %0.1f\n", groundTrace.endpos.x, groundTrace.endpos.y, groundTrace.endpos.z);
+		DevMsg("ceilingTrace1.endpos %0.1f %0.1f %0.1f\n", ceilingTrace1.endpos.x, ceilingTrace1.endpos.y, ceilingTrace1.endpos.z);
+		DevMsg("ceilingTrace2.endpos %0.1f %0.1f %0.1f\n", ceilingTrace2.endpos.x, ceilingTrace2.endpos.y, ceilingTrace2.endpos.z);
 	}
 	//these should be equal, otherwise ceilingTrace1 went through a displacement while ceilingTrace2 got blocked by it
 	//although floating point precision loss may play a role, so give it just a smidge of tolerance
 	if ((groundTrace.endpos - ceilingTrace2.endpos).Length() > 1)
 	{
-		if (unstuck_debug.GetInt() == 1 && !bNoDebug) Msg("Below displacement\n");
+		if (unstuck_debug.GetInt() == 1 && !bNoDebug) DevMsg("Below displacement\n");
 		return false;
 	}
 	return true;
