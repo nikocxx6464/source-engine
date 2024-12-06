@@ -14,7 +14,7 @@ This repository contains contains source engine modification ported to nillerusr
 # Issues  
 1. Nightmare House have issue with vignette, turn on HDR
 2. SMOD is **partially** remaked, so it have bugs with weapon_custom system!
-3. Half-Life 2 Chaos crashes on Android ( Repulsive, Blackhole cause to vphysics crash )
+3. Half-Life 2 Chaos crashes on Android ( Effects related to physics cause to vphysics crash )
 
 # Thanks to:
 **UAVXP** for LeakNet [Missing Information]  
