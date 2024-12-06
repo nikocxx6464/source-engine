@@ -6009,12 +6009,14 @@ void PrintEffectName(int i, int iHidden, bool bDead, CChaosEffect *pEffect, bool
 	if (pEffect->m_bTransient && !chaos_alwaysShowEffectTime.GetBool())
 	{
 		UTIL_HudMessage(UTIL_GetLocalPlayer(), textParams, bHidden ? " " : STRING(pEffect->m_strHudName));
+		Msg("Effect %s\n", i, STRING(pEffect->m_strHudName));
 	}
 	else
 	{
 		if (!bHidden)
 			textParams.timertime = ceil(pEffect->m_flTimeRem);
 		UTIL_HudMessage(UTIL_GetLocalPlayer(), textParams, bHidden ? " " : STRING(pEffect->m_strHudName));
+		Msg("Effect %s\n", i, STRING(pEffect->m_strHudName));
 	}
 }
 void CHL2_Player::DoChaosHUDText()
@@ -6042,7 +6044,6 @@ void CHL2_Player::DoChaosHUDText()
 			iHidden++;
 			bHide = true;
 		}
-		Msg("plz send this to tester chat if you game crashed\ni %i\nEffect %s\nID %i\niHidden %i\n", i, STRING(pEffect->m_strHudName), pEffect->m_nID, iHidden);
 		PrintEffectName(i, iHidden, pl.deadflag, pEffect, bHide);
 	}
 }
