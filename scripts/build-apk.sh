@@ -8,5 +8,5 @@ git pull
 chmod +x android/script.sh
 ./android/scripts/script.sh
 chmod +x waf
-./waf configure -T release &&
+./waf configure -T release --javac-source-target=8 &&
 ./waf build
