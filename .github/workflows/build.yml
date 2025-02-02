@@ -31,7 +31,7 @@ jobs:
         name: linux-amd64
         path: bin
 
-    build-linux-arm64:
+  build-linux-arm64:
     runs-on: ubuntu-latest-arm64
 
     steps:
@@ -169,7 +169,7 @@ jobs:
         name: macos-amd64
         path: bin
 
-    build-macos-arm64:
+  build-macos-arm64:
     runs-on: macos-15-xlarge
 
     steps:
@@ -198,7 +198,7 @@ jobs:
         name: macos-dedicated-amd64
         path: bin
 
-    build-dedicated-macos-arm64:
+  build-dedicated-macos-arm64:
     runs-on: macos-15-xlarge
 
     steps:
