@@ -31,19 +31,19 @@ jobs:
         name: linux-amd64
         path: bin
 
-  build-linux-arm64:
-    runs-on: ubuntu-latest-arm64
+  # build-linux-arm64:
+  #   runs-on: ubuntu-latest-arm64
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build linux-arm64
-      run: |
-        scripts/build-ubuntu-amd64.sh
-    - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-arm64
-        path: bin
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: Build linux-arm64
+  #     run: |
+  #       scripts/build-ubuntu-amd64.sh
+  #   - name: 'Upload Artifact'
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: linux-arm64
+  #       path: bin
 
   build-windows-i386:
     runs-on: windows-latest
@@ -141,19 +141,19 @@ jobs:
         name: linux-dedicated-amd64
         path: bin
 
-  build-dedicated-linux-arm64:
-    runs-on: ubuntu-latest-arm64
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build dedicated linux-arm64
-      run: |
-        scripts/build-ubuntu-amd64.sh -d
-    - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-dedicated-arm64
-        path: bin
+#  build-dedicated-linux-arm64:
+#    runs-on: ubuntu-latest-arm64
+#
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Build dedicated linux-arm64
+#      run: |
+#        scripts/build-ubuntu-amd64.sh -d
+#    - name: 'Upload Artifact'
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: linux-dedicated-arm64
+#        path: bin
 
   build-macos-amd64:
     runs-on: macos-13
@@ -184,7 +184,7 @@ jobs:
         path: bin
 
   build-dedicated-macos-amd64:
-    runs-on: qqwe
+    runs-on: macos-13
 
     steps:
     - uses: actions/checkout@v2
