@@ -184,7 +184,7 @@ jobs:
         path: bin
 
   build-dedicated-macos-amd64:
-    runs-on: macos-13
+    runs-on: qqwe
 
     steps:
     - uses: actions/checkout@v2
