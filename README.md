@@ -25,6 +25,6 @@ This repository contains contains source engine modification ported to nillerusr
 **NicknineTheEagle** for Team Fortress 1.0.1.8 Port, **FriskTheFallenHuman** and **Bitl** for TF2 Bots  
 **Shokunin Studios** for TE120  
 **WadDelz** for Half-Life 2 Alone  
-**Pinsplash** for Half-Life 2 Chaos
+**Pinsplash** for Half-Life 2 Chaos  
 **SDE Dev Team** for Snowdrop Escape  
 **Breadman** for Entropy Zero  
