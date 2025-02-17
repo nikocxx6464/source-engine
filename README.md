@@ -8,6 +8,8 @@ This repository contains contains source engine modification ported to nillerusr
 5. [Transmissions: Element 120](https://github.com/ItzVladik/source-engine/tree/te120)
 6. [Half-Life 2: Alone](https://github.com/ItzVladik/source-engine/tree/alone)
 7. [Half-Life 2: Chaos](https://github.com/ItzVladik/source-engine/tree/chaos)
+8. [Entropy Zero](https://github.com/ItzVladik/source-engine/tree/ez-port)
+9. [Snowdrop Escape](https://github.com/ItzVladik/source-engine/tree/snowdrop)
 #
 [Source Engine Android Clean Branch](https://github.com/ItzVladik/source-engine/tree/master)
 
@@ -24,3 +26,5 @@ This repository contains contains source engine modification ported to nillerusr
 **Shokunin Studios** for TE120  
 **WadDelz** for Half-Life 2 Alone  
 **Pinsplash** for Half-Life 2 Chaos
+**SDE Dev Team** for Snowdrop Escape
+**Breadman** for Entropy Zero
