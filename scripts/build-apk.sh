@@ -1,4 +1,4 @@
-export ICON=lc.png
+export ICON=snowdrop.png
 export PACKAGE=snowdrop_escape
 export APP_NAME="Snowdrop Escape"
 cd srceng-mod-launcher
