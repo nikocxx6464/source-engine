@@ -26,5 +26,5 @@ This repository contains contains source engine modification ported to nillerusr
 **Shokunin Studios** for TE120  
 **WadDelz** for Half-Life 2 Alone  
 **Pinsplash** for Half-Life 2 Chaos
-**SDE Dev Team** for Snowdrop Escape
-**Breadman** for Entropy Zero
+**SDE Dev Team** for Snowdrop Escape  
+**Breadman** for Entropy Zero  
