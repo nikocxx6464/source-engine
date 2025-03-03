@@ -44,6 +44,7 @@ ConVar exp_magnitude("tool_exp_magnitude", "0");
 ConVar exp_radius("tool_exp_radius", "0");
 ConVar tool_create("tool_create", "");
 ConVar tool_allow_delete_player( "tool_allow_delete_player", "0" );
+ConVar tool_shoot_duration("tool_shoot_duration", "0.5", "", FCVAR_ARCHIVE );
 #endif
 
 #define BEAM_SPRITE "sprites/bluelaser1.vmt"
@@ -57,7 +58,7 @@ extern CBaseEntity *FindPickerEntity( CBasePlayer *pPlayer );
 class CWeaponToolGun : public CBaseHLCombatWeapon
 {
 private:
-	DECLARE_CLASS(CWeaponToolGun, CBaseHLCombatWeapon);;
+	DECLARE_CLASS(CWeaponToolGun, CBaseHLCombatWeapon);
 	DECLARE_DATADESC();
 	
 #ifndef CLIENT_DLL
@@ -77,9 +78,6 @@ private:
 	virtual void Precache();
 	virtual void SpawnEntity( const char * entName, Vector pos );
 	virtual void SpawnProp( Vector &pos );
-//	virtual bool HasAnyAmmo() { return true; }
-//	virtual bool HasPrimaryAmmo() { return true; }
-//	virtual bool HasSecondaryAmmo() { return true; }
 	virtual void ItemPostFrame();
 #ifndef CLIENT_DLL
 	virtual void DrawBeam( const Vector &startPos, const Vector &endPos, float width );
@@ -164,7 +162,7 @@ void CWeaponToolGun::SpawnEntity( const char *entName, Vector pos )
 	CBaseEntity *pEntity = CreateEntityByName( entName );
 	if( pEntity )
 	{
-		if ( Q_strncmp( entName, "npc_", 4 ) == 0 )
+		if ( Q_strncmp( entName, "npc_", 4 ) == 0 || Q_strncmp( entName, "weapon_", 7 ) == 0 )
 		{
 			pEntity->Precache();
 			DispatchSpawn( pEntity );
@@ -189,9 +187,12 @@ void CWeaponToolGun::Precache()
 void CWeaponToolGun::PrimaryAttack()
 {
 #ifndef CLIENT_DLL
-	m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
-
 	CBasePlayer *pOwner = ToBasePlayer(GetOwner());
+	
+	if ( !pOwner )
+		return;
+	
+	m_flNextPrimaryAttack = gpGlobals->curtime + tool_shoot_duration.GetFloat();
 
 	QAngle vecAngles( 0, GetAbsAngles().y - 90, 0 );
 
@@ -256,7 +257,10 @@ void CWeaponToolGun::PrimaryAttack()
 			if(tr.m_pEnt->IsNPC() || tr.m_pEnt->VPhysicsGetObject())
 			{
 				float flDuration = duration.GetFloat();
-				dynamic_cast<CBaseAnimating *>(tr.m_pEnt)->SetModelScale(flDuration, 0.0f);
+				if ( flDuration )
+				{
+					tr.m_pEnt->GetBaseAnimating()->SetModelScale( flDuration, 0.0f );
+				}
 			}
 			break;
 
@@ -274,7 +278,10 @@ void CWeaponToolGun::PrimaryAttack()
 			break;
 		case 5:
 			{
-				SpawnEntity( szCopiedEnt, tr.endpos );
+				if ( szCopiedEnt )
+				{
+					SpawnEntity( szCopiedEnt, tr.endpos );
+				}
 			}
 		case 6:
 			{
@@ -287,9 +294,11 @@ void CWeaponToolGun::PrimaryAttack()
 void CWeaponToolGun::SecondaryAttack()
 {
 #ifndef CLIENT_DLL
-	m_flNextSecondaryAttack = gpGlobals->curtime + 1.0;
+	m_flNextSecondaryAttack = gpGlobals->curtime + tool_shoot_duration.GetFloat();
 
 	CBasePlayer *pOwner = ToBasePlayer(GetOwner());
+	if ( !pOwner )
+		return;
 
 	Vector vForward, vRight, vUp;
 	pOwner->EyeVectors(&vForward, &vRight, &vUp);
@@ -338,6 +347,18 @@ void CWeaponToolGun::SecondaryAttack()
 
 void CWeaponToolGun::ItemPostFrame()
 {
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+    if ((pPlayer->m_nButtons & IN_ATTACK) && (gpGlobals->curtime >= m_flNextPrimaryAttack))
+    {
+        PrimaryAttack();
+    }
+
+    if ((pPlayer->m_nButtons & IN_ATTACK2) && (gpGlobals->curtime >= m_flNextSecondaryAttack))
+    {
+        SecondaryAttack();
+    }
+	
 	BaseClass::ItemPostFrame();
 }
 

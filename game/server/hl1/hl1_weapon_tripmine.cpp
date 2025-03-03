@@ -115,7 +115,7 @@ void CWeaponTripMine_HL1::Equip( CBaseCombatCharacter *pOwner )
 //-----------------------------------------------------------------------------
 void CWeaponTripMine_HL1::PrimaryAttack( void )
 {
-	CHL1_Player *pPlayer = ToHL1Player( GetOwner() );
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( !pPlayer )
 	{
 		return;
@@ -258,8 +258,6 @@ private:
 	CHandle<CBaseEntity>	m_hStuckOn;
 	Vector					m_posStuckOn;
 	QAngle					m_angStuckOn;
-
-	int						m_iLaserModel;
 };
 
 LINK_ENTITY_TO_CLASS( monster_tripmine, CTripmineGrenade_HL1 );
@@ -274,7 +272,6 @@ BEGIN_DATADESC( CTripmineGrenade_HL1 )
 	DEFINE_FIELD( m_hStuckOn,	FIELD_EHANDLE ),
 	DEFINE_FIELD( m_posStuckOn,	FIELD_POSITION_VECTOR ),
 	DEFINE_FIELD( m_angStuckOn,	FIELD_VECTOR ),
-	//DEFINE_FIELD( m_iLaserModel, FIELD_INTEGER ),
 
 	// Function Pointers
 	DEFINE_THINKFUNC( WarningThink ),
@@ -346,8 +343,6 @@ void CTripmineGrenade_HL1::Spawn( void )
 void CTripmineGrenade_HL1::Precache( void )
 {
 	PrecacheModel( TRIPMINE_MODEL ); 
-	m_iLaserModel = PrecacheModel( TRIPMINE_BEAM_SPRITE );
-
 	PrecacheScriptSound( "TripmineGrenade_HL1.Deploy" );
 	PrecacheScriptSound( "TripmineGrenade_HL1.Charge" );
 	PrecacheScriptSound( "TripmineGrenade_HL1.Activate" );

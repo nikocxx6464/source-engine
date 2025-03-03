@@ -19,7 +19,7 @@ def configure(conf):
 
 def build(bld):
 	source = [
-		'yuv.cpp',
+#		'yuv.cpp',
 		'Bloom.cpp',
 		'screenspace_general.cpp',
 		'../../public/tier0/memoverride.cpp',

@@ -212,7 +212,7 @@ void CWeaponExtinguisher::ItemPostFrame( void )
 		return;
 
 	//Only shoot if we have ammo
-	if ( pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0 )
+	if ( pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0 )
 	{
 		StopJet();
 		
@@ -234,12 +234,12 @@ void CWeaponExtinguisher::ItemPostFrame( void )
 		//Drain ammo
 		if ( m_flNextPrimaryAttack < gpGlobals->curtime  )
 		{
-			pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
+			pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
 			m_flNextPrimaryAttack = gpGlobals->curtime + EXTINGUISHER_AMMO_RATE;
 		}
 
 		//If we're just run out...
-		if ( pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0 )
+		if ( pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0 )
 		{
 			StopJet();
 			

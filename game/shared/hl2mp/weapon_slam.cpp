@@ -9,11 +9,13 @@
 #include "npcevent.h"
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
-#include "hl2_player_shared.h"
 
-#if !defined( CLIENT_DLL )
-	#include "hl2mp/grenade_tripmine.h"
-	#include "hl2mp/grenade_satchel.h"
+#if defined( CLIENT_DLL )
+	#include "c_baseplayer.h"
+#else
+	#include "player.h"
+	#include "grenade_tripmine.h"
+	#include "grenade_satchel.h"
 	#include "entitylist.h"
 	#include "eventqueue.h"
 #endif
@@ -111,7 +113,7 @@ void CWeapon_SLAM::Spawn( )
 	BaseClass::Spawn();
 
 	Precache( );
-
+	
 	m_tSlamState		= (int)SLAM_SATCHEL_THROW;
 	m_flWallSwitchTime	= 0;
 
@@ -175,6 +177,26 @@ bool CWeapon_SLAM::Holster( CBaseCombatWeapon *pSwitchingTo )
 	return BaseClass::Holster(pSwitchingTo);
 }
 
+#ifdef GAME_DLL
+const CUtlVector< CBaseEntity* > &CWeapon_SLAM::GetSatchelVector()
+{
+	m_SatchelVector.RemoveAll();
+
+	CBaseEntity* pEntity = NULL;
+
+	while ( ( pEntity = gEntList.FindEntityByClassname( pEntity, "npc_satchel" ) ) != NULL )
+	{
+		CSatchelCharge* pSatchel = dynamic_cast< CSatchelCharge* >( pEntity );
+		if ( pSatchel->m_bIsLive && pSatchel->GetThrower() && GetOwner() && pSatchel->GetThrower() == GetOwner() )
+		{
+			m_SatchelVector.AddToTail( pSatchel );
+		}
+	}
+
+	return m_SatchelVector;
+}
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: SLAM has no reload, but must call weapon idle to update state
 // Input  :
@@ -199,7 +221,7 @@ void CWeapon_SLAM::PrimaryAttack( void )
 		return;
 	}
 
-	if (pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0)
+	if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
 		return;
 	}
@@ -299,9 +321,9 @@ bool CWeapon_SLAM::AnyUndetonatedCharges(void)
 void CWeapon_SLAM::StartSatchelDetonate()
 {
 
-	if ( GetActivity() != ACT_SLAM_DETONATOR_IDLE && GetActivity() != ACT_SLAM_THROW_IDLE && !m_bDetonatorArmed )
+	if ( GetActivity() != ACT_SLAM_DETONATOR_IDLE && GetActivity() != ACT_SLAM_THROW_IDLE )
 		 return;
-
+	
 	// -----------------------------------------
 	//  Play detonate animation
 	// -----------------------------------------
@@ -309,7 +331,7 @@ void CWeapon_SLAM::StartSatchelDetonate()
 	{
 		SendWeaponAnim(ACT_SLAM_DETONATOR_DETONATE);
 	}
-	else if (m_tSlamState == SLAM_SATCHEL_ATTACH || m_tSlamState == SLAM_TRIPMINE_READY)
+	else if (m_tSlamState == SLAM_SATCHEL_ATTACH)
 	{
 		SendWeaponAnim(ACT_SLAM_STICKWALL_DETONATE);
 	}
@@ -375,7 +397,7 @@ void CWeapon_SLAM::TripmineAttach( void )
 
 #endif
 
-			pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
+			pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
 		}
 	}
 }
@@ -487,7 +509,7 @@ void CWeapon_SLAM::SatchelThrow( void )
 		pSatchel->m_pMyWeaponSLAM = this;
 	}
 
-	pPlayer->RemoveAmmo( 1, m_iSecondaryAmmoType );
+	pPlayer->RemoveAmmo( 1, m_iPrimaryAmmoType );
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 #endif
@@ -569,7 +591,7 @@ void CWeapon_SLAM::SatchelAttach( void )
 			pSatchel->SetOwnerEntity( ((CBaseEntity*)GetOwner()) );
 			pSatchel->m_pMyWeaponSLAM	= this;
 
-			pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
+			pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
 		}
 	}
 #endif
@@ -660,7 +682,7 @@ void CWeapon_SLAM::SLAMThink( void )
 	// a wall. If we are we go into satchel_attach mode
 	CBaseCombatCharacter *pOwner  = GetOwner();
 
-	if ( (pOwner && pOwner->GetAmmoCount(m_iSecondaryAmmoType) > 0))
+	if ( (pOwner && pOwner->GetAmmoCount(m_iPrimaryAmmoType) > 0))
 	{	
 		if (CanAttachSLAM())
 		{
@@ -793,7 +815,7 @@ void CWeapon_SLAM::Weapon_Switch( void )
 
 #ifndef CLIENT_DLL
 	// If not armed and have no ammo
-	if (!m_bDetonatorArmed && pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0)
+	if (!m_bDetonatorArmed && pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
 		pOwner->ClearActiveWeapon();
 	}
@@ -857,7 +879,7 @@ void CWeapon_SLAM::WeaponIdle( void )
 		else if ( m_bNeedReload )
 		{	
 			// If owner had ammo draw the correct SLAM type
-			if (pOwner->GetAmmoCount(m_iSecondaryAmmoType) > 0)
+			if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) > 0)
 			{
 				switch( m_tSlamState)
 				{
@@ -919,7 +941,7 @@ void CWeapon_SLAM::WeaponIdle( void )
 #endif
 			}
 		}
-		else if (pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0)
+		else if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 		{
 #ifndef CLIENT_DLL
 			pOwner->Weapon_Drop( this );
@@ -996,7 +1018,7 @@ bool CWeapon_SLAM::Deploy( void )
 	m_bNeedReload = false;
 	if (m_bDetonatorArmed)
 	{
-		if (pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0)
+		if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 		{
 			iActivity = ACT_SLAM_DETONATOR_DRAW;
 			m_bNeedReload = true;

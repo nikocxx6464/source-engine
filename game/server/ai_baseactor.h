@@ -24,7 +24,7 @@
 // Purpose: The base class for all head/body/eye expressive NPCS.
 //
 //-----------------------------------------------------------------------------
-enum PoseParameter_t { POSE_END=INT_MAX };
+enum PoseParameter_t { POSE_END=UINT_MAX };
 enum FlexWeight_t { FLEX_END=INT_MAX };
 
 struct AILookTargetArgs_t

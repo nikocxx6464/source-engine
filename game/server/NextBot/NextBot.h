@@ -30,6 +30,7 @@ public:
 	DECLARE_CLASS( NextBotCombatCharacter, CBaseCombatCharacter );
 	DECLARE_SERVERCLASS();
 	DECLARE_DATADESC();
+	DECLARE_ENT_SCRIPTDESC();
 	
 	NextBotCombatCharacter( void );
 	virtual ~NextBotCombatCharacter() { }
@@ -73,7 +74,6 @@ public:
 	// begin INextBot public interface ----------------------------------------------------------------
 	virtual NextBotCombatCharacter *GetEntity( void ) const			{ return const_cast< NextBotCombatCharacter * >( this ); }
 	virtual NextBotCombatCharacter *GetNextBotCombatCharacter( void ) const	{ return const_cast< NextBotCombatCharacter * >( this ); }
-	
 
 private:
 	EHANDLE m_lastAttacker;

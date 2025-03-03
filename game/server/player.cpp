@@ -6166,11 +6166,29 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		EquipSuit();
 
 		
-		// HACKHACK: idk why if you try to give tripmine after giving others weapons tripmine
+		// HACKHACK: idk why if you try to give this weapons after giving others weapons
 		// just didnt appear in hud
 		if ( hls_weapons_allowed.GetBool() )
 		{
 			GiveNamedItem( "weapon_tripmine_hl1" );
+			GiveNamedItem( "weapon_gauss_hl1" );
+			GiveNamedItem( "weapon_satchel_hl1");
+		}
+
+		if ( beta_weapons_allowed.GetBool() )
+		{
+			GiveAmmo( 255,	"FlareRound");
+		    GiveAmmo( 255,	"Extinguisher");
+		    GiveAmmo( 255,	"CombineCannon");
+		    GiveAmmo( 255,  "SmallRound");
+		    GiveAmmo( 255,	"MediumRound");
+		    GiveAmmo( 255,  "LargeRound");
+		    GiveAmmo( 255,	"GaussEnergy");		
+			GiveAmmo( 100, 	"Molotov" );
+			GiveAmmo( 100,	"slam");
+			
+			GiveNamedItem( "weapon_slam" );
+			GiveNamedItem( "weapon_molotov");
 		}
 
 		// Give the player everything!
@@ -6184,6 +6202,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo( 100,	"grenade");
 		GiveAmmo( 100,	"357" );
 		GiveAmmo( 100,	"XBowBolt" );
+		
 		if ( beta_weapons_allowed.GetBool() )
 		{
 			GiveAmmo( 100,	"Hopwire" );
@@ -6204,7 +6223,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 			GiveNamedItem( "weapon_immolator" );
 			GiveNamedItem( "weapon_blackhole" );
 			GiveNamedItem( "weapon_iceaxe" );
-//			GiveNamedItem( "weapon_rollerwand");
 		}	
 
 		GiveNamedItem( "weapon_smg1" );
@@ -6221,7 +6239,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		
 		if ( hls_weapons_allowed.GetBool() )
 		{
-			GiveNamedItem( "weapon_tripmine_hl1" );
 			GiveNamedItem( "item_suit" );
 			GiveNamedItem( "item_battery" );
 			GiveNamedItem( "weapon_crowbar_hl1" );
@@ -6237,7 +6254,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 			GiveNamedItem( "weapon_crossbow_hl1" );
 			GiveNamedItem( "ammo_crossbow" );
 			GiveNamedItem( "weapon_egon" );
-			GiveNamedItem( "weapon_gauss" );
 			GiveNamedItem( "ammo_gaussclip" );
 			GiveNamedItem( "weapon_rpg_hl1" );
 			GiveNamedItem( "weapon_satchel_hl1" );

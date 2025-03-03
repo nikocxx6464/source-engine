@@ -11,7 +11,7 @@
 #include "basehlcombatweapon.h"
 #include "player.h"
 #include "gamerules.h"
-#include "grenade_tripwire.h"
+// #include "grenade_tripwire.h"
 #include "grenade_satchel.h"
 #include "entitylist.h"
 #include "weapon_tripwire.h"
@@ -208,8 +208,8 @@ void CWeapon_Tripwire::TripwireAttach( void )
 			
 			CBaseEntity *pEnt = CBaseEntity::Create( "npc_tripwire", tr.endpos + tr.plane.normal * 3, angles, NULL );
 
-			CTripwireGrenade *pMine = (CTripwireGrenade *)pEnt;
-			pMine->SetThrower( GetOwner() );
+			// CTripwireGrenade *pMine = (CTripwireGrenade *)pEnt;
+			// pMine->SetThrower( GetOwner() );
 
 			pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
 

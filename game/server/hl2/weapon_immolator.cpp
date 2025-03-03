@@ -182,12 +182,12 @@ void CWeaponImmolator::StopImmolating()
 	m_vecImmolatorTarget= IMMOLATOR_TARGET_INVALID;
 	m_flNextPrimaryAttack = gpGlobals->curtime + 2.0;
 
-	StopSound( "Weapon_Immolator.Run" );
+	StopSound( "Weapon_Immolator.Single" );
 	
-	if ( m_fireState != FIRE_OFF )
-	{
-		 EmitSound( "Weapon_Immolator.Off" );
-	}
+//	if ( m_fireState != FIRE_OFF )
+//	{
+//		 EmitSound( "Weapon_Immolator.Off" );
+//	}
 
 	SetWeaponIdleTime( gpGlobals->curtime + 2.0 );
 	m_flNextPrimaryAttack = gpGlobals->curtime + 0.5;
@@ -201,6 +201,7 @@ void CWeaponImmolator::StopImmolating()
 void CWeaponImmolator::Precache( void )
 {
 	m_beamIndex = engine->PrecacheModel( "sprites/bluelaser1.vmt" );
+	PrecacheScriptSound( "Weapon_Immolator.Single" );
 
 	BaseClass::Precache();
 }
@@ -216,7 +217,6 @@ void CWeaponImmolator::PrimaryAttack( void )
 		{
 			if ( !HasAmmo() )
 			{
-				Msg( "No ammo!\n" );
 				m_flNextPrimaryAttack = gpGlobals->curtime + 0.25;
 				WeaponSound( EMPTY );
 				return;
@@ -224,7 +224,7 @@ void CWeaponImmolator::PrimaryAttack( void )
 
 			m_flAmmoUseTime = gpGlobals->curtime;// start using ammo ASAP.
 			
-			EmitSound( "Weapon_Immolator.Start" ); // VXP: Play startup sound here
+			// EmitSound( "Weapon_Immolator.Start" ); // VXP: Play startup sound here
 			
 			SendWeaponAnim( ACT_VM_PRIMARYATTACK );
 			
@@ -242,7 +242,7 @@ void CWeaponImmolator::PrimaryAttack( void )
 
 			if ( gpGlobals->curtime >= ( m_flStartFireTime + 0.3 ) )
 			{
-				EmitSound( "Weapon_Immolator.Run" );
+				EmitSound( "Weapon_Immolator.Single" );
 
 				m_fireState = FIRE_CHARGE;
 			}
@@ -430,7 +430,7 @@ void CWeaponImmolator::Update()
 	trace_t	tr;
 	UTIL_TraceLine( vecSrc, vecSrc + vecAiming * MAX_TRACE_LENGTH, MASK_SHOT, pOwner, COLLISION_GROUP_NONE, &tr );
 
-	CSoundEnt::InsertSound( SOUND_DANGER, m_vecImmolatorTarget, 256, 5.0, GetOwner() );
+	// CSoundEnt::InsertSound( SOUND_DANGER, m_vecImmolatorTarget, 256, 5.0, GetOwner() );
 
 	if ( gpGlobals->curtime >= m_flAmmoUseTime )
 	{

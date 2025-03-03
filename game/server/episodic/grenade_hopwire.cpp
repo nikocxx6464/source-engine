@@ -105,6 +105,9 @@ void CGravityVortexController::PullPlayersInRange( void )
 {
 	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
 	
+	if (!pPlayer || !pPlayer->VPhysicsGetObject())
+		return;
+
 	Vector	vecForce = GetLocalOrigin() - pPlayer->WorldSpaceCenter();
 	float	dist = VectorNormalize( vecForce );
 	
@@ -380,8 +383,8 @@ bool CGrenadeBlackhole::CreateVPhysics()
 void CGrenadeBlackhole::Precache( void )
 {
 	// FIXME: Replace
-	//PrecacheSound("NPC_Strider.Shoot");
-	//PrecacheSound("d3_citadel.weapon_zapper_beam_loop2");
+	PrecacheScriptSound("NPC_Strider.Shoot");
+	PrecacheScriptSound("d3_citadel.weapon_zapper_beam_loop2");
 
 	PrecacheModel( GRENADE_MODEL_OPEN );
 	PrecacheModel( GRENADE_MODEL_CLOSED );
@@ -471,6 +474,8 @@ void CGrenadeBlackhole::EndThink( void )
 		MessageEnd();
 	}
 
+	StopSound( "d3_citadel.weapon_zapper_beam_loop2" );
+
 	SetThink( &CBaseEntity::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 1.0f );
 }
@@ -491,8 +496,8 @@ void CGrenadeBlackhole::CombatThink( void )
 	KillStriders();
 
 	// FIXME: Replace
-	//EmitSound("NPC_Strider.Shoot");
-	//EmitSound("d3_citadel.weapon_zapper_beam_loop2");
+	EmitSound("NPC_Strider.Shoot");
+	EmitSound("d3_citadel.weapon_zapper_beam_loop2");
 
 	// Quick screen flash
 	CBasePlayer *pPlayer = ToBasePlayer( GetThrower() );
@@ -512,6 +517,7 @@ void CGrenadeBlackhole::CombatThink( void )
 		// Begin to stop in two seconds
 		SetThink( &CGrenadeBlackhole::EndThink );
 		SetNextThink( gpGlobals->curtime + 2.0f );
+
 	}
 	else
 	{

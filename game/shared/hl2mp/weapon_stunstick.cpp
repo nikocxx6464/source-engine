@@ -7,18 +7,20 @@
 
 #include "cbase.h"
 #include "npcevent.h"
-#include "weapon_hl2mpbasebasebludgeon.h"
 #include "IEffects.h"
 #include "debugoverlay_shared.h"
 
 #ifndef CLIENT_DLL
 	#include "npc_metropolice.h"
+	#include "basebludgeonweapon.h"
 	#include "te_effect_dispatch.h"
 #endif
 
 #ifdef CLIENT_DLL
 	
 	#include "iviewrender_beams.h"
+	#include "beamdraw.h"
+	#include "c_basehlcombatweapon.h"
 	#include "beam_shared.h"
 	#include "materialsystem/imaterial.h"
 	#include "model_types.h"
@@ -26,7 +28,7 @@
 	#include "fx_quad.h"
 	#include "fx.h"
 
-	extern void DrawHalo( IMaterial* pMaterial, const Vector &source, float scale, float const *color, float flHDRColorScale );
+	// extern void DrawHalo( IMaterial* pMaterial, const Vector &source, float scale, float const *color, float flHDRColorScale );
 	extern void FormatViewModelAttachment( Vector &vOrigin, bool bInverse );
 
 #endif
@@ -45,11 +47,12 @@ extern ConVar metropolice_move_and_melee;
 
 #ifdef CLIENT_DLL
 #define CWeaponStunStick C_WeaponStunStick
+#define CBaseHLBludgeonWeapon C_BaseHLBludgeonWeapon
 #endif
 
-class CWeaponStunStick : public CBaseHL2MPBludgeonWeapon
+class CWeaponStunStick : public CBaseHLBludgeonWeapon
 {
-	DECLARE_CLASS( CWeaponStunStick, CBaseHL2MPBludgeonWeapon );
+	DECLARE_CLASS( CWeaponStunStick, CBaseHLBludgeonWeapon );
 	
 public:
 

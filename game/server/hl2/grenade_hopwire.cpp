@@ -284,14 +284,17 @@ bool CGrenadeHopWire::CreateVPhysics()
 //-----------------------------------------------------------------------------
 void CGrenadeHopWire::Precache( void )
 {
-    PrecacheScriptSound( "TripmineGrenade.Charge" );
-	PrecacheScriptSound( "TripmineGrenade.PowerUp" );
-	PrecacheScriptSound( "TripmineGrenade.StopSound" );
+    // PrecacheScriptSound( "TripmineGrenade.Charge" ); // unused
+	// PrecacheScriptSound( "TripmineGrenade.PowerUp" );
+	// PrecacheScriptSound( "TripmineGrenade.StopSound" );
 	PrecacheScriptSound( "TripwireGrenade.Activate" );
 	PrecacheScriptSound( "TripwireGrenade.ShootRope" );
 	PrecacheScriptSound( "TripwireGrenade.Hook" );
-
+	PrecacheScriptSound( "Weapon_Tripwire.Attach" );
+	
+	PrecacheModel( "sprites/rollermine_shock.vmt" );
 	PrecacheModel( GRENADE_MODEL );
+	
 	BaseClass::Precache();
 }
 

@@ -25,6 +25,7 @@ $Project "Server (HL2)"
 	{
 		$File "$SRCDIR\game\shared\gunmod\weapon_physgun.cpp"
 		$File "$SRCDIR\game\shared\gunmod\weapon_toolgun.cpp"
+		$File "$SRCDIR\game\shared\gunmod\gunmod_core.cpp"
 	}
 	
 	$Folder	"Source Files"
@@ -253,8 +254,7 @@ $Project "Server (HL2)"
 			$File	"hl2\weapon_rpg.h"
 			$File	"hl2\weapon_shotgun.cpp"
 			$File	"hl2\weapon_smg1.cpp"
-			$File	"hl2\weapon_stunstick.cpp"
-			$File	"hl2\weapon_stunstick.h"
+			$File	"$SRCDIR\game\shared\hl2mp\weapon_stunstick.cpp"
 
 			$Folder	"Unused"
 			{

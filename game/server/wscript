@@ -9,7 +9,7 @@ top = '.'
 PROJECT_NAME = 'server'
 
 games = {
-	'gunmod': ['server_base.vpc', 'server_hl2.vpc'],
+	'gunmod': ['server_base.vpc', 'server_hl2.vpc', 'nav_mesh.vpc'],
 }
 
 def options(opt):

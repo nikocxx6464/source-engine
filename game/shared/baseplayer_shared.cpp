@@ -229,9 +229,6 @@ void CBasePlayer::ItemPostFrame()
 {
 	VPROF( "CBasePlayer::ItemPostFrame" );
 
-	// Put viewmodels into basically correct place based on new player origin
-	CalcViewModelView( EyePosition(), EyeAngles() );
-
 	/// aaa im retard
 	if ( GetActiveWeapon() )
 	{	
@@ -242,7 +239,7 @@ void CBasePlayer::ItemPostFrame()
 			 FStrEq( "weapon_357_hl1", szWeap )   || FStrEq( "weapon_crossbow_hl1", szWeap ) || FStrEq( "weapon_egon", szWeap ) 	   ||
 			 FStrEq( "weapon_gauss_hl1", szWeap ) || FStrEq( "weapon_glock_hl1", szWeap )    || FStrEq( "grenade_hand", szWeap ) 	   || 
 			 FStrEq( "weapon_hornetgun", szWeap ) || FStrEq( "weapon_mp5_hl1", szWeap )      || FStrEq("weapon_crowbar_hl1", szWeap )  ||
-			 FStrEq( "weapon_handgrenade", szWeap ) 	  || FStrEq( "weapon_tripmine_hl1", szWeap) 	 || FStrEq( "weapon_snark", szWeap ) )
+			 FStrEq( "weapon_handgrenade", szWeap) || FStrEq( "weapon_tripmine_hl1", szWeap) || FStrEq( "weapon_snark", szWeap ) )
 		{
 			v_viewmodel_fov.SetValue( "84" );
 		}
@@ -251,6 +248,10 @@ void CBasePlayer::ItemPostFrame()
 			v_viewmodel_fov.SetValue( "54" );
 		}
 	}
+	
+	// Put viewmodels into basically correct place based on new player origin
+	CalcViewModelView( EyePosition(), EyeAngles() );
+
 
 	// Don't process items while in a vehicle.
 	if ( GetVehicle() )

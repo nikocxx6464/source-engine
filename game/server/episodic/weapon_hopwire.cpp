@@ -440,7 +440,7 @@ void CWeaponBlackhole::ThrowGrenade( CBasePlayer *pPlayer )
 
 	m_bRedraw = true;
 
-	WeaponSound( SINGLE );
+	EmitSound( "WeaponFrag.ThrowGrenade" );
 }
 
 //-----------------------------------------------------------------------------
@@ -502,7 +502,7 @@ void CWeaponBlackhole::RollGrenade( CBasePlayer *pPlayer )
 	AngularImpulse rotSpeed(0,0,720);
 	m_hActiveHopWire = static_cast<CGrenadeBlackhole *> (BlackHole_Create( vecSrc, orientation, vecThrow, rotSpeed, pPlayer, GRENADE_TIMER ));
 
-	WeaponSound( SPECIAL1 );
+	EmitSound( "WeaponFrag.Roll" );
 
 	m_bRedraw = true;
 }

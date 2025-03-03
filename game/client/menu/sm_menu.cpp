@@ -7,51 +7,35 @@
 #include <vgui/IVGui.h>
 #include <vgui/IScheme.h>
 #include <vgui/ISurface.h>
-
 #include "filesystem.h"
 #include "sm_menu.h"
-
+#include "sm_menu_helper.h"
 #include "viewrender.h"
 #include "materialsystem/imaterialvar.h"
+#include "schemeeditor.h"
+#include "materialsystem/itexture.h"
 
 #include "tier0/memdbgon.h"
 
 using namespace vgui;
 
-ConVar sm_menu_mode("sm_menu_mode", "0");
-ConVar sm_menu_theme("sm_menu_theme", "0");
-
-void ReloadScheme(vgui::Panel *panel)
-{
-	vgui::Panel *parent;
-	parent = panel->GetParent()->GetParent();
-	const char * theme;
-	if (sm_menu_theme.GetBool())
-		theme = "resource/SourceScheme_Dark.res";
-	else
-		theme = "resource/SourceScheme.res";
-	parent->SetScheme(vgui::scheme()->LoadSchemeFromFile(theme, "SourceScheme"));
-	parent->InvalidateLayout( true, true );
-}
-
-void CheckVar( const char *cvarName )
-{
-	ConVarRef convar( cvarName );
-	if ( convar.GetBool() )
-		convar.SetValue( 0 );
-	else
-		convar.SetValue( 1 );
-}
+static SMHelper helper;
 
 void CC_MessageBoxWarn()
 {
 	vgui::MessageBox *pMessageBox = new vgui::MessageBox( 
 	
 	"Welcome to GunMod!\n",
-	"Made by ItzVladik!\n\n\n\nCredits:\nLeakNet, Axel Project - Some beta code\nMissing Information Team - Icons for Beta Weapons\nAdnan - ARGG Physgun\nGarry's Mod - Entities Icons\nSersoft - sersoft_house_beta1.bsp\nEternalCringe - Icon for Gunmod\nValve - Half-Life\n");
+	"Made by ItzVladik!\n\n\n\nCredits:\nLeakNet - Some beta code\nMissing Information Team - Icons for Beta Weapons\nAdnan - ARGG Physgun\nGarry's Mod - Entities Icons\nSersoft - sersoft_house_beta1.bsp\nEternalCringe - Icon for Gunmod\nValve - Half-Life\n");
 	pMessageBox->SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme_Dark.res", "SourceScheme"));
 	pMessageBox->DoModal();
 	pMessageBox->SetPos( 693, 93 );
+}
+
+void OpenSchemeEditor( vgui::Panel *parent )
+{
+	SMEditor *ed = new SMEditor( parent, "Editor" );
+	ed->Activate();
 }
 
 extern void CAM_ToThirdPerson( void );
@@ -59,7 +43,8 @@ extern void CAM_ToFirstPerson( void );
 
 SMMovement::SMMovement( vgui::Panel *parent, const char *panelName ) : BaseClass( parent, panelName )
 {
- 	vgui::ivgui()->AddTickSignal( GetVPanel(), 250 );
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
+	
 	m_AFH = new CheckButton( this, "AFH", "Enable AFH");
 	m_AutoJump = new CheckButton( this, "m_AutoJump", "Enable AutoJump" );
 	m_OldEngine = new CheckButton( this, "m_OldEngine", "Enable Old Engine Bunny Hopping");
@@ -87,11 +72,17 @@ void SMMovement::OnCommand( const char *cmd )
 
 void SMMovement::OnTick( void )
 {
-	BaseClass::OnTick();
-	
 	if ( !IsVisible() )
 		return;	
 	
+	BaseClass::OnTick();
+	
+	helper.SetVar( m_NoclipSpeed, "sv_noclipspeed" );
+	helper.SetVar( m_NormSpeed, "hl2_normspeed" );
+	helper.SetVar( m_SprintSpeed, "hl2_sprintspeed" );
+	helper.SetVar( m_WalkSpeed, "hl2_walkspeed" );	
+	
+	// Dont work with ConVarRef so......
 	static ConVar  *mov_2004 = cvar->FindVar("mov_2004");
 	//static ConVar  *mov_only_ducking = cvar->FindVar("mov_only_ducking");
 	static ConVar  *mov_afh = cvar->FindVar("mov_afh");
@@ -100,35 +91,16 @@ void SMMovement::OnTick( void )
 	static ConVar  *mov_scale = cvar->FindVar("mov_scale");
 	static ConVar  *mov_autojump = cvar->FindVar("mov_autojump");
 
-	char buf[64], buf1[64], buf2[64], buf3[64];
-	
-	m_NoclipSpeed->GetText( buf, 64 );
-	ConVarRef sv_noclipspeed("sv_noclipspeed");
-	sv_noclipspeed.SetValue( buf );
-	
-	m_NormSpeed->GetText( buf1, 64 );
-	ConVarRef hl2_normspeed("hl2_normspeed");
-	hl2_normspeed.SetValue( buf1 );
-	
-	m_SprintSpeed->GetText( buf2, 64 );
-	ConVarRef hl2_sprintspeed("hl2_sprintspeed");
-	hl2_sprintspeed.SetValue( buf2 );
-	
-	m_WalkSpeed->GetText( buf3, 64 );
-	ConVarRef hl2_walkspeed("hl2_walkspeed");
-	hl2_walkspeed.SetValue( buf3 );
-
-
 	mov_2004->SetValue( m_OldEngine->IsSelected() );
 	mov_afh->SetValue( m_AFH->IsSelected() );
 	mov_autojump->SetValue( m_AutoJump->IsSelected() );
 	//mov_only_ducking->SetValue( m_Duck->IsSelected() );
-	char scale[64];
-	char scale1[64];
-	char scale2[64];
+	char scale[64], scale1[64], scale2[64];
+	
 	m_MainScale->GetText( scale, 64 );
 	m_ForwardScale->GetText( scale1, 64 );
 	m_SprintForwardScale->GetText( scale2, 64 );
+	
 	mov_scale->SetValue( scale );
 	mov_jumpforwardscale->SetValue( scale1 );
 	mov_jumpforwardsprintscale->SetValue(scale2);
@@ -148,7 +120,7 @@ void SMMovement::OnTick( void )
 
 SMVisual::SMVisual( vgui::Panel *parent, const char *panelName ) : BaseClass( parent, panelName )
 {
-	vgui::ivgui()->AddTickSignal( GetVPanel(), 250 );
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
 	m_Yuv = new CheckButton( this, "Black and White", "Black and White" );
 	m_Hsv = new CheckButton( this, "Black and White v2", "Black and White v2" );
 	m_CombineBinocle = new CheckButton( this, "Combine Binocle", "Combine Binocle" );
@@ -299,12 +271,12 @@ ConVar sm_menu("sm_menu", "0", FCVAR_CLIENTDLL, "Spawn Menu");
 
 CON_COMMAND( spawnmenu, "Open SMenu" )
 {
-	CheckVar("sm_menu");
+	helper.CheckVar("sm_menu");
 }
 
 SMModels::SMModels( vgui::Panel *parent, const char *panelName ) : BaseClass( parent, panelName )
 {
-	vgui::ivgui()->AddTickSignal( GetVPanel(), 250 );
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
 	box = new ComboBox( this, "ComboBox", 50, false);
 	mdl = new CMDLPanel( this, "MDLPanel" );
 	LoadControlSettings( "resource/ui/smmodels.res" );
@@ -378,8 +350,7 @@ void SMModels::OnCommand( const char *command )
 // ToolMenu
 SMToolMenu::SMToolMenu ( vgui::Panel *parent, const char *panelName ) : BaseClass( parent, panelName )
 {
-	vgui::ivgui()->AddTickSignal( GetVPanel(), 250 );
-
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
 	pParent = parent;
 
 	bCam = false;
@@ -390,30 +361,24 @@ SMToolMenu::SMToolMenu ( vgui::Panel *parent, const char *panelName ) : BaseClas
 	m_Modelscale = new vgui::TextEntry(this, "Duration");
 	m_EntCreate = new vgui::TextEntry(this, "EntityCreate");
 
-	m_Timescale = new CCvarSlider( this, "Slider", "Timescale", 0.1f, 10.0f, "host_timescale" );
-	m_Timescale->SetSliderValue( 1.f );
+	m_Timescale = new CCvarSlider( this, "Slider", "Timescale", 0.1, 10, "host_timescale" );
+	m_Timescale->SetSliderValue( 1 );
 
-	m_PhysTimescale = new CCvarSlider( this, "Slider2", "PhysTimescale", 0.1f, 10.0f, "phys_timescale" );
-	m_PhysTimescale->SetSliderValue( 1.f );
+	m_PhysTimescale = new CCvarSlider( this, "Slider2", "PhysTimescale", 0.1, 10, "phys_timescale" );
+	m_PhysTimescale->SetSliderValue( 1 );
 
 	m_Gravity = new CCvarSlider( this, "Slider1", "Timescale", 0, 1000, "sv_gravity" );
-	m_Gravity->SetSliderValue( 600.0f );
+	m_Gravity->SetSliderValue( 600 );
 
 	m_GravityValue = new vgui::TextEntry(this, "GravityValue");
-	char gbuf[64];
-  	Q_snprintf(gbuf, sizeof( gbuf ), "600");
-	m_GravityValue->SetText(gbuf);
+	helper.SetText( m_GravityValue, "600" );
 
 	m_TimescaleValue = new vgui::TextEntry(this, "TimescaleValue");
-	char buf[64];
-  	Q_snprintf(buf, sizeof( buf ), "1");
-	m_TimescaleValue->SetText(buf);
+	helper.SetText( m_TimescaleValue, "1" );
 
 	m_PhysTimescaleValue = new vgui::TextEntry(this, "PhysTimescaleValue");
-	char pbuf[64];
-  	Q_snprintf(pbuf, sizeof( pbuf ), "1");
-	m_PhysTimescaleValue->SetText(pbuf);
-
+	helper.SetText( m_PhysTimescaleValue, "1" );
+	
 	m_Noclip = new CheckButton( this, "Noclip", "Noclip" );
 	m_Notarget = new CheckButton( this, "Notarget", "Notarget" );
 	m_DarkTheme = new CheckButton( this, "m_DarkTheme", "Dark Theme" );
@@ -532,6 +497,7 @@ void SMToolMenu::ApplyValues()
 	m_PhysTimescale->ApplyChanges();
 	m_Gravity->ApplyChanges();
 
+	extern ConVar sm_menu_theme;
 	sm_menu_theme.SetValue( m_DarkTheme->IsSelected() );
 }
 
@@ -561,19 +527,11 @@ void SMToolMenu::OnCommand( const char *pcCommand )
 	else if(!Q_stricmp(pcCommand, "giveall"))
 		engine->ClientCmd( "impulse 101" );
 	else if(!Q_stricmp(pcCommand, "phys") )
-		CheckVar( "physcannon_mega_enabled" );
+		helper.CheckVar( "physcannon_mega_enabled" );
 	else if(!Q_stricmp(pcCommand, "thirdperson"))
 	{	
-		if ( bCam )
-		{
-			CAM_ToFirstPerson();
-			bCam = false;
-		}	
-		else 
-		{
-			CAM_ToThirdPerson();
-			bCam = true;
-		}
+		bCam ? CAM_ToFirstPerson() : CAM_ToThirdPerson();
+		bCam = !bCam;
 	}
 	else if ( !Q_stricmp(pcCommand, "give_tool") )
 		engine->ClientCmd("give weapon_toolgun");
@@ -584,18 +542,22 @@ void SMToolMenu::OnCommand( const char *pcCommand )
 	else if( !Q_stricmp(pcCommand, "give_phys"))
 		engine->ClientCmd("give weapon_physgun");
 	else if( !Q_stricmp(pcCommand, "infinite"))
-		CheckVar( "sv_infinite_aux_power" );
+		helper.CheckVar( "sv_infinite_aux_power" );
 	else if (!Q_stricmp(pcCommand, "reload"))
 	{
-		ReloadScheme( this );
+		helper.ReloadScheme( this );
+	}
+	else if ( !Q_stricmp(pcCommand, "editor") )
+	{
+		OpenSchemeEditor( this );
 	}
 }
 // List of Models and Entities
 SMList::SMList( vgui::Panel *parent, const char *pName ) : BaseClass( parent, pName )
 {
+	vgui::ivgui()->AddTickSignal(GetVPanel(), 100);
 	SetBounds( 0, 0, 800, 690 );
 }
-
 
 void SMList::ExtraSpawn( const char *name, bool bCitizen )
 {
@@ -617,8 +579,6 @@ SMFrame::SMFrame( vgui::Panel *parent, const char *panelName, const char *name, 
 	int swide, stall;
 	surface()->GetScreenSize(swide, stall);
 	SetProportionalBounds( this, (swide - wide) / 2, (stall - tall) / 2, wide, tall  );
-	//SetSize( wide, tall );
-	//SetPos((swide - wide) / 2, (stall - tall) / 2);
 	
 	if ( bCitizen )
 	{
@@ -628,31 +588,23 @@ SMFrame::SMFrame( vgui::Panel *parent, const char *panelName, const char *name, 
 		m_CitizenType->AddItem( "Shabby Citizen", NULL );
 		m_CitizenType->AddItem( "Rebel", NULL );
 		SetProportionalBounds( m_CitizenType, 48, 120, 200, 40 );
-		//m_CitizenType->SetBounds( 48, 120, 100, 40 );
 		
 		m_CitizenLabel = new Label( this, "Name", "CitizenType" );
 		SetProportionalBounds(m_CitizenLabel, 48, 100, 100, 16 );
-		//m_CitizenLabel->SetBounds( 58, 100, 100, 16 );
 
 		bCombine = false;
 	}
 
 	m_WeaponType = new ComboBox( this, "WeaponType", 32, false );
 	SetProportionalBounds(m_WeaponType, 48, 52, 200, 40 );
-	//m_WeaponType->SetBounds( 48, 52, 100, 40 );
 	
 	m_WeaponLabel = new Label( this, "Name", "Weapon" );
 	SetProportionalBounds( m_WeaponLabel, 48, 34, 100, 16 );
-	//m_WeaponLabel->SetBounds( 68, 34, 100, 16 );
 
-	
 	m_Spawn = new Button( this, "Button", "Spawn" );
 	m_Spawn->SetContentAlignment( Label::a_center );
 	SetProportionalBounds(m_Spawn, 48, 184, 200, 40 );
-	//m_Spawn->SetBounds( 48, 184, 100, 40 );
 
-
-	//LoadControlSettings("resource/ui/smframe.res");
 	SetSizeable( false );
 	SetTitle( "ExtraSpawn", true );
 	
@@ -666,6 +618,8 @@ void SMFrame::SetProportionalBounds( vgui::Panel *panel, int x, int y, int w, in
 						  scheme()->GetProportionalScaledValueEx(GetScheme(), y), 
 						  scheme()->GetProportionalScaledValueEx(GetScheme(), w), 
 						  scheme()->GetProportionalScaledValueEx(GetScheme(), h) );
+	else
+		panel->SetBounds( x, y, w, h );
 }
 
 void SMFrame::InitWeapons()
@@ -702,11 +656,7 @@ void SMFrame::OnCommand( const char *cmd )
 
 void SMFrame::MakeCommand()
 {
-	if ( !IsVisible() )
-		return;
-
-	char weapon[64];
-	char buf[128];
+	char weapon[64], buf[128];
 
 	m_WeaponType->GetText( weapon, 64 );
 
@@ -723,17 +673,19 @@ void SMFrame::MakeCommand()
 
 void SMFrame::OnTick()
 {
+	if (!IsVisible())
+		return;
+
 	BaseClass::OnTick();
-	
 	MakeCommand();
 }
 
 void SMList::OnTick( void )
 {
-	BaseClass::OnTick();
-
 	if ( !IsVisible() )
 		return;
+
+	BaseClass::OnTick();
 
 	int c = m_LayoutItems.Count();
 	for ( int i = 0; i < c; i++ )
@@ -750,28 +702,29 @@ void SMList::OnCommand( const char *command )
 	else if ( !Q_stricmp( command, "npc_combine_s" ) )
 		ExtraSpawn( "Spawn Combine", false );
 	else
-		engine->ClientCmd( (char *)command );
+		engine->ClientCmd( command );
 }
 
 void SMList::PerformLayout()
 {
 	BaseClass::PerformLayout();
 
-	int w = 128;
-	int h = 128;
-	int x = 5;
-	int y = 5;
+	int w = 128, h = 128;
 
-	for ( int i = 0; i < m_LayoutItems.Count(); i++ )
-	{	
-		vgui::Panel *p = m_LayoutItems[ i ];
-		p->SetBounds( x, y, w, h );
-		x += ( w + 2 );
-		if ( x >= GetWide() - w )
-		{
-			y += ( h + 2 );
-			x = 5;
-		}	
+	int s = 2, y = 5, x = 5;
+	int columns = (GetWide() - x) / (w + s);
+
+	SetNumColumns( columns );
+
+	for (int i = 0; i < m_LayoutItems.Count(); i++)
+	{
+	    int row = i / columns;
+	    int col = i % columns;
+
+	    int xpos = x + col * (w + s);
+	    y = row * (h + s);
+
+	    m_LayoutItems[i]->SetBounds(xpos, y, w, h);
 	}
 }
 
@@ -819,6 +772,7 @@ void SMList::InitEntities( KeyValues *kv, PanelListPanel *panel, const char *ent
 						command = "additionalequipment weapon_oldmanharpoon";
 
 					Q_snprintf( entspawn, sizeof(entspawn), "ent_create %s %s", entname, command );
+
 				}
 				
 				Q_snprintf( img, sizeof( img ), "smenu/%s", entname );
@@ -830,9 +784,8 @@ void SMList::InitEntities( KeyValues *kv, PanelListPanel *panel, const char *ent
 					if ( FStrEq(entname, "npc_combine_s") || FStrEq( entname, "npc_citizen" ) )
 						AddImageButton( panel, img, NULL, entname );
 					else
-					{
 						AddImageButton( panel, img, NULL, entspawn );
-					}
+					
 					continue;
 				}
 			}
@@ -891,12 +844,9 @@ void SMList::InitEntities( KeyValues *kv, PanelListPanel *panel, const char *ent
 CSMenu::CSMenu( vgui::VPANEL *parent, const char *panelName ) : BaseClass( NULL, "SMenu" )
 {
 	SetTitle( "SMenu", true );
-	//SetScheme(vgui::scheme()->LoadSchemeFromFile("resource/SourceScheme.res", "SourceScheme"));
-
 	SetProportional(true);
-	
-	int w = 645;
-	int h = 450;
+
+	int w = 645, h = 450;
 
 	if (IsProportional())
 	{
@@ -932,7 +882,8 @@ CSMenu::CSMenu( vgui::VPANEL *parent, const char *panelName ) : BaseClass( NULL,
 	
 	SMModels *mdl = new SMModels( this, "PropMenu" );
 	FileFindHandle_t fh;
-	for ( const char *pDir = filesystem->FindFirstEx( "models/*", "GAME", &fh ); pDir && *pDir; pDir = filesystem->FindNext( fh ) )
+	for ( const char *pDir = filesystem->FindFirstEx( "models/*", "GAME", &fh ); 
+		  pDir && *pDir; pDir = filesystem->FindNext( fh ) )
 	{			
 		if ( Q_strncmp( pDir, "props_", Q_strlen("props_") ) == 0 ) {
 			if ( filesystem->FindIsDirectory( fh ) )
@@ -1032,11 +983,11 @@ void SMWeapons::OnTick( void )
 	if ( !IsVisible() )
 		return;	
 	
-	const char * data; 
-	char buf[64];
-	m_CheckVar->GetText( buf, 64 );
-	data = m_ComboBox->GetActiveItemUserData()->GetString();
+	const char * data = m_ComboBox->GetActiveItemUserData()->GetString();
 	ConVarRef convar( data );
+	
+	char buf[64];
+	m_CheckVar->GetText( buf, sizeof(buf) );
 	convar.SetValue( buf );
 		
 	ConVarRef hls_weapons_allowed("hls_weapons_allowed" );

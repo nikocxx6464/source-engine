@@ -17,7 +17,6 @@
 
 ConVar hud_ar2_mode_icon( "hud_ar2_mode_icon", "1", FCVAR_ARCHIVE, "Enables or disables appearing of the AR2 mode HUD icon" );
 ConVar hud_ar2_mode_full_dim( "hud_ar2_mode_full_dim", "0", FCVAR_ARCHIVE, "Enables or disables full dimming of the AR2 mode HUD icon" );
-
 //=============================================================================
 // Purpose: 
 //=============================================================================
@@ -177,18 +176,22 @@ void CHudAR2Mode::Paint()
 	Color col = gHUD.m_clrNormal;
 	col[3] = 255 * scalar;
 
+	float scale = 0.5f;
+	int width = m_pZoomIcon->Width() * scale;
+	int height = m_pZoomIcon->Height() * scale;
+
 //	Msg( "Current AR2 mode: " );
 	switch ( m_currentMode )
 	{
 	case AR2MODE_ZOOM:
 	//	Msg( "AR2MODE_ZOOM\n" );
-		m_pZoomIcon->DrawSelf( icon_xpos, icon_ypos, m_pZoomIcon->Width(), m_pZoomIcon->Height(), col );
-		m_pZoomIcon->DrawSelf( icon_xpos, icon_ypos, m_pZoomIcon->Width(), m_pZoomIcon->Height(), col );
+		m_pZoomIcon->DrawSelf( icon_xpos, icon_ypos, width, height, col );
+		m_pZoomIcon->DrawSelf( icon_xpos, icon_ypos, width, height, col );
 		break;
 	case AR2MODE_GRENADE:
 	//	Msg( "AR2MODE_GRENADE\n" );
-		m_pGrenadeIcon->DrawSelf( icon_xpos, icon_ypos, m_pGrenadeIcon->Width(), m_pGrenadeIcon->Height(), col );
-		m_pGrenadeIcon->DrawSelf( icon_xpos, icon_ypos, m_pGrenadeIcon->Width(), m_pGrenadeIcon->Height(), col );
+		m_pGrenadeIcon->DrawSelf( icon_xpos, icon_ypos, width, height, col );
+		m_pGrenadeIcon->DrawSelf( icon_xpos, icon_ypos, width, height, col );
 		break;
 	default:
 		break;

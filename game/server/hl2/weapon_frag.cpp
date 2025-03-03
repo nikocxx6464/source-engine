@@ -239,12 +239,7 @@ void CWeaponFrag::SecondaryAttack( void )
 	if ( !HasPrimaryAmmo() )
 		return;
 
-	CBaseCombatCharacter *pOwner  = GetOwner();
-
-	if ( pOwner == NULL )
-		return;
-
-	CBasePlayer *pPlayer = ToBasePlayer( pOwner );
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	
 	if ( pPlayer == NULL )
 		return;
@@ -272,14 +267,7 @@ void CWeaponFrag::PrimaryAttack( void )
 	if ( m_bRedraw )
 		return;
 
-	CBaseCombatCharacter *pOwner  = GetOwner();
-	
-	if ( pOwner == NULL )
-	{ 
-		return;
-	}
-
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );;
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
 	if ( !pPlayer )
 		return;

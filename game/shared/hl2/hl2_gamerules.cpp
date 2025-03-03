@@ -2439,7 +2439,7 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
 		def.AddAmmoType("Extinguisher",		DMG_BURN,					TRACER_NONE,			0,	0, 100, 0, 0 );
 		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			0, 0, 0, 0, 0 );
-		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			0,	0,	5,	0,	0 );
+		def.AddAmmoType("slam",				DMG_BURN,					TRACER_NONE,			"sk_plr_dmg_satchel",	"sk_npc_dmg_satchel",	"sk_max_satchel",	0,	0 );
 		//=====================================================================
 		// STRIDER MINIGUN DAMAGE - Pull up a chair and I'll tell you a tale.
 		//
