@@ -29,7 +29,7 @@ jobs:
          mv srceng-mod-launcher/build/android/mod-signed.apk mod-release.apk
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: mod-apk
         path: mod-release.apk

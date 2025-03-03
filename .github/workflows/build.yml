@@ -12,7 +12,7 @@ jobs:
       run: |
         scripts/build-ubuntu-i386.sh
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-i386
         path: bin
@@ -26,7 +26,7 @@ jobs:
       run: |
         scripts/build-ubuntu-amd64.sh
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-amd64
         path: bin
@@ -43,7 +43,7 @@ jobs:
         ./waf.bat install
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-i386
         path: bin
@@ -60,7 +60,7 @@ jobs:
         ./waf.bat install
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-amd64
         path: bin
@@ -77,7 +77,7 @@ jobs:
         ./waf.bat install 
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-dedicated-i386
         path: bin
@@ -93,7 +93,7 @@ jobs:
         ./waf.bat configure -T release --prefix=bin -d
         ./waf.bat install
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-dedicated-amd64
         path: bin
@@ -108,7 +108,7 @@ jobs:
         scripts/build-ubuntu-i386.sh -d
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-dedicated-i386
         path: bin
@@ -122,7 +122,7 @@ jobs:
       run: |
         scripts/build-ubuntu-amd64.sh -d
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-dedicated-amd64
         path: bin
@@ -136,7 +136,7 @@ jobs:
       run: |
         scripts/build-macos-amd64.sh
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: macos-amd64
         path: bin
@@ -151,7 +151,7 @@ jobs:
         scripts/build-macos-amd64.sh -d
 
     - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: macos-dedicated-amd64
         path: bin
