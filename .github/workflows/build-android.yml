@@ -12,7 +12,7 @@ jobs:
       run: |
         git clone https://github.com/ItzVladik/srceng-mod-launcher
         sudo apt-get update
-        sudo apt-get install -f -y openjdk-8-jre zip apksigner imagemagick
+        sudo apt-get install -f -y openjdk-8-jre zip apksigner imagemagick zlib1g
     - name: Build Android (32 bit)
       run: |
         scripts/build-android-armv7a.sh
