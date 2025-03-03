@@ -44,7 +44,7 @@ ConVar exp_magnitude("tool_exp_magnitude", "0");
 ConVar exp_radius("tool_exp_radius", "0");
 ConVar tool_create("tool_create", "");
 ConVar tool_allow_delete_player( "tool_allow_delete_player", "0" );
-ConVar tool_shoot_duration("tool_shoot_duration", "0.5", "", FCVAR_ARCHIVE );
+ConVar tool_shoot_duration("tool_shoot_duration", "0.5", FCVAR_ARCHIVE );
 #endif
 
 #define BEAM_SPRITE "sprites/bluelaser1.vmt"
