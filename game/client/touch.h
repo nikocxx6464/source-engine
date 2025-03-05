@@ -243,6 +243,8 @@ private:
 	bool m_bCutScene;
 	float m_flHideTouch;
 	int m_AlphaDiff;
+
+	bool m_bVehicle;
 };
 
 extern CTouchControls gTouch;

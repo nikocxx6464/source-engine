@@ -326,7 +326,7 @@ void CTouchControls::ResetToDefaults()
 		AddButton( "use", "vgui/touch/use", "+use", 0.880000, 0.213333, 1.000000, 0.426667, color );
 		AddButton( "jump", "vgui/touch/jump", "+jump", 0.880000, 0.462222, 1.000000, 0.675556, color );
 		AddButton( "attack", "vgui/touch/shoot", "+attack", 0.760000, 0.583333, 0.880000, 0.796667, color );
-		AddButton( "attack2", "vgui/touch/shoot_alt", "+attack2", 0.760000, 0.320000, 0.880000, 0.533333, color );
+		AddButton( "attack2", "vgui/touch/shoot_alt", "+attack3", 0.760000, 0.320000, 0.880000, 0.533333, color );
 		AddButton( "duck", "vgui/touch/crouch", "+duck", 0.880000, 0.746667, 1.000000, 0.960000, color );
 		AddButton( "tduck", "vgui/touch/tduck", ";+duck", 0.560000, 0.817778, 0.620000, 0.924444, color );
 		AddButton( "zoom", "vgui/touch/zoom", "+zoom", 0.680000, 0.00000, 0.760000, 0.142222, color );
@@ -378,6 +378,8 @@ void CTouchControls::Init()
 	showtexture = hidetexture = resettexture = closetexture = joytexture = 0;
 	configchanged = false;
 
+	m_bVehicle = false;
+
 	rgba_t color(255, 255, 255, 155);
 
 	AddButton( "look", "", "_look", 0.5, 0, 1, 1, color, 0, 0, 0 );
@@ -386,7 +388,7 @@ void CTouchControls::Init()
 	AddButton( "use", "vgui/touch/use", "+use", 0.880000, 0.213333, 1.000000, 0.426667, color );
 	AddButton( "jump", "vgui/touch/jump", "+jump", 0.880000, 0.462222, 1.000000, 0.675556, color );
 	AddButton( "attack", "vgui/touch/shoot", "+attack", 0.760000, 0.583333, 0.880000, 0.796667, color );
-	AddButton( "attack2", "vgui/touch/shoot_alt", "+attack2", 0.760000, 0.320000, 0.880000, 0.533333, color );
+	AddButton( "attack2", "vgui/touch/shoot_alt", "+attack3", 0.760000, 0.320000, 0.880000, 0.533333, color );
 	AddButton( "duck", "vgui/touch/crouch", "+duck", 0.880000, 0.746667, 1.000000, 0.960000, color );
 	AddButton( "tduck", "vgui/touch/tduck", ";+duck", 0.560000, 0.817778, 0.620000, 0.924444, color );
 	AddButton( "zoom", "vgui/touch/zoom", "+zoom", 0.680000, 0.00000, 0.760000, 0.142222, color );
@@ -631,6 +633,24 @@ void CTouchControls::Frame()
 		return;
 
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+
+	// I'm lazy to make work _look with +moveleft and +moveright, or I just stupid and dont know how to do
+	if ( FStrEq( engine->GetLevelName(), "maps/sde_a06_industrial_a.bsp" ) )
+	{
+		if ( !m_bVehicle )
+		{
+			rgba_t color(255, 255, 255, 155);
+			AddButton( "moveleft", "vgui/touch/dpad_left", "+moveleft", 0.440000, 0.222222, 0.540000, 0.444444, color );
+			AddButton( "moveright", "vgui/touch/dpad_right", "+moveright", 0.640000, 0.222222, 0.740000, 0.444444, color );
+			m_bVehicle = true;
+		}
+	}
+	else if ( m_bVehicle )
+	{
+		RemoveButton("moveright");
+		RemoveButton("moveleft");
+		m_bVehicle = false;
+	}
 
 	if( pPlayer && (pPlayer->GetFlags() & FL_FROZEN || g_pIntroData != NULL) )
 	{
