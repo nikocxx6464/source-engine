@@ -632,6 +632,25 @@ void CTouchControls::Frame()
 
 	C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
 
+	// I'm lazy to make work _look with +moveleft and +moveright, or I just stupid and dont know how to do
+	if ( FStrEq( engine->GetLevelName(), "maps/pht_a11_outlands_a.bsp" ) )
+	{
+		if ( !m_bVehicle )
+		{
+			rgba_t color(255, 255, 255, 155);
+			AddButton( "moveleft", "vgui/touch/dpad_left", "+moveleft", 0.440000, 0.222222, 0.540000, 0.444444, color );
+			AddButton( "moveright", "vgui/touch/dpad_right", "+moveright", 0.640000, 0.222222, 0.740000, 0.444444, color );
+			m_bVehicle = true;
+		}
+	}
+	else if ( m_bVehicle )
+	{
+		RemoveButton("moveright");
+		RemoveButton("moveleft");
+		m_bVehicle = false;
+	}
+
+
 	if( pPlayer && (pPlayer->GetFlags() & FL_FROZEN || g_pIntroData != NULL) )
 	{
 		if( !m_bCutScene )
