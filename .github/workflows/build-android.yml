@@ -28,11 +28,12 @@ jobs:
       run: |
          mv srceng-mod-launcher/build/android/mod-signed.apk mod-release.apk
 
-             - name: Upload a Build Artifact
+ 
+    - name: Upload a Build Artifact
   uses: actions/upload-artifact@v4.6.2
   with:
     # Artifact name
-    name: # optional, default is artifact
+    name: mod # optional, default is artifact
     # A file, directory or wildcard pattern that describes what to upload
     path: mod-test.apk
     # The desired behavior if no files are found using the provided path.
